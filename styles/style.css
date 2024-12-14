@@ -1174,7 +1174,6 @@
    align-items: center;
    justify-content: center;
    padding: 24px 80px;
-   width: 100%;
    background-color: var(--primitives-gray-50);
  }
  
@@ -1183,7 +1182,6 @@
    flex-direction: row;
    align-items: center;
    justify-content: center;
-   width: 100%;
  }
  
  .home-desktop-light .footer-note {
@@ -1191,7 +1189,6 @@
    align-items: center;
    justify-content: center;
    gap: 8px;
-   width: 100%;
  }
  
  .home-desktop-light .icon-3 {
