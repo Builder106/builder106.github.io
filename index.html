@@ -1,161 +1,434 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Olayinka's Portfolio</title>
-
-   <style>
-      .site-header {
-        background-color: #fff;
-        border-bottom: 1px solid transparent;
-        display: flex;
-        width: 100%;
-        align-items: center;
-        overflow: hidden;
-        justify-content: space-between;
-        padding: 16px 80px;
-      }
-      
-      .header-container {
-        align-self: stretch;
-        display: flex;
-        min-width: 240px;
-        width: 100%;
-        align-items: center;
-        gap: 40px 100px;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        flex: 1 0 0;
-        margin: 0;
-        padding: 0 32px;
-      }
-      
-      .brand-logo {
-        color: #111827;
-        letter-spacing: -0.6px;
-        text-align: center;
-        align-self: stretch;
-        margin: auto 0;
-        font: 700 30px/1.2 Inter, sans-serif;
-      }
-      
-      .nav-menu {
-        align-self: stretch;
-        display: flex;
-        min-width: 240px;
-        align-items: center;
-        gap: 24px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin: auto 0;
-      }
-      
-      .nav-link {
-        align-self: stretch;
-        color: var(--Gray-600, #4b5563);
-        font: 500 16px Inter, sans-serif;
-      }
-      
-      .nav-divider {
-        align-self: stretch;
-        width: 0;
-        height: 24px;
-        margin: auto 0;
-        border: 1px solid #f3f4f6;
-      }
-      
-      .nav-actions {
-        align-self: stretch;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        justify-content: center;
-        margin: auto 0;
-      }
-      
-      .theme-toggle {
-        border-radius: 8px;
-        align-self: stretch;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        margin: auto 0;
-        padding: 6px;
-      }
-      
-      .theme-icon {
-        aspect-ratio: 1;
-        object-fit: contain;
-        object-position: center;
-        width: 24px;
-        align-self: stretch;
-        margin: auto 0;
-      }
-      
-      .resume-button {
-        align-self: stretch;
-        border-radius: 12px;
-        background-color: #111827;
-        color: var(--Gray-50, #f9fafb);
-        margin: auto 0;
-        padding: 6px 16px;
-        font: 500 16px Inter, sans-serif;
-      }
-      
-      .visually-hidden {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        border: 0;
-      }
-      
-      @media (max-width: 991px) {
-        .site-header {
-          max-width: 100%;
-          padding: 0 20px;
-        }
-      
-        .header-container {
-          max-width: 100%;
-          padding: 0 20px;
-        }
-      
-        .nav-menu {
-          max-width: 100%;
-        }
-      
-        .nav-link {
-          white-space: initial;
-        }
-      }
-      </style>
-</head>
-<body>
-
-      
-      <header class="site-header" role="banner">
-        <div class="header-container">
-          <div class="brand-logo" role="heading" aria-level="1">&lt;OV /&gt;</div>
-          <nav class="nav-menu" role="navigation" aria-label="Main navigation">
-            <a href="#about" class="nav-link" tabindex="0">About</a>
-            <a href="#experience" class="nav-link" tabindex="0">Experience</a>
-            <a href="#work" class="nav-link" tabindex="0">Work</a>
-            <a href="#contact" class="nav-link" tabindex="0">Contact</a>
-            <div class="nav-divider" aria-hidden="true"></div>
-            <div class="nav-actions">
-              <button class="theme-toggle" aria-label="Toggle theme">
-                <img src="https://cdn.builder.io/api/v1/image/assets/88dde3b52c6d4a0582895a25dd445a34/91cc169e8f6e513f49358a47d1c9c51ee1d8955d989c05f9d2e893ecd2c20d24?apiKey=88dde3b52c6d4a0582895a25dd445a34&" class="theme-icon" alt="Theme toggle icon" />
-              </button>
-              <a href="#" class="resume-button" role="button" tabindex="0">Download Resume</a>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="styleguide.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="home-desktop-light">
+      <header class="header">
+        <div class="container">
+          <div class="OV">&lt;OV /&gt;</div>
+          <div class="navigation">
+            <div class="link"><div class="text-wrapper">About</div></div>
+            <div class="link"><div class="text-wrapper">Experience</div></div>
+            <div class="link"><div class="text-wrapper">Work</div></div>
+            <div class="link"><div class="text-wrapper">Contact</div></div>
+            <img class="divider" src="img/divider.svg" />
+            <div class="actions">
+              <div class="icon-button"><img class="icon" src="img/icon-6.svg" /></div>
+              <button class="button"><div class="button-light-mode">Download Resume</div></button>
             </div>
-          </nav>
+          </div>
         </div>
       </header>
-</body>
+      <div class="hero">
+        <div class="div">
+          <div class="column">
+            <div class="div-2">
+              <div class="text">Hi, I’m Yinka 👋</div>
+              <p class="p">
+                I am a passionate full-stack developer with a knack for turning ideas into functional, user-friendly
+                applications. My expertise spans front-end technologies like React and Angular, to back-end frameworks
+                like Node.js and Express, with a strong foundation in database management using SQL and NoSQL solutions
+                like MongoDB. Whether building sleek interfaces or architecting robust APIs, I thrive in bridging the
+                gap between design and functionality.
+              </p>
+            </div>
+            <div class="div-2">
+              <div class="location">
+                <img class="icon" src="img/icon-5.svg" />
+                <div class="text-2">Middletown, CT</div>
+              </div>
+              <div class="hire">
+                <div class="icon-dot-emerald-wrapper"><div class="icon-dot-emerald"></div></div>
+                <div class="text-2">Available for new projects</div>
+              </div>
+            </div>
+            <div class="div-3">
+              <div class="links">
+                <img class="linkedin-logo-light" src="img/linkedin-logo-light-mode-36x36-1.png" />
+                <img class="linkedin-logo-light" src="img/linkedin-logo-light-mode-36x36-2.png" />
+                <img class="linkedin-logo-light" src="img/linkedin-logo-light-mode-36x36-3.png" />
+              </div>
+            </div>
+          </div>
+          <div class="pic-container-wrapper">
+            <div class="pic-container">
+              <div class="overlap-group">
+                <div class="background"></div>
+                <div class="pic"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="about">
+        <div class="container-2">
+          <div class="div-3">
+            <div class="row">
+              <div class="tag"><div class="text-wrapper-2">About me</div></div>
+            </div>
+          </div>
+          <div class="row-2">
+            <div class="div-wrapper">
+              <div class="overlap-group-wrapper">
+                <div class="overlap-group-2">
+                  <div class="background-2"></div>
+                  <div class="pic-2"></div>
+                </div>
+              </div>
+            </div>
+            <div class="column-2">
+              <p class="text-3">Curious about me? Here you have it:</p>
+              <div class="div-3">
+                <p class="text-4">
+                  I’ve been coding since I was ten, starting with Scratch—a platform that ignited my curiosity and
+                  taught me the foundational principles of programming through colorful blocks and animations. Back
+                  then, I spent hours creating interactive stories and games, reveling in the magic of bringing ideas to
+                  life. That early experience planted a seed of passion, and I’ve nurtured it ever since, diving deeper
+                  into the world of software development as I grew.
+                </p>
+                <p class="text-5">
+                  Over the years, I transitioned from Scratch to text-based programming, exploring languages like
+                  Python, JavaScript, and Java. I became fascinated by the endless possibilities coding offered—from
+                  building dynamic websites and interactive user interfaces to designing robust back-end systems and
+                  scalable applications. Today, I specialize in full-stack development, mastering modern frameworks like
+                  Angular and Node.js, and leveraging databases such as MongoDB and SQL to deliver comprehensive
+                  solutions.
+                </p>
+                <p class="text-5">
+                  What excites me most about coding is the ability to solve complex problems and create meaningful
+                  applications that make a difference. I’ve worked on projects ranging from web platforms and APIs to
+                  data-driven applications, always aiming to blend functionality with user-centric design. My journey is
+                  fueled by curiosity, and I’m constantly exploring new tools and technologies to expand my skill set.
+                </p>
+                <p class="text-5">
+                  From the playful experiments of my childhood to the sophisticated projects I tackle today, coding has
+                  always been more than a skill—it’s my way of transforming ideas into reality. Whether I’m debugging an
+                  intricate algorithm or designing a seamless user experience, I bring the same enthusiasm and
+                  creativity that first sparked my love for programming.
+                </p>
+                <p class="text-6">Finally, some quick bits about me.</p>
+                <div class="checklist">
+                  <div class="column-3">
+                    <p class="text-4">Working on my B.A. in CompSci</p>
+                    <div class="text-5">Hackathon lover</div>
+                  </div>
+                  <div class="column-3">
+                    <div class="text-4">Avid learner</div>
+                    <div class="text-5">Dedicated leetcoder</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="div-4">
+        <div class="container-3">
+          <div class="div-3">
+            <div class="row">
+              <div class="tag"><div class="text-wrapper-2">Skills</div></div>
+            </div>
+            <div class="row"><p class="text-wrapper-3">The skills, tools and technologies I am really good at:</p></div>
+          </div>
+          <div class="row-3">
+            <div class="row-4">
+              <div class="tech">
+                <img class="HTML" src="img/HTML.png" />
+                <div class="text-wrapper-4">HTML</div>
+              </div>
+              <div class="tech-2">
+                <img class="img" src="img/CSS.png" />
+                <div class="text-wrapper-4">CSS</div>
+              </div>
+              <div class="tech">
+                <img class="img" src="img/bootstrap.png" />
+                <div class="text-wrapper-4">Bootstrap</div>
+              </div>
+              <div class="tech">
+                <img class="img" src="img/tailwindcss.png" />
+                <div class="text-wrapper-4">Tailwindcss</div>
+              </div>
+              <div class="tech">
+                <img class="img" src="img/java-script.png" />
+                <div class="text-wrapper-4">JavaScript</div>
+              </div>
+              <div class="tech">
+                <img class="img" src="img/type-script.png" />
+                <div class="text-wrapper-4">TypeScript</div>
+              </div>
+              <div class="tech">
+                <img class="img" src="img/react.png" />
+                <div class="text-wrapper-4">React</div>
+              </div>
+              <div class="tech-3">
+                <img class="img" src="img/angular.png" />
+                <div class="text-wrapper-4">Angular</div>
+              </div>
+              <div class="tech-3">
+                <img class="img" src="img/node-js.png" />
+                <div class="text-wrapper-4">Node.js</div>
+              </div>
+              <div class="tech-3">
+                <img class="img" src="img/express-js.png" />
+                <div class="text-wrapper-4">Express.js</div>
+              </div>
+            </div>
+            <div class="row-4">
+              <div class="tech-4">
+                <img class="img-2" src="img/postgre-SQL.svg" />
+                <div class="text-wrapper-4">PostgreSQL</div>
+              </div>
+              <div class="tech-5">
+                <img class="img-2" src="img/my-SQL.svg" />
+                <div class="text-wrapper-4">MySQL</div>
+              </div>
+              <div class="tech-5">
+                <img class="img-2" src="img/mongo-DB-2.svg" />
+                <div class="text-wrapper-4">MongoDB</div>
+              </div>
+              <div class="tech-6">
+                <img class="img-2" src="img/mongo-DB.svg" />
+                <div class="text-wrapper-4">Figma</div>
+              </div>
+              <div class="tech-7">
+                <img class="img-2" src="img/python.svg" />
+                <div class="text-wrapper-4">Python</div>
+              </div>
+              <div class="tech-5">
+                <img class="img-2" src="img/ruby.svg" />
+                <div class="text-wrapper-4">Ruby</div>
+              </div>
+              <div class="tech-5">
+                <img class="img-2" src="img/stata.svg" />
+                <div class="text-wrapper-4">Stata</div>
+              </div>
+              <div class="tech-5">
+                <img class="img-2" src="img/r.svg" />
+                <div class="text-wrapper-4">R</div>
+              </div>
+              <div class="tech-5">
+                <img class="img-2" src="img/c-2.svg" />
+                <div class="text-wrapper-4">C</div>
+              </div>
+              <div class="tech-5">
+                <img class="img-2" src="img/c.svg" />
+                <div class="text-wrapper-4">Git</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="experience">
+        <div class="container-4">
+          <div class="div-3">
+            <div class="row">
+              <div class="tag"><div class="text-wrapper-2">Experience</div></div>
+            </div>
+            <div class="row"><p class="text-wrapper-3">Here is a quick summary of my most recent experiences:</p></div>
+          </div>
+          <div class="row-wrapper">
+            <div class="row-5">
+              <div class="wesleyan-university-wrapper">
+                <img class="wesleyan-university" src="img/wesleyan-university-logo-1.png" />
+              </div>
+              <div class="column-4">
+                <div class="text-wrapper-5">Research Assistant</div>
+                <div class="column-5">
+                  <p class="text-4">
+                    Collaborated with College of Letters and Traveler’s Lab to develop Constantinopolitana: Database of
+                    East Rome (CDER), a cutting-edge spatial encyclopedia focusing on the Carolingian Empire’s history
+                  </p>
+                  <p class="text-5">
+                    Conducted in-depth analysis of 3 historical chronicles from the Carolingian Empire, leveraging
+                    advanced modeling techniques in nodegoat and QGIS to visualize and map data
+                  </p>
+                </div>
+              </div>
+              <div class="column-6"><p class="text-7">Feb 2024 - May 2024</p></div>
+            </div>
+          </div>
+          <div class="row-wrapper">
+            <div class="row-5">
+              <div class="column-7">
+                <img class="wesleyan-university" src="img/image.png" />
+                <div class="logo-upwork"></div>
+              </div>
+              <div class="column-4">
+                <div class="text-wrapper-5">Project Manager Coordinator</div>
+                <div class="column-5">
+                  <p class="text-4">
+                    Utilized Adobe Workfront to plan, track, and report 100 projects improving project completion rate
+                    by 15%
+                  </p>
+                  <p class="text-5">
+                    Audited 50 previous university projects and cleaned up databases resulting in 25% faster load times
+                  </p>
+                </div>
+              </div>
+              <div class="column-6"><p class="text-7">Oct 2023 - Dec 2023</p></div>
+            </div>
+          </div>
+          <div class="row-wrapper">
+            <div class="row-5">
+              <div class="column-7"><img class="HNG" src="img/HNG-1.png" /></div>
+              <div class="column-4">
+                <div class="text-wrapper-5">9.0 Intern</div>
+                <div class="column-5">
+                  <p class="text-4">
+                    Conducted 3 code reviews per week, contributing to a 20% improvement in overall code quality
+                  </p>
+                  <p class="text-5">
+                    Partnered with a team of interns to develop and test scalable React.js web applications
+                  </p>
+                </div>
+              </div>
+              <div class="column-6"><p class="text-7">Oct 2022 - Nov 2022</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="div-4">
+        <div class="row">
+          <div class="tag"><div class="text-wrapper-2">Work</div></div>
+        </div>
+        <div class="row-6">
+          <div class="tag-2"><div class="text-wrapper-2">Cybersecurity</div></div>
+          <div class="tag-3"><div class="text-wrapper-2">Data Analysis</div></div>
+          <div class="tag-4"><div class="text-wrapper-2">Software Engineering</div></div>
+        </div>
+        <div class="container-4">
+          <div class="div-3">
+            <div class="row"><p class="text-wrapper-3">Some of the noteworthy projects I have built:</p></div>
+          </div>
+          <div class="row-7">
+            <div class="picture-wrapper"><div class="picture"></div></div>
+            <div class="column-8">
+              <div class="text-wrapper-6">JobJotter</div>
+              <div class="text-5">A job application tracker</div>
+              <div class="technologies">
+                <div class="tag"><div class="text-wrapper-2">React</div></div>
+                <div class="tag"><div class="text-wrapper-2">Typescript</div></div>
+                <div class="tag"><div class="text-wrapper-2">Nest.js</div></div>
+                <div class="tag"><div class="text-wrapper-2">PostgreSQL</div></div>
+                <div class="tag"><div class="text-wrapper-2">Tailwindcss</div></div>
+                <div class="tag"><div class="text-wrapper-2">Figma</div></div>
+                <div class="tag"><div class="text-wrapper-2">Cypress</div></div>
+                <div class="tag"><div class="text-wrapper-2">Storybook</div></div>
+                <div class="tag"><div class="text-wrapper-2">Git</div></div>
+              </div>
+              <div class="icon-button-wrapper">
+                <div class="icon-button"><img class="icon" src="img/icon-2.svg" /></div>
+              </div>
+            </div>
+          </div>
+          <div class="row-7">
+            <div class="column-8">
+              <div class="text-wrapper-6">Fiskil</div>
+              <p class="text-5">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas nec urna ac tellus volutpat viverra.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.
+              </p>
+              <div class="technologies">
+                <div class="tag"><div class="text-wrapper-2">React</div></div>
+                <div class="tag"><div class="text-wrapper-2">Next.js</div></div>
+                <div class="tag"><div class="text-wrapper-2">Typescript</div></div>
+                <div class="tag"><div class="text-wrapper-2">Nest.js</div></div>
+                <div class="tag"><div class="text-wrapper-2">PostgreSQL</div></div>
+                <div class="tag"><div class="text-wrapper-2">Tailwindcss</div></div>
+                <div class="tag"><div class="text-wrapper-2">Figma</div></div>
+                <div class="tag"><div class="text-wrapper-2">Cypress</div></div>
+                <div class="tag"><div class="text-wrapper-2">Storybook</div></div>
+                <div class="tag"><div class="text-wrapper-2">Git</div></div>
+              </div>
+              <div class="icon-button-wrapper">
+                <div class="icon-button"><img class="icon" src="img/icon-2.svg" /></div>
+              </div>
+            </div>
+            <div class="column-9"><div class="picture-2"></div></div>
+          </div>
+          <div class="row-7">
+            <div class="picture-wrapper"><div class="picture-3"></div></div>
+            <div class="column-8">
+              <div class="text-wrapper-6">Fiskil</div>
+              <p class="text-5">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas nec urna ac tellus volutpat viverra.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.
+              </p>
+              <div class="technologies">
+                <div class="tag"><div class="text-wrapper-2">React</div></div>
+                <div class="tag"><div class="text-wrapper-2">Next.js</div></div>
+                <div class="tag"><div class="text-wrapper-2">Typescript</div></div>
+                <div class="tag"><div class="text-wrapper-2">Nest.js</div></div>
+                <div class="tag"><div class="text-wrapper-2">PostgreSQL</div></div>
+                <div class="tag"><div class="text-wrapper-2">Tailwindcss</div></div>
+                <div class="tag"><div class="text-wrapper-2">Figma</div></div>
+                <div class="tag"><div class="text-wrapper-2">Cypress</div></div>
+                <div class="tag"><div class="text-wrapper-2">Storybook</div></div>
+                <div class="tag"><div class="text-wrapper-2">Git</div></div>
+              </div>
+              <div class="icon-button-wrapper">
+                <div class="icon-button"><img class="icon" src="img/icon-2.svg" /></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="div-4">
+        <div class="container-4">
+          <div class="div-3">
+            <div class="row">
+              <div class="tag"><div class="text-wrapper-2">Get in touch</div></div>
+            </div>
+            <div class="row">
+              <p class="text-wrapper-3">
+                What’s next? Feel free to reach out to me if you&#39;re looking for a developer, have a query, or simply
+                want to connect.
+              </p>
+            </div>
+          </div>
+          <div class="column-10">
+            <div class="div-5">
+              <img class="icon-2" src="img/icon.svg" />
+              <input class="input" placeholder="vaughanolayinka@gmail.com" type="email" />
+              <div class="icon-button"><img class="icon-2" src="img/icon-4.svg" /></div>
+            </div>
+            <div class="div-5">
+              <img class="icon-2" src="img/image.svg" />
+              <div class="text-8">+1 475 331 4070</div>
+              <div class="icon-button"><img class="icon-2" src="img/icon-7.svg" /></div>
+            </div>
+          </div>
+          <div class="social-wrapper">
+            <div class="social">
+              <p class="text-2">You may also find me on these platforms!</p>
+              <div class="links-wrapper">
+                <div class="links-2">
+                  <div class="links-3"></div>
+                  <div class="links-4"></div>
+                  <div class="devpost-wrapper"><img class="devpost" src="img/devpost.png" /></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <div class="container-5">
+          <div class="div-3">
+            <div class="row">
+              <div class="footer-note">
+                <img class="icon-3" src="img/icon-3.svg" />
+                <p class="text-9">2025 | All rights reserved</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </body>
 </html>
