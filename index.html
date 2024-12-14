@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Olayinka's Portfolio</title>
+
+   <style>
+      .site-header {
+        background-color: #fff;
+        border-bottom: 1px solid transparent;
+        display: flex;
+        width: 100%;
+        align-items: center;
+        overflow: hidden;
+        justify-content: space-between;
+        padding: 16px 80px;
+      }
+      
+      .header-container {
+        align-self: stretch;
+        display: flex;
+        min-width: 240px;
+        width: 100%;
+        align-items: center;
+        gap: 40px 100px;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        flex: 1 0 0;
+        margin: 0;
+        padding: 0 32px;
+      }
+      
+      .brand-logo {
+        color: #111827;
+        letter-spacing: -0.6px;
+        text-align: center;
+        align-self: stretch;
+        margin: auto 0;
+        font: 700 30px/1.2 Inter, sans-serif;
+      }
+      
+      .nav-menu {
+        align-self: stretch;
+        display: flex;
+        min-width: 240px;
+        align-items: center;
+        gap: 24px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: auto 0;
+      }
+      
+      .nav-link {
+        align-self: stretch;
+        color: var(--Gray-600, #4b5563);
+        font: 500 16px Inter, sans-serif;
+      }
+      
+      .nav-divider {
+        align-self: stretch;
+        width: 0;
+        height: 24px;
+        margin: auto 0;
+        border: 1px solid #f3f4f6;
+      }
+      
+      .nav-actions {
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        justify-content: center;
+        margin: auto 0;
+      }
+      
+      .theme-toggle {
+        border-radius: 8px;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        margin: auto 0;
+        padding: 6px;
+      }
+      
+      .theme-icon {
+        aspect-ratio: 1;
+        object-fit: contain;
+        object-position: center;
+        width: 24px;
+        align-self: stretch;
+        margin: auto 0;
+      }
+      
+      .resume-button {
+        align-self: stretch;
+        border-radius: 12px;
+        background-color: #111827;
+        color: var(--Gray-50, #f9fafb);
+        margin: auto 0;
+        padding: 6px 16px;
+        font: 500 16px Inter, sans-serif;
+      }
+      
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+      
+      @media (max-width: 991px) {
+        .site-header {
+          max-width: 100%;
+          padding: 0 20px;
+        }
+      
+        .header-container {
+          max-width: 100%;
+          padding: 0 20px;
+        }
+      
+        .nav-menu {
+          max-width: 100%;
+        }
+      
+        .nav-link {
+          white-space: initial;
+        }
+      }
+      </style>
+</head>
+<body>
+
+      
+      <header class="site-header" role="banner">
+        <div class="header-container">
+          <div class="brand-logo" role="heading" aria-level="1">&lt;OV /&gt;</div>
+          <nav class="nav-menu" role="navigation" aria-label="Main navigation">
+            <a href="#about" class="nav-link" tabindex="0">About</a>
+            <a href="#experience" class="nav-link" tabindex="0">Experience</a>
+            <a href="#work" class="nav-link" tabindex="0">Work</a>
+            <a href="#contact" class="nav-link" tabindex="0">Contact</a>
+            <div class="nav-divider" aria-hidden="true"></div>
+            <div class="nav-actions">
+              <button class="theme-toggle" aria-label="Toggle theme">
+                <img src="https://cdn.builder.io/api/v1/image/assets/88dde3b52c6d4a0582895a25dd445a34/91cc169e8f6e513f49358a47d1c9c51ee1d8955d989c05f9d2e893ecd2c20d24?apiKey=88dde3b52c6d4a0582895a25dd445a34&" class="theme-icon" alt="Theme toggle icon" />
+              </button>
+              <a href="#" class="resume-button" role="button" tabindex="0">Download Resume</a>
+            </div>
+          </nav>
+        </div>
+      </header>
+</body>
+</html>
