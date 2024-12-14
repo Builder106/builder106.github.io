@@ -1196,9 +1196,11 @@
  }
  
  .home-desktop-light .footer-note {
-   display: inline-flex;
+   display: flex;
    align-items: center;
    justify-content: center;
+   margin-left: auto;
+   margin-right: auto;
    gap: 8px;
    position: relative;
    flex: 0 0 auto;
