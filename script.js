@@ -15,6 +15,17 @@ function showSlide(index) {
   });
 }
 
+function setActiveSlide(element) {
+   const activeClass = 'active';
+   const carouselItems = document.querySelectorAll('.carousel-item');
+ 
+   carouselItems.forEach(item => {
+     item.classList.remove(activeClass);
+   });
+ 
+   element.classList.add(activeClass);
+ }
+
 function nextSlide() {
   showSlide(currentSlide - 1);
 }
