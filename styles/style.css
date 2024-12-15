@@ -860,10 +860,26 @@
  }
  
  .home-desktop-light .row-6 {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin: 0 auto;
+   gap: 16px; /* Adjust the gap as needed */
    height: 84px;
    position: relative;
    align-self: stretch;
    width: 100%;
+ }
+
+ .home-desktop-light .row-6 .tag {
+   position: relative;
+   display: flex;
+   align-items: center;
+   margin: 0 auto;
+   justify-content: center;
+   padding: 4px 20px;
+   background-color: var(--primitives-gray-200);
+   border-radius: 12px;
  }
  
  .home-desktop-light .tag-2 {
@@ -1189,7 +1205,6 @@
    align-items: center;
    justify-content: center;
    gap: 8px;
-
 }
  
  .home-desktop-light .icon-3 {
@@ -1213,4 +1228,32 @@
    white-space: nowrap;
    font-style: var(--body3-normal-all-font-style);
  }
+
+.home-desktop-light .carousel {
+   position: relative;
+   display: flex;
+   align-items: center;
+}
  
+.home-desktop-light .carousel-inner {
+   display: flex;
+   overflow: hidden;
+   width: 100%;
+}
+
+.home-desktop-light .carousel-control {
+   background: none;
+   border: none;
+   font-size: 2rem;
+   cursor: pointer;
+   padding: 0 10px;
+}
+ 
+ .home-desktop-light .carousel-item.active {
+   background-color: black;
+   color: white;
+ }
+
+ .home-desktop-light .carousel-item.active .text-wrapper-2 {
+   color: white;
+ }
