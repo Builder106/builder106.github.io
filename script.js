@@ -61,13 +61,16 @@ function copyToClipboard(text) {
  }
 
  document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+   const darkModeToggle = document.getElementById('dark-mode-toggle');
    if (DarkReader.isEnabled()) {
-       DarkReader.disable();
+     DarkReader.disable();
+     darkModeToggle.src = 'img/light-mode.svg';
    } else {
-       DarkReader.enable({
-           brightness: 100,
-           contrast: 90,
-           sepia: 10
-       });
+     DarkReader.enable({
+       brightness: 100,
+       contrast: 90,
+       sepia: 10
+     });
+     darkModeToggle.src = 'img/dark-mode.svg';
    }
-});
+ });

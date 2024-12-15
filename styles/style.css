@@ -110,6 +110,33 @@
    border-radius: 8px;
  }
  
+ .home-desktop-light .icon-button button {
+   all: unset;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   padding: 8px;
+   background-color: var(--primitives-gray-200);
+   border-radius: 50%;
+   cursor: pointer;
+   transition: background-color 0.3s ease, transform 0.3s ease;
+ }
+ 
+ .home-desktop-light .icon-button button:hover {
+   background-color: var(--primitives-gray-300);
+   transform: scale(1.1);
+ }
+ 
+ .home-desktop-light .icon-button button:active {
+   background-color: var(--primitives-gray-400);
+   transform: scale(0.9);
+ }
+ 
+ .home-desktop-light .icon-button button img {
+   width: 24px;
+   height: 24px;
+ }
+
  .home-desktop-light .icon {
    position: relative;
    width: 24px;
