@@ -1,19 +1,25 @@
 let currentSlide = 1;
 
 function showSlide(index) {
-  const slides = document.querySelectorAll('.carousel-item');
-  if (index >= slides.length) {
-    currentSlide = 0;
-  } else if (index < 0) {
-    currentSlide = slides.length - 1;
-  } else {
-    currentSlide = index;
-  }
-
-  slides.forEach((slide, i) => {
-    slide.classList.toggle('active', i === currentSlide);
-  });
-}
+   const slides = document.querySelectorAll('.carousel-item');
+   const projectSections = document.querySelectorAll('.projects');
+ 
+   if (index >= slides.length) {
+     currentSlide = 0;
+   } else if (index < 0) {
+     currentSlide = slides.length - 1;
+   } else {
+     currentSlide = index;
+   }
+ 
+   slides.forEach((slide, i) => {
+     slide.classList.toggle('active', i === currentSlide);
+   });
+ 
+   projectSections.forEach((section, i) => {
+     section.style.display = i === currentSlide ? 'block' : 'none';
+   });
+ }
 
 function setActiveSlide(element, projectId) {
    const activeClass = 'active';
