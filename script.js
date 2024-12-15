@@ -59,3 +59,15 @@ function copyToClipboard(text) {
      console.error('Could not copy text: ', err);
    });
  }
+
+ document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+   if (DarkReader.isEnabled()) {
+       DarkReader.disable();
+   } else {
+       DarkReader.enable({
+           brightness: 100,
+           contrast: 90,
+           sepia: 10
+       });
+   }
+});
