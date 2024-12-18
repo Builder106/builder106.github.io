@@ -1305,5 +1305,5 @@
  }
 
  body.dark-mode img[src$=".svg"] {
-   filter: invert(1);
+   filter: invert(1) hue-rotate(180deg);
  }
