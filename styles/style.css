@@ -1294,3 +1294,7 @@
  .home-desktop-light .carousel-item.active .text-wrapper-2 {
    color: white;
  }
+
+ body.dark-mode img[src$=".svg"] {
+   filter: invert(1);
+ }
