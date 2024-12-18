@@ -1295,6 +1295,15 @@
    color: white;
  }
 
+ body.dark-mode .carousel-item.active {
+   background-color: white;
+   color: black;
+ }
+ 
+ body.dark-mode .carousel-item.active .text-wrapper-2 {
+   color: black;
+ }
+
  body.dark-mode img[src$=".svg"] {
    filter: invert(1);
  }
