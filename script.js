@@ -62,9 +62,12 @@ function copyToClipboard(text) {
 
  document.getElementById('dark-mode-toggle').addEventListener('click', () => {
    const darkModeToggle = document.getElementById('dark-mode-toggle');
+   const body = document.body;
+ 
    if (DarkReader.isEnabled()) {
      DarkReader.disable();
      darkModeToggle.src = 'img/light-mode.svg';
+     body.classList.remove('dark-mode');
    } else {
      DarkReader.enable({
        brightness: 100,
@@ -72,5 +75,6 @@ function copyToClipboard(text) {
        sepia: 10
      });
      darkModeToggle.src = 'img/dark-mode.svg';
+     body.classList.add('dark-mode');
    }
  });

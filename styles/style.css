@@ -1,3 +1,8 @@
+:root {
+   --link-color-light: black;
+   --link-color-dark: white;
+ }
+
 .home-desktop-light {
    display: flex;
    flex-direction: column;
@@ -61,6 +66,14 @@
    gap: 24px;
    position: relative;
    flex: 0 0 auto;
+ }
+
+ .home-desktop-light .navigation .text-wrapper a {
+   color: var(--link-color-light);
+ }
+ 
+ body.dark-mode .navigation .text-wrapper a {
+   color: var(--link-color-dark);
  }
  
  .home-desktop-light .link {
