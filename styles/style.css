@@ -1285,10 +1285,18 @@
    filter: invert(1) hue-rotate(180deg);
  }
 
-body.dark-mode .home-desktop-light .actions .button{
-  background-color: white;
+body.dark-mode .home-desktop-light .button{
+  background-color: gainsboro;
 }
 
-body.dark-mode .button-light-mode{
+body.dark-mode .home-desktop-light .button-light-mode{
   color: black;
+}
+
+body.dark-mode .home-desktop-light .carousel-item.tag.active {
+  background-color: black;
+}
+
+body.dark-mode .home-desktop-light .carousel-item.tag.active .text-wrapper-2 {
+  color: white;
 }
