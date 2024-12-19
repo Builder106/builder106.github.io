@@ -162,4 +162,38 @@
    --primitives-gray-900-10: rgba(17, 24, 39, 0.1);
    --primitives-gray-dark-900-10: rgba(249, 250, 251, 0.1);
  }
+
+ /* Mobile Styles */
+@media (max-width: 768px) {
+   :root {
+     --heading-h1-bold-desktop-font-size: 36px;
+     --heading-h1-bold-desktop-line-height: 40px;
+     --heading-h2-semi-bold-desktop-font-size: 24px;
+     --heading-h2-semi-bold-desktop-line-height: 28px;
+     --heading-h3-semi-bold-desktop-font-size: 20px;
+     --heading-h3-semi-bold-desktop-line-height: 24px;
+     --body1-normal-dektop-font-size: 16px;
+     --body1-normal-dektop-line-height: 24px;
+     --body2-normal-all-font-size: 14px;
+     --body2-normal-all-line-height: 20px;
+   }
  
+   .home-desktop-light .text,
+   .home-desktop-light .p,
+   .home-desktop-light .text-2,
+   .home-desktop-light .text-3,
+   .home-desktop-light .text-4,
+   .home-desktop-light .text-5,
+   .home-desktop-light .text-6,
+   .home-desktop-light .text-7,
+   .home-desktop-light .text-8,
+   .home-desktop-light .text-9,
+   .home-desktop-light .text-wrapper-2,
+   .home-desktop-light .text-wrapper-3,
+   .home-desktop-light .text-wrapper-4,
+   .home-desktop-light .text-wrapper-5,
+   .home-desktop-light .text-wrapper-6 {
+     font-size: var(--body2-normal-all-font-size);
+     line-height: var(--body2-normal-all-line-height);
+   }
+ }
