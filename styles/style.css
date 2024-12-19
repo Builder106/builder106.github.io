@@ -1301,12 +1301,16 @@
  }
 
 body.dark-mode .home-desktop-light .button{
-  background-color: gainsboro;
+  background-color: gray;
 }
 
 body.dark-mode .home-desktop-light .button-light-mode{
-  color: black;
+   color: black;
 }
+
+a {
+   color: inherit;
+ }
 
 body.dark-mode .home-desktop-light .carousel-item.tag.active {
   background-color: black;
