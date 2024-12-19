@@ -83,6 +83,21 @@
    position: relative;
    flex: 0 0 auto;
  }
+
+ .home-desktop-light .navigation .link {
+   padding: 10px;
+   border: 2px solid transparent;
+   transition: all 0.3s ease;
+ }
+ 
+ .home-desktop-light .navigation .link:hover {
+   background-color: black;
+   border-color: black;
+ }
+ 
+ .home-desktop-light .navigation .link:hover .text-wrapper a {
+   color: white;
+ }
  
  .home-desktop-light .text-wrapper {
    position: relative;
