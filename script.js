@@ -63,11 +63,13 @@ function copyToClipboard(text) {
  document.getElementById('dark-mode-toggle').addEventListener('click', () => {
    const darkModeToggle = document.getElementById('dark-mode-toggle');
    const body = document.body;
+   const button = document.querySelector('.button-light-mode');
  
    if (DarkReader.isEnabled()) {
      DarkReader.disable();
      darkModeToggle.src = 'img/light-mode.svg';
      body.classList.remove('dark-mode');
+     button.classList.remove('dark-mode-button');
    } else {
      DarkReader.enable({
        brightness: 100,
@@ -76,5 +78,6 @@ function copyToClipboard(text) {
      });
      darkModeToggle.src = 'img/dark-mode.svg';
      body.classList.add('dark-mode');
+     button.classList.add('dark-mode-button');
    }
  });

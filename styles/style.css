@@ -166,7 +166,7 @@
    padding: 6px 16px;
    position: relative;
    flex: 0 0 auto;
-   background-color: var(--primitives-gray-900);
+   background-color: black;
    border-radius: 12px;
  }
  
@@ -175,7 +175,7 @@
    width: fit-content;
    font-family: var(--body2-medium-all-font-family);
    font-weight: var(--body2-medium-all-font-weight);
-   color: var(--primitives-gray-50);
+   color: white;
    font-size: var(--body2-medium-all-font-size);
    letter-spacing: var(--body2-medium-all-letter-spacing);
    line-height: var(--body2-medium-all-line-height);
@@ -1193,7 +1193,6 @@
    height: 36px;
    top: 0;
    left: 54px;
-   background-image: url(./img/linked-in.png);
    background-size: cover;
    background-position: 50% 50%;
  }
@@ -1204,7 +1203,6 @@
    height: 36px;
    top: 0;
    left: 94px;
-   background-image: url(./img/git-hub.png);
    background-size: cover;
    background-position: 50% 50%;
  }
@@ -1230,41 +1228,19 @@
    display: flex;
    align-items: center;
    justify-content: center;
-   padding: 24px 80px;
-   background-color: var(--primitives-gray-50);
-   width: 100%; /* Ensure the footer takes the full width */
-   position: relative; /* Ensure the footer is positioned correctly */
+   padding: 48px 80px;
+   position: relative;
+   align-self: stretch;
+   width: 100%;
+   flex: 0 0 auto;
  }
  
- .home-desktop-light .container-5 {
-   display: flex;
-   flex-direction: row;
-   align-items: center;
-   justify-content: center;
-   width: 100%; /* Ensure the container takes the full width */
- }
- 
- .home-desktop-light .footer-note {
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   gap: 8px;
- }
- 
- .home-desktop-light .icon-3 {
+ .home-desktop-light .footer .icon-3 {
    width: 16px;
    height: 16px;
+   margin-right: 8px;
  }
  
- .home-desktop-light .text-9 {
-   font-family: var(--body3-normal-all-font-family);
-   font-weight: var(--body3-normal-all-font-weight);
-   color: var(--primitives-gray-600);
-   font-size: var(--body3-normal-all-font-size);
-   letter-spacing: var(--body3-normal-all-letter-spacing);
-   line-height: var(--body3-normal-all-line-height);
-   white-space: nowrap;
- }
 
 .home-desktop-light .carousel {
    position: relative;
@@ -1295,15 +1271,19 @@
    color: white;
  }
 
- body.dark-mode .carousel-item.active {
+ body.dark-mode .carousel-item.tag.active {
    background-color: white;
    color: black;
  }
  
- body.dark-mode .carousel-item.active .text-wrapper-2 {
+ body.dark-mode .carousel-item.tag.active .text-wrapper-2 {
    color: black;
  }
 
  body.dark-mode img[src$=".svg"] {
    filter: invert(1) hue-rotate(180deg);
  }
+
+ body.dark-mode .button .button-light-mode{
+   color: gray;
+}
