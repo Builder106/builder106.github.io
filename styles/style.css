@@ -1280,10 +1280,15 @@
    color: black;
  }
 
+/* Inverts the color of svg images */
  body.dark-mode img[src$=".svg"] {
    filter: invert(1) hue-rotate(180deg);
  }
 
- body.dark-mode .button .button-light-mode{
-   color: gray;
+body.dark-mode .home-desktop-light .actions .button{
+  background-color: white;
+}
+
+body.dark-mode .button-light-mode{
+  color: black;
 }
