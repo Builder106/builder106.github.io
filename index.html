@@ -2,6 +2,19 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Olayinka Vaughan - Full Stack Developer specializing in React, Angular, Node.js, and more. View my portfolio and get in touch for new projects." />
+    <meta name="keywords" content="Olayinka Vaughan, Full Stack Developer, Web Developer, React, Angular, Node.js, Portfolio" />
+    <meta name="author" content="Olayinka Vaughan" />
+    <meta property="og:title" content="Olayinka Vaughan - Full Stack Developer" />
+    <meta property="og:description" content="Full Stack Developer specializing in React, Angular, Node.js, and more." />
+    <meta property="og:type" content="website" />
+    <!-- Preload critical assets -->
+    <link rel="preload" href="styles/globals.css" as="style" />
+    <link rel="preload" href="styles/style.css" as="style" />
+    <link rel="preload" href="img/Intro.jpg" as="image" />
+    <link rel="preload" href="script.js" as="script" />
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="styles/globals.css" />
     <link rel="stylesheet" href="styles/styleguide.css" />
     <link rel="stylesheet" href="styles/style.css" />
@@ -9,6 +22,11 @@
     <title>Olayinka's Portfolio</title>
   </head>
   <body>
+    <!-- Loading animation -->
+    <div id="loader-wrapper">
+      <div class="loader"></div>
+    </div>
+    
     <div class="home-desktop-light">
       <header class="header">
         <div class="container">
@@ -512,6 +530,26 @@
               </p>
             </div>
           </div>
+          
+          <!-- Contact Form -->
+          <div class="contact-form-container">
+            <form id="contact-form" class="contact-form">
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" required placeholder="Your name">
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required placeholder="Your email">
+              </div>
+              <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="5" required placeholder="Your message"></textarea>
+              </div>
+              <button type="submit" class="submit-button">Send Message</button>
+            </form>
+          </div>
+          
           <div class="column-10">
             <div class="div-5">
                <a href="mailto:vaughanolayinka@gmail.com">
@@ -547,6 +585,10 @@
          <p class="text-9">2025 | All rights reserved</p>
       </footer>
     </div>
+    
+    <!-- Scroll to top button -->
+    <button id="scroll-top-btn" title="Go to top">↑</button>
+    
     <script src="script.js"></script>
   </body>
 </html>

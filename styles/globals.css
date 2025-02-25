@@ -16,3 +16,6 @@ button:focus-visible {
 a {
   text-decoration: none;
 }
+html {
+  scroll-behavior: smooth;
+}
