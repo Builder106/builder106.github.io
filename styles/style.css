@@ -1488,14 +1488,24 @@ body.dark-mode #loader-wrapper {
   gap: 8px;
 }
 
-.form-group label {
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.form-row label {
+  min-width: 80px;
+  text-align: right;
   font-family: var(--body2-medium-all-font-family);
   font-weight: var(--body2-medium-all-font-weight);
   color: var(--primitives-gray-700);
 }
 
-.form-group input,
-.form-group textarea {
+.form-row input,
+.form-row textarea {
+  flex: 1;
   padding: 12px;
   border: 1px solid var(--primitives-gray-200);
   border-radius: 8px;
@@ -1504,8 +1514,25 @@ body.dark-mode #loader-wrapper {
   transition: border-color 0.3s ease;
 }
 
+.form-row:last-child {
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.form-group label {
+  font-family: var(--body2-medium-all-font-family);
+  font-weight: var(--body2-medium-all-font-weight);
+  color: var(--primitives-gray-700);
+}
+
 .form-group input:focus,
 .form-group textarea:focus {
+  outline: none;
+  border-color: #4338ca;
+}
+
+.form-row input:focus,
+.form-row textarea:focus {
   outline: none;
   border-color: #4338ca;
 }
@@ -1541,8 +1568,31 @@ body.dark-mode .form-group textarea {
   color: white;
 }
 
+body.dark-mode .form-row input,
+body.dark-mode .form-row textarea {
+  background-color: #1a1a1a;
+  border-color: #444;
+  color: white;
+}
+
 @media screen and (max-width: 768px) {
   .contact-form-container {
     padding: 15px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .form-row label {
+    min-width: auto;
+    text-align: left;
+    margin-bottom: 5px;
+  }
+  
+  .form-row input,
+  .form-row textarea {
+    width: 100%;
   }
 }
