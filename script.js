@@ -1,4 +1,4 @@
-let currentSlide = 1;
+let currentSlide = 0;
 let darkModeState = localStorage.getItem('darkMode') === 'enabled';
 
 // Initialize animations on scroll
@@ -19,26 +19,55 @@ function initAnimations() {
   });
 }
 
-function showSlide(index) {
-   const slides = document.querySelectorAll('.carousel-item');
-   const projectSections = document.querySelectorAll('.projects');
- 
-   if (index >= slides.length) {
-     currentSlide = 0;
-   } else if (index < 0) {
-     currentSlide = slides.length - 1;
-   } else {
-     currentSlide = index;
-   }
- 
-   slides.forEach((slide, i) => {
-     slide.classList.toggle('active', i === currentSlide);
-   });
- 
-   projectSections.forEach((section, i) => {
-     section.style.display = i === currentSlide ? 'block' : 'none';
-   });
- }
+function showSlide(newIndexCandidate) {
+  const slides = document.querySelectorAll('.carousel-item'); // These are the filter buttons
+  const projectSections = document.querySelectorAll('.projects'); // These are the content sections
+
+  if (slides.length === 0) {
+    return; // No slides to operate on
+  }
+
+  // Calculate the actual new currentSlide index, handling wrap-around
+  if (newIndexCandidate >= slides.length) {
+    currentSlide = 0;
+  } else if (newIndexCandidate < 0) {
+    currentSlide = slides.length - 1;
+  } else {
+    currentSlide = newIndexCandidate;
+  }
+
+  // Get the target carousel item element
+  const targetSlideElement = slides[currentSlide];
+
+  if (targetSlideElement) {
+    // Extract projectId from the target slide element's onclick attribute
+    // It looks like: setActiveSlide(this, 'projects-X')
+    const onclickAttr = targetSlideElement.getAttribute('onclick');
+    if (onclickAttr) {
+      const match = onclickAttr.match(/setActiveSlide\s*\(\s*this\s*,\s*'([^']+)'\s*\)/);
+      if (match && match[1]) {
+        const targetProjectId = match[1];
+        
+        // Remove 'active' from all carousel items
+        slides.forEach(item => {
+          item.classList.remove('active');
+        });
+        
+        // Hide all project sections
+        projectSections.forEach(section => {
+          section.style.display = 'none';
+        });
+        
+        // Activate the target slide and show its project section
+        targetSlideElement.classList.add('active');
+        const projectToShow = document.getElementById(targetProjectId);
+        if (projectToShow) {
+          projectToShow.style.display = 'block';
+        }
+      }
+    }
+  }
+}
 
 function setActiveSlide(element, projectId) {
    const activeClass = 'active';
