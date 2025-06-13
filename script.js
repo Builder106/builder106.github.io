@@ -164,8 +164,15 @@ document.addEventListener('DOMContentLoaded', () => {
   initAnimations();
   
   // Set up event listeners
-  document.querySelector('.carousel-control.next').addEventListener('click', nextSlide);
-  document.querySelector('.carousel-control.prev').addEventListener('click', prevSlide);
+  const nextButton = document.querySelector('.carousel-control.next');
+  if (nextButton) {
+    nextButton.addEventListener('click', nextSlide);
+  }
+  
+  const prevButton = document.querySelector('.carousel-control.prev');
+  if (prevButton) {
+    prevButton.addEventListener('click', prevSlide);
+  }
   document.getElementById('dark-mode-toggle').addEventListener('click', toggleDarkMode);
   
   // Add contact form submission handler
@@ -198,7 +205,21 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Hide loader after page is fully loaded
   window.addEventListener('load', () => {
-    document.body.classList.add('loaded');
+    const loaderWrapper = document.getElementById('loader-wrapper');
+    if (loaderWrapper) {
+      // Start the transition with !important
+      loaderWrapper.style.setProperty('opacity', '0', 'important');
+      loaderWrapper.style.setProperty('visibility', 'hidden', 'important');
+      
+      // After the transition (0.5s = 500ms), set display to none with !important
+      setTimeout(() => {
+        loaderWrapper.style.setProperty('display', 'none', 'important');
+      }, 500); // Duration matches your CSS transition
+    } else {
+      // If you ever see this, it means the loader wrapper was not found in the DOM.
+      // Ensure your HTML has <div id="loader-wrapper">...</div>
+      console.error('Loader wrapper element (#loader-wrapper) not found!'); 
+    }
   });
 });
 

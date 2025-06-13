@@ -1011,7 +1011,7 @@
    height: 384px;
    border-radius: 12px;
    box-shadow: var(--drop-shadow-lg);
-   background-image: url(./img/picture.png);
+   background-image: url(../img/picture.png);
    background-size: cover;
    background-position: 50% 50%;
  }
@@ -1094,7 +1094,7 @@
    height: 384px;
    border-radius: 12px;
    box-shadow: var(--drop-shadow-lg);
-   background-image: url(./img/picture-2.png);
+   background-image: url(../img/picture-2.png);
    background-size: cover;
    background-position: 50% 50%;
  }
@@ -1106,7 +1106,7 @@
    height: 384px;
    border-radius: 12px;
    box-shadow: var(--drop-shadow-lg);
-   background-image: url(./img/picture-3.png);
+   background-image: url(../img/picture-3.png);
    background-size: cover;
    background-position: 50% 50%;
  }
