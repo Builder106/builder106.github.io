@@ -38,7 +38,6 @@
             <div class="link"><div class="text-wrapper"><a href="#contact">Contact</a></div></div>
             <img class="divider" src="img/divider.svg" />
             <div class="actions">
-              <script src="https://unpkg.com/darkreader/darkreader.js"></script>
               <div class="icon-button"><button><img class="icon" id="dark-mode-toggle" src="img/light-mode.svg" /></button></div>
 
               <button class="button">
@@ -323,13 +322,13 @@
            <div class="tag"><div class="text-wrapper-2" id="work">Work</div></div>
          </div>
          <div class="row-6 carousel">
-           <button class="carousel-control prev" onclick="prevSlide()">&#10094;</button>
+           <!-- <button class="carousel-control prev" onclick="prevSlide()">&#10094;</button> -->
            <div class="carousel-inner">
             <!-- <div class="carousel-item tag" onclick="setActiveSlide(this, 'projects-1')"><div class="text-wrapper-2">Data Analysis</div></div> -->
             <div class="carousel-item tag active" onclick="setActiveSlide(this, 'projects-2')"><div class="text-wrapper-2">Software Engineering</div></div>
             <!-- <div class="carousel-item tag" onclick="setActiveSlide(this, 'projects-3')"><div class="text-wrapper-2">Cybersecurity</div></div> -->
            </div>
-           <button class="carousel-control next" onclick="nextSlide()">&#10095;</button>
+           <!-- <button class="carousel-control next" onclick="nextSlide()">&#10095;</button> -->
          </div>
          <div class="container-4">
            <div class="div-3">
@@ -414,8 +413,8 @@
                    <div class="tag"><div class="text-wrapper-2">Tailwindcss</div></div>
                  </div>
                  <div class="icon-button-wrapper">
-                   <div class="icon-button"><img class="icon" src="img/external-link.svg" /></div>
-                   <div class="icon-button"><img class="icon" src="img/social-media/GitHub.svg" /></div>
+                   <a href="https://naijatank.me" target="_blank"><div class="icon-button"><img class="icon" src="img/external-link.svg" /></div></a>
+                   <a href="https://github.com/Builder106/NaijaTank" target="_blank"><div class="icon-button"><img class="icon" src="img/social-media/GitHub.svg" /></div></a>
                  </div>
                </div>
              </div>
@@ -433,8 +432,8 @@
                    <div class="tag"><div class="text-wrapper-2">JavaScript</div></div>
                  </div>
                  <div class="icon-button-wrapper">
-                   <div class="icon-button"><img class="icon" src="img/external-link.svg" /></div>
-                   <div class="icon-button"><img class="icon" src="img/social-media/GitHub.svg" /></div>
+                   <a href="https://staija.org" target="_blank"><div class="icon-button"><img class="icon" src="img/external-link.svg" /></div></a>
+                   <a href="https://github.com/Builder106/STAIJA" target="_blank"><div class="icon-button"><img class="icon" src="img/social-media/GitHub.svg" /></div></a>
                  </div>
                </div>
                <div class="column-9"><div class="picture-2"></div></div>
@@ -455,8 +454,8 @@
                    <div class="tag"><div class="text-wrapper-2">TypeScript</div></div>
                  </div>
                  <div class="icon-button-wrapper">
-                   <div class="icon-button"><img class="icon" src="img/external-link.svg" /></div>
-                   <div class="icon-button"><img class="icon" src="img/social-media/GitHub.svg" /></div>
+                   <a href="https://applytok.com" target="_blank"><div class="icon-button"><img class="icon" src="img/external-link.svg" /></div></a>
+                   <a href="https://github.com/Builder106/ApplyTok" target="_blank"><div class="icon-button"><img class="icon" src="img/social-media/GitHub.svg" /></div></a>
                  </div>
                </div>
              </div>
@@ -594,6 +593,7 @@
     <!-- Scroll to top button -->
     <button id="scroll-top-btn" title="Go to top">↑</button>
     
+    <script src="https://unpkg.com/darkreader/darkreader.js" defer></script>
     <script src="script.js"></script>
   </body>
 </html>
