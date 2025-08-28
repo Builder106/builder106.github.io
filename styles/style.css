@@ -1015,6 +1015,24 @@
    background-size: cover;
    background-position: 50% 50%;
  }
+
+ /* NaijaTank project image */
+ .home-desktop-light .projects .row-7:first-child .picture {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   border-radius: 12px;
+   box-shadow: var(--drop-shadow-lg);
+ }
+
+ /* Handle img tags in picture-wrapper for STAIJA project */
+ .home-desktop-light .picture-wrapper img.picture {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   border-radius: 12px;
+   box-shadow: var(--drop-shadow-lg);
+ }
  
  .home-desktop-light .column-8 {
    display: flex;
@@ -1068,6 +1086,30 @@
    align-self: stretch;
    width: 100%;
    flex: 0 0 auto;
+ }
+
+ /* Hover animations for project links */
+ .home-desktop-light .icon-button-wrapper .icon-button {
+   transition: transform 0.3s ease, filter 0.3s ease;
+   cursor: pointer;
+ }
+
+ .home-desktop-light .icon-button-wrapper .icon-button:hover {
+   transform: translateY(-2px) scale(1.05);
+   filter: brightness(1.2);
+ }
+
+ .home-desktop-light .icon-button-wrapper .icon-button:active {
+   transform: translateY(0px) scale(0.95);
+ }
+
+ /* Specific hover effects for external link and GitHub icons */
+ .home-desktop-light .icon-button-wrapper .icon-button:hover img[src*="external-link.svg"] {
+   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+ }
+
+ .home-desktop-light .icon-button-wrapper .icon-button:hover img[src*="GitHub.svg"] {
+   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
  }
  
  .home-desktop-light .column-9 {
