@@ -19,6 +19,33 @@ function initAnimations() {
   });
 }
 
+// Handle image loading and fallbacks
+function initImageHandling() {
+  const projectImages = document.querySelectorAll('.projects .picture-wrapper img');
+  
+  projectImages.forEach(img => {
+    // Add loading state
+    img.style.opacity = '0';
+    
+    // Handle successful load
+    img.onload = function() {
+      this.style.opacity = '1';
+    };
+    
+    // Handle load error
+    img.onerror = function() {
+      console.warn('Failed to load image:', this.src);
+      this.style.opacity = '0.5';
+      this.style.filter = 'grayscale(100%)';
+    };
+    
+    // Force reload if image is already loaded
+    if (img.complete) {
+      img.style.opacity = '1';
+    }
+  });
+}
+
 function showSlide(newIndexCandidate) {
   const slides = document.querySelectorAll('.carousel-item'); // These are the filter buttons
   const projectSections = document.querySelectorAll('.projects'); // These are the content sections
@@ -162,6 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize animations
   initAnimations();
+  
+  // Initialize image handling
+  initImageHandling();
   
   // Set up event listeners
   const nextButton = document.querySelector('.carousel-control.next');
