@@ -1,8 +1,13 @@
 {
   "mcpServers": {
     "blender": {
-      "command": "uvx",
-      "args": ["blender-mcp"]
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${HOME}/.local/blender-mcp/bundle",
+        "blender-mcp"
+      ]
     }
   }
 }
