@@ -1,0 +1,109 @@
+.hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.hud__corner {
+  position: absolute;
+  pointer-events: auto;
+  padding: 18px 22px;
+}
+
+.hud__corner--tl { top: 0; left: 0; }
+.hud__corner--tr { top: 0; right: 0; }
+.hud__corner--bl { bottom: 0; left: 0; }
+
+.hud__mark {
+  font-size: 18px;
+  color: var(--neon-cyan);
+  font-weight: 600;
+  text-shadow: 0 0 12px rgba(76, 242, 255, 0.5);
+}
+
+.hud__sub {
+  margin-top: 4px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+}
+
+.hud__nav {
+  display: flex;
+  gap: 18px;
+}
+
+.hud__nav a {
+  color: var(--text-muted);
+  transition: color 150ms ease;
+}
+
+.hud__nav a:hover {
+  color: var(--neon-cyan);
+  text-decoration: none;
+}
+
+.hud__corner--bl {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hud__hint-key {
+  color: var(--neon-amber);
+  background: rgba(255, 184, 76, 0.08);
+  border: 1px solid rgba(255, 184, 76, 0.25);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-right: 4px;
+}
+
+.hud__hint-sep {
+  margin: 0 8px;
+  opacity: 0.5;
+}
+
+.hud__ping {
+  position: absolute;
+  pointer-events: auto;
+  bottom: 18px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(76, 242, 255, 0.05);
+  border: 1px solid rgba(76, 242, 255, 0.3);
+  border-radius: 4px;
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.hud__ping:hover {
+  background: rgba(76, 242, 255, 0.12);
+  border-color: rgba(76, 242, 255, 0.6);
+}
+
+.hud__ping-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--terminal-green);
+  box-shadow: 0 0 8px var(--terminal-green);
+  animation: hud-ping-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hud-ping-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}

@@ -1,0 +1,58 @@
+:root {
+  --bg-deep: #06060c;
+  --bg-rack: #0e0f1a;
+  --neon-cyan: #4cf2ff;
+  --neon-magenta: #ff4cf2;
+  --neon-amber: #ffb84c;
+  --grid-line: rgba(76, 242, 255, 0.08);
+  --text-primary: #e6e9f2;
+  --text-muted: #6b7188;
+  --terminal-green: #5cff9d;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, monospace;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  overflow: hidden;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: var(--neon-cyan);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--neon-cyan);
+  color: var(--bg-deep);
+}

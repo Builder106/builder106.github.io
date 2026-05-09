@@ -12,6 +12,9 @@ pnpm-debug.log*
 dist/
 dist-ssr/
 
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # Editor / IDE
 .vscode/*
 !.vscode/extensions.json
