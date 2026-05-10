@@ -1,6 +1,7 @@
 import { useGLTF, Environment } from "@react-three/drei";
 import { useLayoutEffect } from "react";
 import { Mesh, MeshStandardMaterial } from "three";
+import { collectAnchors, type SceneAnchor } from "./anchors";
 
 // The server room is modelled in Blender and exported as a single .glb.
 // See docs/blender-contract.md for the export contract — anchor Empties
@@ -11,23 +12,31 @@ const MODEL_URL = "/models/server-room.glb";
 
 useGLTF.preload(MODEL_URL);
 
-// Material names that ship from Blender as emissive surfaces. They opt out
-// of canvas-level ACES tonemapping so cyan stays cyan; the dark
-// non-emissive materials still benefit from ACES.
 const UNTONED_MATERIALS = new Set(["M_Screen", "M_Monitor"]);
 
-export function ServerRoom() {
+interface ServerRoomProps {
+  onAnchorsReady?: (anchors: Map<string, SceneAnchor>) => void;
+}
+
+export function ServerRoom({ onAnchorsReady }: ServerRoomProps) {
   const { scene } = useGLTF(MODEL_URL);
 
   useLayoutEffect(() => {
+    // Walk the loaded scene once: opt emissive screens out of ACES
+    // tonemapping (so cyan stays cyan) and harvest the anchor Empties.
     scene.traverse((obj) => {
-      if (!(obj instanceof Mesh)) return;
-      const mat = obj.material;
-      if (mat instanceof MeshStandardMaterial && UNTONED_MATERIALS.has(mat.name)) {
-        mat.toneMapped = false;
+      if (obj instanceof Mesh) {
+        const mat = obj.material;
+        if (mat instanceof MeshStandardMaterial && UNTONED_MATERIALS.has(mat.name)) {
+          mat.toneMapped = false;
+        }
       }
     });
-  }, [scene]);
+
+    if (onAnchorsReady) {
+      onAnchorsReady(collectAnchors(scene));
+    }
+  }, [scene, onAnchorsReady]);
 
   return (
     <group>

@@ -162,3 +162,37 @@
   line-height: 1.55;
   color: var(--text-muted);
 }
+
+.panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.panel__chip {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  padding: 4px 9px;
+  border: 1px solid rgba(76, 242, 255, 0.2);
+  background: rgba(76, 242, 255, 0.04);
+  border-radius: 3px;
+  color: var(--neon-cyan);
+}
+
+.panel__links {
+  display: flex;
+  gap: 18px;
+}
+
+.panel__links a {
+  font-size: 13px;
+  color: var(--neon-cyan);
+  border-bottom: 1px dotted rgba(76, 242, 255, 0.3);
+  padding-bottom: 1px;
+}
+
+.panel__links a:hover {
+  border-bottom-style: solid;
+  text-decoration: none;
+}

@@ -1,49 +1,73 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { BootSequence } from "./components/BootSequence";
 import { Scene } from "./components/Scene";
 import { HUD } from "./components/HUD";
 import { TradingTerminal } from "./components/panels/TradingTerminal";
+import { ProjectCard } from "./components/panels/ProjectCard";
+import {
+  defaultCameraTarget,
+  projectCameraTarget,
+  terminalCameraTarget,
+  type CameraTarget,
+} from "./scene/cameraRig";
+import type { SceneAnchor } from "./scene/anchors";
+import type { ClickTarget } from "./scene/clickResolver";
+import { projects } from "./data/projects";
+
+type ActivePanel =
+  | { kind: "none" }
+  | { kind: "terminal" }
+  | { kind: "project"; projectId: string };
 
 export function App() {
   const [booted, setBooted] = useState(false);
-  const [terminalOpen, setTerminalOpen] = useState(false);
+  const [active, setActive] = useState<ActivePanel>({ kind: "none" });
+  const [anchors, setAnchors] = useState<Map<string, SceneAnchor> | null>(null);
+
+  const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
+
+  const close = useCallback(() => setActive({ kind: "none" }), []);
+
+  const handleSelect = useCallback((target: ClickTarget) => {
+    if (target === null) {
+      setActive({ kind: "none" });
+      return;
+    }
+    if (target.kind === "terminal") {
+      setActive({ kind: "terminal" });
+      return;
+    }
+    setActive({ kind: "project", projectId: target.projectId });
+  }, []);
+
+  const cameraTarget: CameraTarget | null = useMemo(() => {
+    if (!anchors) return null;
+    if (active.kind === "none") return defaultCameraTarget();
+    if (active.kind === "terminal") {
+      const a = anchors.get("terminal");
+      return a ? terminalCameraTarget(a) : defaultCameraTarget();
+    }
+    const a = anchors.get(active.projectId);
+    return a ? projectCameraTarget(a) : defaultCameraTarget();
+  }, [active, anchors]);
+
+  const activeProject =
+    active.kind === "project" ? projectsById.get(active.projectId) ?? null : null;
 
   return (
     <>
       {!booted && <BootSequence onComplete={() => setBooted(true)} />}
       {booted && (
         <>
-          <Scene paused={terminalOpen} />
+          <Scene
+            cameraTarget={cameraTarget}
+            freezeOrbit={active.kind !== "none"}
+            onSelect={handleSelect}
+            onAnchorsReady={setAnchors}
+          />
           <HUD onPing={() => (window.location.href = "mailto:vaughanolayinka@gmail.com")} />
-          <TradingTerminal open={terminalOpen} onClose={() => setTerminalOpen(false)} />
-          {/*
-            Temporary: open the terminal panel from a HUD-adjacent button until
-            raycaster click-on-monitor is wired. Lets you exercise the
-            open/close transition right after a fresh boot.
-          */}
-          <button
-            type="button"
-            onClick={() => setTerminalOpen(true)}
-            style={{
-              position: "fixed",
-              top: 18,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 20,
-              padding: "8px 14px",
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              background: "rgba(76, 242, 255, 0.06)",
-              border: "1px solid rgba(76, 242, 255, 0.3)",
-              borderRadius: 3,
-              color: "var(--neon-cyan)",
-              cursor: "pointer",
-            }}
-          >
-            open trading terminal
-          </button>
+          <TradingTerminal open={active.kind === "terminal"} onClose={close} />
+          <ProjectCard project={activeProject} onClose={close} />
         </>
       )}
     </>
