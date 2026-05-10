@@ -29,12 +29,12 @@ const DIM_INTENSITY_MULTIPLIER = 0.35;
 const HOVER_TIME_CONSTANT = 0.07;
 
 const LIGHTS = {
-  hemi:        { idle: 0.6,  dim: 0.28 },
-  ambient:     { idle: 0.15, dim: 0.07 },
-  pointKey:    { idle: 1.4,  dim: 0.55 },
-  pointFillA:  { idle: 0.9,  dim: 0.36 },
-  pointFillB:  { idle: 0.8,  dim: 0.32 },
-  envIntensity:{ idle: 0.25, dim: 0.12 },
+  hemi:        { idle: 0.7,  dim: 0.36 },
+  ambient:     { idle: 0.22, dim: 0.10 },
+  pointKey:    { idle: 1.2,  dim: 0.55 },
+  pointFillA:  { idle: 0.55, dim: 0.24 },
+  pointFillB:  { idle: 0.50, dim: 0.22 },
+  envIntensity:{ idle: 0.18, dim: 0.10 },
 };
 
 interface Interactive {
@@ -212,11 +212,15 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
         onPointerOut={handlePointerOut}
       />
 
+      {/* Cool, neutral fill across the whole room. No more vivid
+          magenta/amber side lights — those read as cinematic-thriller.
+          A central cyan key + two soft white-cool fills give a
+          professional "data center under fluorescents" vibe. */}
       <hemisphereLight
         ref={hemiRef}
-        args={["#3a4a7a", "#0a0a14", LIGHTS.hemi.idle]}
+        args={["#5e6ea0", "#10131c", LIGHTS.hemi.idle]}
       />
-      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#1a1f3a" />
+      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#2a3050" />
 
       <pointLight
         ref={keyRef}
@@ -227,21 +231,24 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
       />
       <pointLight
         ref={fillARef}
-        position={[-4, 3, 4]}
+        position={[-4, 4, 4]}
         intensity={LIGHTS.pointFillA.idle}
-        color="#ff4cf2"
-        distance={10}
+        color="#a8c5ff"
+        distance={12}
       />
       <pointLight
         ref={fillBRef}
-        position={[5, 3, -4]}
+        position={[5, 4, -4]}
         intensity={LIGHTS.pointFillB.idle}
-        color="#ffb84c"
-        distance={10}
+        color="#a8c5ff"
+        distance={12}
       />
 
+      {/* "studio" preset is a neutral overcast-style HDRI — no window
+          streaks and no warehouse beams, so the floor reflection
+          doesn't pick up unmotivated bright bands. */}
       <Environment
-        preset="warehouse"
+        preset="studio"
         environmentIntensity={LIGHTS.envIntensity.idle}
         background={false}
       />
