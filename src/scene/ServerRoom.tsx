@@ -1,4 +1,4 @@
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, Environment } from "@react-three/drei";
 
 // The server room is modelled in Blender and exported as a single .glb.
 // See docs/blender-contract.md for the export contract — anchor Empties
@@ -7,9 +7,6 @@ import { useGLTF } from "@react-three/drei";
 
 const MODEL_URL = "/models/server-room.glb";
 
-// Pre-load so the model fetch starts as soon as the app boots, in parallel
-// with the boot-sequence animation. By the time the user finishes the
-// terminal-style intro, the .glb is usually already cached.
 useGLTF.preload(MODEL_URL);
 
 export function ServerRoom() {
@@ -19,14 +16,22 @@ export function ServerRoom() {
     <group>
       <primitive object={scene} />
 
-      {/* Runtime lights — the .glb ships without lights, on purpose. The
-          scene's emissive screens carry most of the visual weight; these
-          three small lights add subtle highlights on the metallic surfaces
-          so the room reads as 3D instead of flat. */}
-      <ambientLight intensity={0.25} color="#1a1f3a" />
-      <pointLight position={[0, 5, 0]} intensity={1.2} color="#4cf2ff" distance={14} />
-      <pointLight position={[-5, 3, 4]} intensity={0.8} color="#ff4cf2" distance={10} />
-      <pointLight position={[5, 3, -4]} intensity={0.7} color="#ffb84c" distance={10} />
+      {/* Soft hemisphere fill so metallic surfaces (racks, desk, floor) have
+          something to reflect. The .glb ships without lights on purpose;
+          all runtime lighting lives here. */}
+      <hemisphereLight args={["#3a4a7a", "#0a0a14", 0.6]} />
+      <ambientLight intensity={0.15} color="#1a1f3a" />
+
+      {/* Three colored key lights echo the neon palette and give the dark
+          metals defined highlights from different angles. */}
+      <pointLight position={[0, 5, 0]} intensity={1.4} color="#4cf2ff" distance={16} />
+      <pointLight position={[-4, 3, 4]} intensity={0.9} color="#ff4cf2" distance={10} />
+      <pointLight position={[5, 3, -4]} intensity={0.8} color="#ffb84c" distance={10} />
+
+      {/* Low-intensity HDRI for specular reflections on the metallic rack
+          bodies. "warehouse" reads as cool industrial — closer to the
+          intended server-room mood than "city" or "lobby". */}
+      <Environment preset="warehouse" environmentIntensity={0.25} background={false} />
     </group>
   );
 }
