@@ -33,16 +33,16 @@ const HOVER_INTENSITY_MULTIPLIER = 1.6;
 const DIM_INTENSITY_MULTIPLIER = 0.35;
 const HOVER_TIME_CONSTANT = 0.07;
 
-// Sterile-office baseline: bright, even, fluorescent. The cyan accent
-// point light keeps the screens motivated; everything else is neutral
-// cool-white at fairly high intensity so the room reads as a plainly
-// lit interior rather than a moody data center.
+// Bright fluorescent-quality lighting designed to light dark
+// concept-art surfaces enough that they actually read. Intensities
+// pushed ~30% above the prior baseline because dark-blue base colors
+// reflect only a small fraction of incident light per channel.
 const LIGHTS = {
-  hemi:        { idle: 1.7,  dim: 0.85 },
-  ambient:     { idle: 0.7,  dim: 0.35 },
-  pointKey:    { idle: 0.9,  dim: 0.40 },   // central cyan accent
-  topDown:     { idle: 2.6,  dim: 1.30 },
-  ceilingGrid: { idle: 6.0,  dim: 2.8 },
+  hemi:        { idle: 2.2,  dim: 1.10 },
+  ambient:     { idle: 0.95, dim: 0.45 },
+  pointKey:    { idle: 1.2,  dim: 0.55 },   // central cyan accent
+  topDown:     { idle: 3.4,  dim: 1.70 },
+  ceilingGrid: { idle: 8.0,  dim: 3.6 },
 };
 
 // Four ceiling light positions in a symmetric grid above the room.
@@ -235,14 +235,14 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
 
       {/* Bright fluorescent-quality overhead lighting tinted slightly
           cool. Hemisphere top is near-white, ground is mid-grey so
-          shadow areas catch some bounce instead of going pitch black,
-          but neither tint is so warm it whitewashes the dark base
-          colors of the racks/desk/floor. */}
+          shadow areas catch some bounce instead of going pitch black.
+          Boosted intensities so the dark concept-art surfaces actually
+          read clearly. */}
       <hemisphereLight
         ref={hemiRef}
-        args={["#c8d0e0", "#3e4254", LIGHTS.hemi.idle]}
+        args={["#d4dbe8", "#525870", LIGHTS.hemi.idle]}
       />
-      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#7a8294" />
+      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#8a93a6" />
 
       {/* Central cyan accent — the only colored light, motivated by
           the screens it lives among. */}
