@@ -9,14 +9,15 @@ export type ClickTarget =
 
 const PROJECT_IDS = new Set(projects.map((p) => p.id));
 
-// Walks up from the picked mesh to the nearest named ancestor that maps to
-// something the UI cares about. We accept either a Rack or a Screen for a
-// project rack (both forward to that project's panel), and Monitor / Desk
-// for the central terminal.
+// Walks up from the picked mesh to the nearest named ancestor that maps
+// to something the UI cares about. Underscore-not-dot separator: see
+// anchors.ts for why.
+const NAMED_NODE_RE = /^(Rack|Screen)_(.+)$/;
+
 export function resolveClick(picked: Object3D | null): ClickTarget {
   let cur: Object3D | null = picked;
   while (cur) {
-    const m = cur.name.match(/^(Rack|Screen)\.(.+)$/);
+    const m = cur.name.match(NAMED_NODE_RE);
     if (m && PROJECT_IDS.has(m[2])) {
       return { kind: "project", projectId: m[2] };
     }

@@ -7,13 +7,11 @@ export interface Project {
   blurb: string;
   stack: string[];
   links: { live?: string; repo?: string };
-  // Anchor name in the Blender scene that this project's rack/screen maps to.
-  // The anchor is an Empty named "anchor.<id>" — see docs/blender-contract.md.
-  anchor: string;
+  // Each project's id matches an Empty named "anchor_<id>" in the Blender
+  // scene (underscore separator — Three.js's GLTFLoader strips dots). See
+  // docs/blender-contract.md.
 }
 
-// Keep this file the single source of truth for project content. The 3D scene
-// reads anchors from here; the React panels read everything else.
 export const projects: Project[] = [
   {
     id: "imc-prosperity",
@@ -23,7 +21,6 @@ export const projects: Project[] = [
       "Algorithmic trading challenge — built a market-making and arbitrage bot in Python over five rounds.",
     stack: ["Python", "Pandas", "NumPy"],
     links: {},
-    anchor: "anchor.imc-prosperity",
   },
   {
     id: "capitol-alpha",
@@ -33,7 +30,6 @@ export const projects: Project[] = [
       "R-based pipeline analyzing Congressional trading disclosures for signal generation.",
     stack: ["R", "tidyverse", "PostgreSQL"],
     links: {},
-    anchor: "anchor.capitol-alpha",
   },
   {
     id: "linuxbenchhub",
@@ -43,7 +39,6 @@ export const projects: Project[] = [
       "Performance benchmarking of Linux distributions across virtual machines, with persisted results and analysis.",
     stack: ["Ruby", "PostgreSQL", "R", "Vue.js"],
     links: { repo: "https://github.com/Builder106/LinuxBenchHub" },
-    anchor: "anchor.linuxbenchhub",
   },
   {
     id: "naijatank",
@@ -52,7 +47,6 @@ export const projects: Project[] = [
     blurb: "Fuel-availability tracker for Nigerian drivers.",
     stack: ["Angular", "Supabase", "TypeScript", "Tailwind"],
     links: { live: "https://naijatank.me", repo: "https://github.com/Builder106/NaijaTank" },
-    anchor: "anchor.naijatank",
   },
   {
     id: "staija",
@@ -61,7 +55,6 @@ export const projects: Project[] = [
     blurb: "Website for an NGO connecting Nigerian students with research opportunities.",
     stack: ["Vue.js", "Tailwind", "Firebase", "Contentful"],
     links: { live: "https://staija.org", repo: "https://github.com/Builder106/STAIJA" },
-    anchor: "anchor.staija",
   },
   {
     id: "applytok",
@@ -70,6 +63,5 @@ export const projects: Project[] = [
     blurb: "TikTok-inspired job application platform.",
     stack: ["Next.js", "Nest.js", "AWS", "Supabase", "TypeScript"],
     links: { live: "https://applytok.tech", repo: "https://github.com/Builder106/ApplyTok" },
-    anchor: "anchor.applytok",
   },
 ];

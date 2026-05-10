@@ -1,11 +1,13 @@
 import { useGLTF, Environment } from "@react-three/drei";
-import { useLayoutEffect } from "react";
+import { type ThreeEvent } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { Mesh, MeshStandardMaterial } from "three";
 import { collectAnchors, type SceneAnchor } from "./anchors";
+import { resolveClick, type ClickTarget } from "./clickResolver";
 
 // The server room is modelled in Blender and exported as a single .glb.
 // See docs/blender-contract.md for the export contract — anchor Empties
-// named "anchor.<id>" are inside this scene and resolved at runtime by
+// named "anchor_<id>" are inside this scene and resolved at runtime by
 // collectAnchors() in @/scene/anchors.ts.
 
 const MODEL_URL = "/models/server-room.glb";
@@ -16,14 +18,17 @@ const UNTONED_MATERIALS = new Set(["M_Screen", "M_Monitor"]);
 
 interface ServerRoomProps {
   onAnchorsReady?: (anchors: Map<string, SceneAnchor>) => void;
+  onSelect?: (target: ClickTarget) => void;
 }
 
-export function ServerRoom({ onAnchorsReady }: ServerRoomProps) {
+export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
   const { scene } = useGLTF(MODEL_URL);
+  const sentAnchorsRef = useRef(false);
 
   useLayoutEffect(() => {
     // Walk the loaded scene once: opt emissive screens out of ACES
-    // tonemapping (so cyan stays cyan) and harvest the anchor Empties.
+    // tonemapping (so cyan stays cyan) and set every Mesh as raycast-
+    // pickable so the onClick handler upstream actually receives events.
     scene.traverse((obj) => {
       if (obj instanceof Mesh) {
         const mat = obj.material;
@@ -32,15 +37,24 @@ export function ServerRoom({ onAnchorsReady }: ServerRoomProps) {
         }
       }
     });
+  }, [scene]);
 
-    if (onAnchorsReady) {
-      onAnchorsReady(collectAnchors(scene));
-    }
+  useEffect(() => {
+    if (sentAnchorsRef.current) return;
+    if (!onAnchorsReady) return;
+    sentAnchorsRef.current = true;
+    onAnchorsReady(collectAnchors(scene));
   }, [scene, onAnchorsReady]);
+
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    const hit = resolveClick(e.object);
+    if (hit && onSelect) onSelect(hit);
+  };
 
   return (
     <group>
-      <primitive object={scene} />
+      <primitive object={scene} onClick={handleClick} />
 
       {/* Soft hemisphere fill so metallic surfaces (racks, desk, floor) have
           something to reflect. The .glb ships without lights on purpose;

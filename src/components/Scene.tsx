@@ -1,4 +1,4 @@
-import { Canvas, type ThreeEvent } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Suspense, useRef } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
@@ -8,16 +8,15 @@ import {
   DEFAULT_CAMERA_TARGET,
   type CameraTarget,
 } from "@/scene/cameraRig";
-import { resolveClick, type ClickTarget } from "@/scene/clickResolver";
+import type { ClickTarget } from "@/scene/clickResolver";
+import type { SceneAnchor } from "@/scene/anchors";
 import { CameraRig } from "./CameraRig";
 
 interface SceneProps {
   cameraTarget: CameraTarget | null;
   freezeOrbit: boolean;
   onSelect: (target: ClickTarget) => void;
-  // Allows the parent (App) to receive a callback when the .glb's anchor
-  // map is ready, so it can build CameraTargets from anchor IDs.
-  onAnchorsReady: (anchors: Map<string, import("@/scene/anchors").SceneAnchor>) => void;
+  onAnchorsReady: (anchors: Map<string, SceneAnchor>) => void;
 }
 
 export function Scene({ cameraTarget, freezeOrbit, onSelect, onAnchorsReady }: SceneProps) {
@@ -38,21 +37,14 @@ export function Scene({ cameraTarget, freezeOrbit, onSelect, onAnchorsReady }: S
         far={100}
       />
       <Suspense fallback={null}>
-        <group
-          onClick={(e: ThreeEvent<MouseEvent>) => {
-            e.stopPropagation();
-            const hit = resolveClick(e.object);
-            if (hit) onSelect(hit);
-          }}
-        >
-          <ServerRoom onAnchorsReady={onAnchorsReady} />
-        </group>
+        <ServerRoom onAnchorsReady={onAnchorsReady} onSelect={onSelect} />
       </Suspense>
       <OrbitControls
         ref={controlsRef}
         target={DEFAULT_CAMERA_TARGET.toArray()}
         enablePan={false}
         enableZoom
+        enableDamping={false}
         minDistance={5}
         maxDistance={20}
         maxPolarAngle={Math.PI / 2.1}

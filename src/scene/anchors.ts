@@ -1,13 +1,15 @@
 import { Object3D, Vector3 } from "three";
 
-// Blender Empty objects exported with names like "anchor.<id>" become invisible
-// Object3D nodes in the .glb. This module finds them and exposes their world
-// position so the camera rig can fly to them and React panels can be pinned
-// to their projected screen-space coordinates.
+// Blender Empty objects exported with names like "anchor_<id>" become
+// invisible Object3D nodes in the .glb. This module finds them and exposes
+// their world position so the camera rig can fly to them and React panels
+// can be pinned to their projected screen-space coordinates.
 //
 // See docs/blender-contract.md for the full naming convention.
 
-export const ANCHOR_PREFIX = "anchor.";
+// Underscore separator (not a dot) because Three.js's GLTFLoader strips
+// dots from node names — it reserves them for animation property paths.
+export const ANCHOR_PREFIX = "anchor_";
 
 export interface SceneAnchor {
   id: string;
