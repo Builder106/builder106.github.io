@@ -1,5 +1,5 @@
 import { type Project } from "@/data/projects";
-import "./Panel.css";
+import { PanelShell } from "./PanelShell";
 
 interface ProjectCardProps {
   project: Project | null;
@@ -14,28 +14,15 @@ const CLUSTER_LABEL: Record<Project["cluster"], string> = {
 };
 
 export function ProjectCard({ project, onClose }: ProjectCardProps) {
-  // We render the panel shell even with no project so the close transition
-  // can play out cleanly when the panel is dismissed.
+  // The shell is rendered even when project is null so the close
+  // animation can play out cleanly when the panel is dismissed.
   const open = project !== null;
+  const title = project ? `// node.${project.id}` : "// node";
 
   return (
-    <div className={`panel ${open ? "panel--open" : ""}`} role="dialog" aria-hidden={!open}>
-      <header className="panel__header">
-        <div className="panel__chrome">
-          <span className="panel__chrome-dot panel__chrome-dot--red" />
-          <span className="panel__chrome-dot panel__chrome-dot--amber" />
-          <span className="panel__chrome-dot panel__chrome-dot--green" />
-        </div>
-        <h2 className="panel__title">
-          // {project ? `node.${project.id}` : "node"}
-        </h2>
-        <button className="panel__close" onClick={onClose} aria-label="Close">
-          <span aria-hidden>esc</span>
-        </button>
-      </header>
-
+    <PanelShell open={open} title={title} onClose={onClose}>
       {project && (
-        <div className="panel__body">
+        <>
           <section className="panel__section">
             <div className="panel__section-label">project / {CLUSTER_LABEL[project.cluster]}</div>
             <h3 className="panel__list-name" style={{ fontSize: 18, marginBottom: 10 }}>
@@ -70,8 +57,8 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
               </div>
             </section>
           )}
-        </div>
+        </>
       )}
-    </div>
+    </PanelShell>
   );
 }

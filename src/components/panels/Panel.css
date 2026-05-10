@@ -1,26 +1,44 @@
+/* ---------- Reticle-lock + scan-line entrance ----------
+ *
+ * Three coordinated phases when .panel--open is added:
+ *
+ *  Phase 1 (0-280ms):  Four corner brackets pop in from the panel
+ *                      centre, staggered 0/50/100/150ms. Panel border
+ *                      and box-shadow fade in.
+ *
+ *  Phase 2 (250-700ms): A glowing cyan scan-line sweeps top to bottom.
+ *                      Header + body content are clip-pathed so they
+ *                      reveal in lockstep with the line position.
+ *
+ *  Phase 3 (700ms):    The contact panel's status dot does a single
+ *                      brighter pulse to punctuate completion.
+ *
+ * Total ~750ms. Within the Premium archetype's 350-600ms band on the
+ * core entrance; the staggered second phase pushes it slightly longer
+ * because the user is supposed to *watch* the reveal on first open.
+ */
+
 .panel {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0.96);
+  transform: translate(-50%, -50%);
   width: min(720px, 92vw);
   max-height: 80vh;
   background: rgba(8, 10, 18, 0.92);
-  border: 1px solid rgba(76, 242, 255, 0.25);
+  border: 1px solid transparent;
   border-radius: 6px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    0 0 80px rgba(76, 242, 255, 0.08),
-    inset 0 1px 0 rgba(76, 242, 255, 0.15);
+  box-shadow: none;
   font-family: var(--font-mono);
   color: var(--text-primary);
   opacity: 0;
   pointer-events: none;
   transition:
-    opacity 250ms ease,
-    transform 280ms cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    opacity 200ms ease-out,
+    border-color 220ms ease-out 180ms,
+    box-shadow 280ms ease-out 180ms;
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -30,7 +48,90 @@
 .panel--open {
   opacity: 1;
   pointer-events: auto;
-  transform: translate(-50%, -50%) scale(1);
+  border-color: rgba(76, 242, 255, 0.25);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 80px rgba(76, 242, 255, 0.08),
+    inset 0 1px 0 rgba(76, 242, 255, 0.15);
+}
+
+/* Reticle corner brackets — small Ls drawn with a 2-sided border. They
+ * start at 40% scale and snap out to full size on open. */
+.panel__bracket {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--neon-cyan);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.4);
+  filter: drop-shadow(0 0 4px rgba(76, 242, 255, 0.6));
+  transition:
+    opacity 220ms ease-out,
+    transform 260ms cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+.panel__bracket--tl { top: -1px; left: -1px;  border-right: none; border-bottom: none; transform-origin: top left; }
+.panel__bracket--tr { top: -1px; right: -1px; border-left: none;  border-bottom: none; transform-origin: top right; }
+.panel__bracket--bl { bottom: -1px; left: -1px;  border-right: none; border-top: none; transform-origin: bottom left; }
+.panel__bracket--br { bottom: -1px; right: -1px; border-left: none;  border-top: none; transform-origin: bottom right; }
+
+.panel--open .panel__bracket {
+  opacity: 1;
+  transform: scale(1);
+}
+.panel--open .panel__bracket--tl { transition-delay: 0ms; }
+.panel--open .panel__bracket--tr { transition-delay: 50ms; }
+.panel--open .panel__bracket--bl { transition-delay: 100ms; }
+.panel--open .panel__bracket--br { transition-delay: 150ms; }
+
+/* Scan line — a thin cyan beam that starts at the top of the panel
+ * and sweeps down. Off-canvas in the resting state; the keyframe
+ * animation only fires when --open is applied. */
+.panel__scan {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(76, 242, 255, 0.85) 30%,
+    rgba(76, 242, 255, 1) 50%,
+    rgba(76, 242, 255, 0.85) 70%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px rgba(76, 242, 255, 0.85), 0 0 28px rgba(76, 242, 255, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.panel--open .panel__scan {
+  animation: panel-scan-sweep 480ms cubic-bezier(0.4, 0, 0.2, 1) 240ms forwards;
+}
+
+@keyframes panel-scan-sweep {
+  0%   { top: 1px;            opacity: 0; }
+  10%  { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { top: calc(100% - 2px); opacity: 0; }
+}
+
+/* Content reveal — the header and body are clipped from the bottom
+ * upward in their resting state. As --open is added, the inset
+ * animates back to zero, releasing content top-down in step with the
+ * scan line. */
+.panel__header,
+.panel__body {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 480ms cubic-bezier(0.4, 0, 0.2, 1) 240ms;
+}
+
+.panel--open .panel__header,
+.panel--open .panel__body {
+  clip-path: inset(0 0 0 0);
 }
 
 .panel__header {
@@ -224,6 +325,19 @@
   box-shadow: 0 0 8px var(--terminal-green);
   display: inline-block;
   margin-right: 6px;
+}
+
+/* Phase 3 of the panel entrance: when the contact panel opens, this dot
+ * does a single brighter pulse at ~700ms to punctuate the scan-line
+ * completion. After that it stays at its normal glow. */
+.panel--open .contact__status-dot {
+  animation: contact-status-punctuate 520ms ease-out 720ms 1 both;
+}
+
+@keyframes contact-status-punctuate {
+  0%   { transform: scale(1);   box-shadow: 0 0 8px var(--terminal-green); }
+  35%  { transform: scale(1.6); box-shadow: 0 0 16px var(--terminal-green), 0 0 36px var(--terminal-green); }
+  100% { transform: scale(1);   box-shadow: 0 0 8px var(--terminal-green); }
 }
 
 .contact__status-key,

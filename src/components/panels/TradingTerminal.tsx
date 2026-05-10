@@ -1,5 +1,5 @@
 import { projects } from "@/data/projects";
-import "./Panel.css";
+import { PanelShell } from "./PanelShell";
 
 interface TradingTerminalProps {
   open: boolean;
@@ -14,51 +14,37 @@ export function TradingTerminal({ open, onClose }: TradingTerminalProps) {
   const quantProjects = projects.filter((p) => p.cluster === "quant");
 
   return (
-    <div className={`panel ${open ? "panel--open" : ""}`} role="dialog" aria-hidden={!open}>
-      <header className="panel__header">
-        <div className="panel__chrome">
-          <span className="panel__chrome-dot panel__chrome-dot--red" />
-          <span className="panel__chrome-dot panel__chrome-dot--amber" />
-          <span className="panel__chrome-dot panel__chrome-dot--green" />
+    <PanelShell open={open} title="// trading_terminal" onClose={onClose}>
+      <section className="panel__section">
+        <div className="panel__section-label">order_book.flow</div>
+        <div className="panel__chart" aria-hidden>
+          {Array.from({ length: 24 }).map((_, i) => (
+            <span
+              key={i}
+              className="panel__bar"
+              style={{
+                height: `${20 + ((Math.sin(i * 0.7) + 1) / 2) * 70}%`,
+                animationDelay: `${i * 60}ms`,
+              }}
+            />
+          ))}
         </div>
-        <h2 className="panel__title">// trading_terminal</h2>
-        <button className="panel__close" onClick={onClose} aria-label="Close terminal">
-          <span aria-hidden>esc</span>
-        </button>
-      </header>
+      </section>
 
-      <div className="panel__body">
-        <section className="panel__section">
-          <div className="panel__section-label">order_book.flow</div>
-          <div className="panel__chart" aria-hidden>
-            {Array.from({ length: 24 }).map((_, i) => (
-              <span
-                key={i}
-                className="panel__bar"
-                style={{
-                  height: `${20 + ((Math.sin(i * 0.7) + 1) / 2) * 70}%`,
-                  animationDelay: `${i * 60}ms`,
-                }}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="panel__section">
-          <div className="panel__section-label">projects.quant</div>
-          <ul className="panel__list">
-            {quantProjects.map((p) => (
-              <li key={p.id} className="panel__list-item">
-                <div className="panel__list-row">
-                  <span className="panel__list-name">{p.name}</span>
-                  <span className="panel__list-stack">{p.stack.join(" · ")}</span>
-                </div>
-                <p className="panel__list-blurb">{p.blurb}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-    </div>
+      <section className="panel__section">
+        <div className="panel__section-label">projects.quant</div>
+        <ul className="panel__list">
+          {quantProjects.map((p) => (
+            <li key={p.id} className="panel__list-item">
+              <div className="panel__list-row">
+                <span className="panel__list-name">{p.name}</span>
+                <span className="panel__list-stack">{p.stack.join(" · ")}</span>
+              </div>
+              <p className="panel__list-blurb">{p.blurb}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </PanelShell>
   );
 }
