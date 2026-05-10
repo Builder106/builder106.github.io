@@ -1,4 +1,4 @@
-import { useGLTF, useCursor, Html, MeshReflectorMaterial } from "@react-three/drei";
+import { useGLTF, useCursor, Html, MeshReflectorMaterial, Grid } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -307,6 +307,25 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
           roughness={0.4}
         />
       </mesh>
+
+      {/* 1m floor tile grid sitting just above the reflective surface.
+          Datacenter-floor read; the section lines every 4m mark the
+          larger panels. Faded out toward the room edges so it doesn't
+          feel like a flat geometric overlay. */}
+      <Grid
+        position={[0, 0.005, 0]}
+        args={[14, 14]}
+        cellSize={1}
+        cellThickness={0.6}
+        cellColor="#3d4258"
+        sectionSize={4}
+        sectionThickness={1.0}
+        sectionColor="#5a607a"
+        fadeDistance={11}
+        fadeStrength={1.4}
+        infiniteGrid={false}
+        side={2}  // DoubleSide so it shows from both faces if camera dips
+      />
 
       {/* Engraved-style nameplate on the front face of the desk.
           Same idle visibility rule as the rack callouts. */}
