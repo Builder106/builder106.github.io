@@ -21,7 +21,11 @@ useGLTF.preload(MODEL_URL);
 
 // Materials whose emission should bypass ACES tonemapping.
 function isUntonedMaterial(name: string): boolean {
-  return name === "M_Screen" || name.startsWith("M_Cable_");
+  return (
+    name === "M_Screen" ||
+    name.startsWith("M_Cable_") ||
+    name.startsWith("M_StatusLED_")
+  );
 }
 
 // Hover behavior tuning.
@@ -303,6 +307,21 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
           roughness={0.4}
         />
       </mesh>
+
+      {/* Engraved-style nameplate on the front face of the desk.
+          Same idle visibility rule as the rack callouts. */}
+      {!panelOpen && (
+        <Html
+          position={[0, 0.55, 3.105]}
+          center
+          rotation={[0, 0, 0]}
+          distanceFactor={4.2}
+          zIndexRange={[0, 0]}
+          style={{ pointerEvents: "none", userSelect: "none" }}
+        >
+          <div className="desk-nameplate">Olayinka David Vaughan</div>
+        </Html>
+      )}
 
       {/* Floating callout labels above each rack + the central monitor.
           Mirrors the concept-art annotations (OCaml / Docker / etc.).

@@ -115,3 +115,26 @@ button {
   0%, 100% { transform: translateY(-4px); }
   50%      { transform: translateY(-7px); }
 }
+
+/* ---------- Desk nameplate (drei <Html>) ---------- */
+
+.desk-nameplate {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(220, 226, 240, 0.92);
+  padding: 8px 18px;
+  border: 1px solid rgba(220, 226, 240, 0.25);
+  border-radius: 2px;
+  background: rgba(8, 10, 18, 0.7);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow:
+    inset 0 0 12px rgba(220, 226, 240, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 4px rgba(220, 226, 240, 0.3);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
