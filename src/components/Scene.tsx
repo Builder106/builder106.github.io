@@ -22,17 +22,18 @@ function ResponsiveCamera() {
 
   const { position, fov } = useMemo(() => {
     if (aspect < 0.8) {
-      // Portrait phone: wide FOV, pulled back further.
+      // Portrait phone: pulled in close so racks are big enough to
+      // tap, with a wider FOV so the scene still fits horizontally.
       return {
-        position: new Vector3(10, 7.5, 10),
-        fov: 55,
+        position: new Vector3(6.5, 5, 6.5),
+        fov: 60,
       };
     }
     if (aspect < 1.3) {
-      // Squarish (tablet portrait, landscape phone). Mid setup.
+      // Squarish (tablet portrait, landscape phone).
       return {
-        position: new Vector3(9, 6.8, 9),
-        fov: 42,
+        position: new Vector3(8, 6.2, 8),
+        fov: 45,
       };
     }
     return { position: DEFAULT_CAMERA_POSITION.clone(), fov: 35 };

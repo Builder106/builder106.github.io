@@ -343,15 +343,12 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
       )}
 
       {/* Floating callout labels above each rack + the central monitor.
-          Mirrors the concept-art annotations (OCaml / Docker / etc.).
-          Hidden while a panel is open so the panel content owns the
-          screen. */}
+          Each label is a clickable shortcut that triggers the same
+          ClickTarget the underlying mesh would. Tap-friendly target on
+          phones; doesn't hurt desktop. Hidden while a panel is open so
+          the panel content owns the screen. */}
       {!panelOpen && Array.from(anchorMap.entries()).map(([id, anchor]) => {
         if (id === "terminal") {
-          // Position above the actual monitor mesh top, not the
-          // anchor (which sits in front of the monitor where the
-          // camera flies in). Otherwise the label hovers between
-          // the camera and the screen.
           return (
             <Html
               key={id}
@@ -359,12 +356,16 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
               center
               distanceFactor={9}
               zIndexRange={[0, 0]}
-              style={{ pointerEvents: "none", userSelect: "none" }}
+              style={{ userSelect: "none" }}
             >
-              <div className="rack-label rack-label--terminal">
+              <button
+                type="button"
+                className="rack-label rack-label--terminal"
+                onClick={() => onSelect?.({ kind: "terminal" })}
+              >
                 <span className="rack-label__name">trading_terminal</span>
                 <span className="rack-label__cluster">// quant</span>
-              </div>
+              </button>
             </Html>
           );
         }
@@ -377,12 +378,16 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
             center
             distanceFactor={9}
             zIndexRange={[0, 0]}
-            style={{ pointerEvents: "none", userSelect: "none" }}
+            style={{ userSelect: "none" }}
           >
-            <div className="rack-label">
+            <button
+              type="button"
+              className="rack-label"
+              onClick={() => onSelect?.({ kind: "project", projectId: id })}
+            >
               <span className="rack-label__name">{project.name}</span>
               <span className="rack-label__cluster">// {project.cluster}</span>
-            </div>
+            </button>
           </Html>
         );
       })}

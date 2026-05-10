@@ -83,7 +83,8 @@ button {
   border-radius: 4px;
   font-family: var(--font-mono);
   white-space: nowrap;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
   user-select: none;
   box-shadow:
     0 0 16px rgba(76, 242, 255, 0.15),
@@ -92,6 +93,21 @@ button {
   -webkit-backdrop-filter: blur(4px);
   transform: translateY(-4px);
   animation: rack-label-float 4s ease-in-out infinite;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.rack-label:hover,
+.rack-label:focus-visible {
+  border-color: var(--neon-cyan);
+  background: rgba(8, 10, 18, 0.95);
+  box-shadow:
+    0 0 24px rgba(76, 242, 255, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+  outline: none;
+}
+
+.rack-label:active {
+  transform: translateY(-3px) scale(0.97);
 }
 
 .rack-label__name {
@@ -113,6 +129,15 @@ button {
   border-color: rgba(255, 184, 76, 0.5);
   box-shadow:
     0 0 16px rgba(255, 184, 76, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.rack-label--terminal:hover,
+.rack-label--terminal:focus-visible {
+  border-color: var(--neon-amber);
+  background: rgba(8, 10, 18, 0.95);
+  box-shadow:
+    0 0 24px rgba(255, 184, 76, 0.4),
     0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
