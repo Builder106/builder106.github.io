@@ -1,4 +1,4 @@
-import { useGLTF, Environment, useCursor, Html } from "@react-three/drei";
+import { useGLTF, Environment, useCursor, Html, MeshReflectorMaterial } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -88,6 +88,14 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
     const interactives: Interactive[] = [];
     scene.traverse((obj) => {
       if (!(obj instanceof Mesh)) return;
+
+      // The static glb floor is hidden — a separate JSX <mesh> with
+      // MeshReflectorMaterial (below) renders the reflective floor
+      // instead, so the racks and cables actually mirror onto it.
+      if (obj.name === "Floor") {
+        obj.visible = false;
+        return;
+      }
 
       // The Monitor mesh gets the swarm shader, replacing its baked
       // M_Monitor material entirely. From here on it's hover-driven
@@ -238,16 +246,43 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
         background={false}
       />
 
+      {/* Real-time reflective floor. Replaces the hidden glb Floor.
+          14x14 to match the room footprint, lying in the XZ plane at
+          y=0, normal up. Drei's MeshReflectorMaterial does an internal
+          render-to-texture every frame so the rack/cable emissions
+          actually mirror onto it. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[14, 14]} />
+        <MeshReflectorMaterial
+          blur={[300, 90]}
+          mixBlur={1.0}
+          mixStrength={1.6}
+          resolution={1024}
+          mirror={0.45}
+          mixContrast={1.0}
+          depthScale={0.9}
+          minDepthThreshold={0.4}
+          maxDepthThreshold={1.5}
+          color="#1a1d2e"
+          metalness={0.55}
+          roughness={0.42}
+        />
+      </mesh>
+
       {/* Floating callout labels above each rack + the central monitor.
           Mirrors the concept-art annotations (OCaml / Docker / etc.).
           Hidden while a panel is open so the panel content owns the
           screen. */}
       {!panelOpen && Array.from(anchorMap.entries()).map(([id, anchor]) => {
         if (id === "terminal") {
+          // Position above the actual monitor mesh top, not the
+          // anchor (which sits in front of the monitor where the
+          // camera flies in). Otherwise the label hovers between
+          // the camera and the screen.
           return (
             <Html
               key={id}
-              position={[anchor.position.x, anchor.position.y + 1.2, anchor.position.z]}
+              position={[0, 2.55, anchor.position.z - 0.7]}
               center
               distanceFactor={9}
               zIndexRange={[0, 0]}
