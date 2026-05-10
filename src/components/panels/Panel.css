@@ -25,29 +25,42 @@
   transform: translate(-50%, -50%);
   width: min(720px, 92vw);
   max-height: 80vh;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  /* No background / border / overflow on the outer wrapper — those live
+   * on .panel__inner so the brackets can sit at the actual corners
+   * without being clipped by the rounded inner box. */
+}
+
+.panel--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.panel__inner {
+  position: relative;
+  flex: 1;
   background: rgba(8, 10, 18, 0.92);
   border: 1px solid transparent;
   border-radius: 6px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: none;
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 200ms ease-out,
-    border-color 220ms ease-out 180ms,
-    box-shadow 280ms ease-out 180ms;
-  z-index: 50;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition:
+    border-color 220ms ease-out 180ms,
+    box-shadow 280ms ease-out 180ms;
 }
 
-.panel--open {
-  opacity: 1;
-  pointer-events: auto;
+.panel--open .panel__inner {
   border-color: rgba(76, 242, 255, 0.25);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.6),
@@ -59,22 +72,23 @@
  * start at 40% scale and snap out to full size on open. */
 .panel__bracket {
   position: absolute;
-  width: 18px;
-  height: 18px;
-  border: 1px solid var(--neon-cyan);
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--neon-cyan);
   pointer-events: none;
   opacity: 0;
-  transform: scale(0.4);
-  filter: drop-shadow(0 0 4px rgba(76, 242, 255, 0.6));
+  transform: scale(0.3);
+  filter: drop-shadow(0 0 6px rgba(76, 242, 255, 0.8));
+  z-index: 6;
   transition:
     opacity 220ms ease-out,
-    transform 260ms cubic-bezier(0.2, 1.2, 0.4, 1);
+    transform 280ms cubic-bezier(0.2, 1.2, 0.4, 1);
 }
 
-.panel__bracket--tl { top: -1px; left: -1px;  border-right: none; border-bottom: none; transform-origin: top left; }
-.panel__bracket--tr { top: -1px; right: -1px; border-left: none;  border-bottom: none; transform-origin: top right; }
-.panel__bracket--bl { bottom: -1px; left: -1px;  border-right: none; border-top: none; transform-origin: bottom left; }
-.panel__bracket--br { bottom: -1px; right: -1px; border-left: none;  border-top: none; transform-origin: bottom right; }
+.panel__bracket--tl { top: -6px;  left: -6px;  border-right: none; border-bottom: none; transform-origin: top left; }
+.panel__bracket--tr { top: -6px;  right: -6px; border-left: none;  border-bottom: none; transform-origin: top right; }
+.panel__bracket--bl { bottom: -6px; left: -6px;  border-right: none; border-top: none;  transform-origin: bottom left; }
+.panel__bracket--br { bottom: -6px; right: -6px; border-left: none;  border-top: none;  transform-origin: bottom right; }
 
 .panel--open .panel__bracket {
   opacity: 1;
