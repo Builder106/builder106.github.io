@@ -229,14 +229,16 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
         onPointerOut={handlePointerOut}
       />
 
-      {/* Sterile-office overhead lighting: bright cool-white from
-          above, off-white floor bounce. Ambient is also nearly white
-          so shadows don't go navy. */}
+      {/* Bright fluorescent-quality overhead lighting tinted slightly
+          cool. Hemisphere top is near-white, ground is mid-grey so
+          shadow areas catch some bounce instead of going pitch black,
+          but neither tint is so warm it whitewashes the dark base
+          colors of the racks/desk/floor. */}
       <hemisphereLight
         ref={hemiRef}
-        args={["#dde4f0", "#5a606e", LIGHTS.hemi.idle]}
+        args={["#c8d0e0", "#3e4254", LIGHTS.hemi.idle]}
       />
-      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#b8c0cf" />
+      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#7a8294" />
 
       {/* Central cyan accent — the only colored light, motivated by
           the screens it lives among. */}
@@ -279,26 +281,26 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
           evenly. Metallic specular highlights now come purely from
           the four ceiling lights + the central cyan key. */}
 
-      {/* Sterile-office tile floor: matte, slightly cool-white,
-          medium-low gloss. Subtle reflection (mirror 0.18) so it
-          reads as polished tile rather than a dark mirror, but
-          the bulk of its appearance is its lit base color, not
-          the reflection. */}
+      {/* Polished dark floor — concept-art palette, lit by the bright
+          overhead fluorescents above. Reads as glossy dark concrete
+          / polished tile rather than office vinyl. Soft real-time
+          reflection picks up the rack LED bars and the ceiling
+          lights. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[14, 14]} />
         <MeshReflectorMaterial
-          blur={[600, 200]}
-          mixBlur={2.2}
-          mixStrength={0.6}
-          resolution={512}
-          mirror={0.18}
+          blur={[300, 100]}
+          mixBlur={1.0}
+          mixStrength={1.4}
+          resolution={1024}
+          mirror={0.5}
           mixContrast={1.0}
-          depthScale={0.6}
-          minDepthThreshold={0.3}
-          maxDepthThreshold={1.4}
-          color="#7a8093"
-          metalness={0.15}
-          roughness={0.55}
+          depthScale={1.0}
+          minDepthThreshold={0.4}
+          maxDepthThreshold={1.5}
+          color="#1a1d2e"
+          metalness={0.55}
+          roughness={0.4}
         />
       </mesh>
 
