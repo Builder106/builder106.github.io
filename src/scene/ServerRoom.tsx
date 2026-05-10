@@ -26,17 +26,19 @@ const UNTONED_MATERIAL_NAMES = new Set(["M_Screen", "M_Monitor"]);
 // brightens, every other emissive dims dramatically, and the runtime
 // fill lights pull back so the rest of the room sinks into shadow.
 const HOVER_INTENSITY_MULTIPLIER = 1.6;
-const DIM_INTENSITY_MULTIPLIER = 0.12;
+const DIM_INTENSITY_MULTIPLIER = 0.35;  // non-hovered emissives this fraction of idle
 const HOVER_TIME_CONSTANT = 0.07;       // ~210ms to 95% — Premium archetype.
 
-// Light intensities mapped between idle and hover-dim states.
+// Light intensities mapped between idle and hover-dim states. Aim is a
+// readable "lights-down" feel rather than a blackout — non-hovered racks
+// should still be navigable, just clearly de-emphasised.
 const LIGHTS = {
-  hemi: { idle: 0.6, dim: 0.08 },
-  ambient: { idle: 0.15, dim: 0.02 },
-  pointKey: { idle: 1.4, dim: 0.18 },
-  pointFillA: { idle: 0.9, dim: 0.12 },
-  pointFillB: { idle: 0.8, dim: 0.1 },
-  envIntensity: { idle: 0.25, dim: 0.05 },
+  hemi: { idle: 0.6, dim: 0.28 },
+  ambient: { idle: 0.15, dim: 0.07 },
+  pointKey: { idle: 1.4, dim: 0.55 },
+  pointFillA: { idle: 0.9, dim: 0.36 },
+  pointFillB: { idle: 0.8, dim: 0.32 },
+  envIntensity: { idle: 0.25, dim: 0.12 },
 };
 
 interface Interactive {
