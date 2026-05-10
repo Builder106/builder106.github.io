@@ -29,16 +29,16 @@ const HOVER_INTENSITY_MULTIPLIER = 1.6;
 const DIM_INTENSITY_MULTIPLIER = 0.35;
 const HOVER_TIME_CONSTANT = 0.07;
 
+// Sterile-office baseline: bright, even, fluorescent. The cyan accent
+// point light keeps the screens motivated; everything else is neutral
+// cool-white at fairly high intensity so the room reads as a plainly
+// lit interior rather than a moody data center.
 const LIGHTS = {
-  hemi:        { idle: 1.05, dim: 0.50 },
-  ambient:     { idle: 0.34, dim: 0.16 },
+  hemi:        { idle: 1.7,  dim: 0.85 },
+  ambient:     { idle: 0.7,  dim: 0.35 },
   pointKey:    { idle: 0.9,  dim: 0.40 },   // central cyan accent
-  // Single directional light from straight overhead — parallel rays
-  // mean uniform brightness across the whole floor, no distance falloff.
-  topDown:     { idle: 1.6,  dim: 0.80 },
-  // Each of 4 ceiling pointlights. Bumped from 0.65 -> 3.5 to compensate
-  // for distance-based falloff to floor-level surfaces.
-  ceilingGrid: { idle: 3.5,  dim: 1.6 },
+  topDown:     { idle: 2.6,  dim: 1.30 },
+  ceilingGrid: { idle: 6.0,  dim: 2.8 },
 };
 
 // Four ceiling light positions in a symmetric grid above the room.
@@ -229,15 +229,14 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
         onPointerOut={handlePointerOut}
       />
 
-      {/* Lighting comes from the top: a top-down hemisphere gradient,
-          a uniform ambient floor, plus four symmetric ceiling panels
-          arranged in a 2x2 grid above the room. No side fills, so
-          the floor reflection is even left-to-right and front-to-back. */}
+      {/* Sterile-office overhead lighting: bright cool-white from
+          above, off-white floor bounce. Ambient is also nearly white
+          so shadows don't go navy. */}
       <hemisphereLight
         ref={hemiRef}
-        args={["#7a89bf", "#1a1d2c", LIGHTS.hemi.idle]}
+        args={["#dde4f0", "#5a606e", LIGHTS.hemi.idle]}
       />
-      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#34395a" />
+      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#b8c0cf" />
 
       {/* Central cyan accent — the only colored light, motivated by
           the screens it lives among. */}
@@ -280,26 +279,26 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
           evenly. Metallic specular highlights now come purely from
           the four ceiling lights + the central cyan key. */}
 
-      {/* Real-time reflective floor. Replaces the hidden glb Floor.
-          14x14 to match the room footprint, lying in the XZ plane at
-          y=0, normal up. Drei's MeshReflectorMaterial does an internal
-          render-to-texture every frame so the rack/cable emissions
-          actually mirror onto it. */}
+      {/* Sterile-office tile floor: matte, slightly cool-white,
+          medium-low gloss. Subtle reflection (mirror 0.18) so it
+          reads as polished tile rather than a dark mirror, but
+          the bulk of its appearance is its lit base color, not
+          the reflection. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[14, 14]} />
         <MeshReflectorMaterial
-          blur={[220, 70]}
-          mixBlur={0.8}
-          mixStrength={2.4}
-          resolution={1024}
-          mirror={0.7}
-          mixContrast={1.05}
-          depthScale={1.1}
-          minDepthThreshold={0.4}
-          maxDepthThreshold={1.5}
-          color="#1a1d2e"
-          metalness={0.6}
-          roughness={0.32}
+          blur={[600, 200]}
+          mixBlur={2.2}
+          mixStrength={0.6}
+          resolution={512}
+          mirror={0.18}
+          mixContrast={1.0}
+          depthScale={0.6}
+          minDepthThreshold={0.3}
+          maxDepthThreshold={1.4}
+          color="#7a8093"
+          metalness={0.15}
+          roughness={0.55}
         />
       </mesh>
 
