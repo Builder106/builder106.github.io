@@ -15,11 +15,12 @@ import { CameraRig } from "./CameraRig";
 interface SceneProps {
   cameraTarget: CameraTarget | null;
   freezeOrbit: boolean;
+  panelOpen: boolean;
   onSelect: (target: ClickTarget) => void;
   onAnchorsReady: (anchors: Map<string, SceneAnchor>) => void;
 }
 
-export function Scene({ cameraTarget, freezeOrbit, onSelect, onAnchorsReady }: SceneProps) {
+export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchorsReady }: SceneProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
   return (
@@ -37,7 +38,11 @@ export function Scene({ cameraTarget, freezeOrbit, onSelect, onAnchorsReady }: S
         far={100}
       />
       <Suspense fallback={null}>
-        <ServerRoom onAnchorsReady={onAnchorsReady} onSelect={onSelect} />
+        <ServerRoom
+          onAnchorsReady={onAnchorsReady}
+          onSelect={onSelect}
+          panelOpen={panelOpen}
+        />
       </Suspense>
       <OrbitControls
         ref={controlsRef}

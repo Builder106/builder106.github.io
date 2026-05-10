@@ -1,6 +1,6 @@
-import { useGLTF, Environment, useCursor } from "@react-three/drei";
+import { useGLTF, Environment, useCursor, Html } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AmbientLight,
   HemisphereLight,
@@ -12,6 +12,7 @@ import {
 import { collectAnchors, type SceneAnchor } from "./anchors";
 import { resolveClick, type ClickTarget } from "./clickResolver";
 import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
+import { projects } from "@/data/projects";
 
 const MODEL_URL = "/models/server-room.glb";
 
@@ -61,18 +62,19 @@ function hoverKeyForMesh(name: string): string | null {
 interface ServerRoomProps {
   onAnchorsReady?: (anchors: Map<string, SceneAnchor>) => void;
   onSelect?: (target: ClickTarget) => void;
+  panelOpen?: boolean;
 }
 
-export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
+export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomProps) {
   const { scene } = useGLTF(MODEL_URL);
   const { scene: rootScene } = useThree();
   const sentAnchorsRef = useRef(false);
   const interactivesRef = useRef<Interactive[]>([]);
-  // The curved monitor is rendered with a custom GLSL shader (see
-  // swarmShader.ts). Its uniforms are mutated each frame instead of
-  // going through the standard Principled-BSDF path.
   const monitorShaderRef = useRef<(ShaderMaterial & { uniforms: SwarmUniforms }) | null>(null);
   const [hover, setHover] = useState<ClickTarget>(null);
+  const [anchorMap, setAnchorMap] = useState<Map<string, SceneAnchor>>(new Map());
+
+  const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
 
   const hemiRef = useRef<HemisphereLight | null>(null);
   const ambientRef = useRef<AmbientLight | null>(null);
@@ -125,7 +127,9 @@ export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
   useEffect(() => {
     if (sentAnchorsRef.current || !onAnchorsReady) return;
     sentAnchorsRef.current = true;
-    onAnchorsReady(collectAnchors(scene));
+    const collected = collectAnchors(scene);
+    setAnchorMap(collected);
+    onAnchorsReady(collected);
   }, [scene, onAnchorsReady]);
 
   useFrame((_, delta) => {
@@ -233,6 +237,47 @@ export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
         environmentIntensity={LIGHTS.envIntensity.idle}
         background={false}
       />
+
+      {/* Floating callout labels above each rack + the central monitor.
+          Mirrors the concept-art annotations (OCaml / Docker / etc.).
+          Hidden while a panel is open so the panel content owns the
+          screen. */}
+      {!panelOpen && Array.from(anchorMap.entries()).map(([id, anchor]) => {
+        if (id === "terminal") {
+          return (
+            <Html
+              key={id}
+              position={[anchor.position.x, anchor.position.y + 1.2, anchor.position.z]}
+              center
+              distanceFactor={9}
+              zIndexRange={[0, 0]}
+              style={{ pointerEvents: "none", userSelect: "none" }}
+            >
+              <div className="rack-label rack-label--terminal">
+                <span className="rack-label__name">trading_terminal</span>
+                <span className="rack-label__cluster">// quant</span>
+              </div>
+            </Html>
+          );
+        }
+        const project = projectsById.get(id);
+        if (!project) return null;
+        return (
+          <Html
+            key={id}
+            position={[anchor.position.x, anchor.position.y + 1.7, anchor.position.z]}
+            center
+            distanceFactor={9}
+            zIndexRange={[0, 0]}
+            style={{ pointerEvents: "none", userSelect: "none" }}
+          >
+            <div className="rack-label">
+              <span className="rack-label__name">{project.name}</span>
+              <span className="rack-label__cluster">// {project.cluster}</span>
+            </div>
+          </Html>
+        );
+      })}
     </group>
   );
 }

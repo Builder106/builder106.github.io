@@ -65,6 +65,7 @@ export function App() {
           <Scene
             cameraTarget={cameraTarget}
             freezeOrbit={active.kind !== "none"}
+            panelOpen={active.kind !== "none"}
             onSelect={handleSelect}
             onAnchorsReady={setAnchors}
           />

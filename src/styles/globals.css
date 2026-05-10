@@ -56,3 +56,62 @@ button {
   background: var(--neon-cyan);
   color: var(--bg-deep);
 }
+
+/* ---------- Floating rack callouts (drei <Html>) ---------- */
+
+.rack-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 12px;
+  background: rgba(8, 10, 18, 0.9);
+  border: 1px solid rgba(76, 242, 255, 0.45);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  box-shadow:
+    0 0 16px rgba(76, 242, 255, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transform: translateY(-4px);
+  animation: rack-label-float 4s ease-in-out infinite;
+}
+
+.rack-label__name {
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.rack-label__cluster {
+  color: var(--neon-cyan);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: lowercase;
+  text-shadow: 0 0 6px rgba(76, 242, 255, 0.4);
+}
+
+.rack-label--terminal {
+  border-color: rgba(255, 184, 76, 0.5);
+  box-shadow:
+    0 0 16px rgba(255, 184, 76, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.rack-label--terminal .rack-label__name {
+  color: var(--neon-amber);
+}
+
+.rack-label--terminal .rack-label__cluster {
+  color: rgba(255, 184, 76, 0.7);
+  text-shadow: 0 0 6px rgba(255, 184, 76, 0.4);
+}
+
+@keyframes rack-label-float {
+  0%, 100% { transform: translateY(-4px); }
+  50%      { transform: translateY(-7px); }
+}
