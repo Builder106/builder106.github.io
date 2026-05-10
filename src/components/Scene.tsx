@@ -1,7 +1,8 @@
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { Suspense, useRef } from "react";
+import { Suspense, useMemo, useRef } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { Vector3 } from "three";
 import { ServerRoom } from "@/scene/ServerRoom";
 import {
   DEFAULT_CAMERA_POSITION,
@@ -11,6 +12,42 @@ import {
 import type { ClickTarget } from "@/scene/clickResolver";
 import type { SceneAnchor } from "@/scene/anchors";
 import { CameraRig } from "./CameraRig";
+
+// Pull the camera back and widen FOV on narrow / portrait viewports so
+// the room actually fits in the frame on phones. Desktop landscape gets
+// the original isometric vantage.
+function ResponsiveCamera() {
+  const { size } = useThree();
+  const aspect = size.width / Math.max(size.height, 1);
+
+  const { position, fov } = useMemo(() => {
+    if (aspect < 0.8) {
+      // Portrait phone: wide FOV, pulled back further.
+      return {
+        position: new Vector3(10, 7.5, 10),
+        fov: 55,
+      };
+    }
+    if (aspect < 1.3) {
+      // Squarish (tablet portrait, landscape phone). Mid setup.
+      return {
+        position: new Vector3(9, 6.8, 9),
+        fov: 42,
+      };
+    }
+    return { position: DEFAULT_CAMERA_POSITION.clone(), fov: 35 };
+  }, [aspect]);
+
+  return (
+    <PerspectiveCamera
+      makeDefault
+      position={position.toArray()}
+      fov={fov}
+      near={0.1}
+      far={100}
+    />
+  );
+}
 
 interface SceneProps {
   cameraTarget: CameraTarget | null;
@@ -30,13 +67,7 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
       style={{ background: "var(--bg-deep)" }}
       onPointerMissed={() => onSelect(null)}
     >
-      <PerspectiveCamera
-        makeDefault
-        position={DEFAULT_CAMERA_POSITION.toArray()}
-        fov={35}
-        near={0.1}
-        far={100}
-      />
+      <ResponsiveCamera />
       <Suspense fallback={null}>
         <ServerRoom
           onAnchorsReady={onAnchorsReady}

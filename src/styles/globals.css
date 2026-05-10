@@ -29,6 +29,20 @@ body,
   overflow: hidden;
 }
 
+html, body {
+  /* Prevent iOS rubber-band scroll + double-tap zoom; the canvas owns
+     all touch interaction and there's no scrollable page beneath. */
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+canvas {
+  /* drei's OrbitControls calls preventDefault on its own touch events,
+     but the canvas tag itself needs touch-action: none to keep the
+     browser from interpreting drags/pinches as page gestures. */
+  touch-action: none;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -114,6 +128,20 @@ button {
 @keyframes rack-label-float {
   0%, 100% { transform: translateY(-4px); }
   50%      { transform: translateY(-7px); }
+}
+
+@media (max-width: 720px) {
+  .rack-label {
+    padding: 4px 8px;
+    gap: 1px;
+  }
+  .rack-label__name {
+    font-size: 10px;
+  }
+  .rack-label__cluster {
+    font-size: 8px;
+    letter-spacing: 0.12em;
+  }
 }
 
 /* ---------- Desk nameplate (drei <Html>) ---------- */

@@ -14,9 +14,21 @@
   padding: 18px 22px;
 }
 
-.hud__corner--tl { top: 0; left: 0; }
-.hud__corner--tr { top: 0; right: 0; }
-.hud__corner--bl { bottom: 0; left: 0; }
+/* Safe-area insets keep the corners clear of iPhone notch / Dynamic
+   Island / home indicator. env() falls back to 0 on browsers that
+   don't support it. */
+.hud__corner--tl {
+  top: env(safe-area-inset-top, 0px);
+  left: env(safe-area-inset-left, 0px);
+}
+.hud__corner--tr {
+  top: env(safe-area-inset-top, 0px);
+  right: env(safe-area-inset-right, 0px);
+}
+.hud__corner--bl {
+  bottom: env(safe-area-inset-bottom, 0px);
+  left: env(safe-area-inset-left, 0px);
+}
 
 .hud__mark {
   font-size: 18px;
@@ -72,8 +84,8 @@
 .hud__ping {
   position: absolute;
   pointer-events: auto;
-  bottom: 18px;
-  right: 22px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  right: calc(22px + env(safe-area-inset-right, 0px));
   display: flex;
   align-items: center;
   gap: 8px;
@@ -106,4 +118,48 @@
 @keyframes hud-ping-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.55; transform: scale(0.85); }
+}
+
+/* ---------- Mobile / narrow viewport ---------- */
+
+@media (max-width: 720px) {
+  .hud {
+    font-size: 10px;
+  }
+  .hud__corner {
+    padding: 12px 14px;
+  }
+  .hud__mark {
+    font-size: 15px;
+  }
+  .hud__sub {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+  }
+  .hud__nav {
+    gap: 12px;
+  }
+  /* Drag-to-orbit hint is desktop-specific; touch users discover by
+     trying. Hide on small screens to free up bottom-left. */
+  .hud__corner--bl {
+    display: none;
+  }
+  .hud__ping {
+    bottom: 12px;
+    right: 14px;
+    padding: 8px 12px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+}
+
+@media (max-width: 420px) {
+  /* On phone-portrait widths, drop subtitle too — name + nav links
+     are enough. Nav items stay horizontal but tighter. */
+  .hud__sub {
+    display: none;
+  }
+  .hud__nav {
+    gap: 10px;
+  }
 }

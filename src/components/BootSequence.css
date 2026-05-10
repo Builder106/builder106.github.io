@@ -77,3 +77,14 @@
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
 }
+
+@media (max-width: 720px) {
+  .boot-sequence__inner {
+    font-size: 11px;
+    line-height: 1.65;
+  }
+  .boot-sequence__header {
+    flex-wrap: wrap;
+    gap: 0.3em;
+  }
+}

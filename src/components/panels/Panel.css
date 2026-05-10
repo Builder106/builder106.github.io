@@ -278,6 +278,33 @@
   color: var(--text-muted);
 }
 
+/* ---------- Mobile / narrow viewport ---------- */
+
+@media (max-width: 720px) {
+  .panel {
+    width: 95vw;
+    max-height: 85vh;
+  }
+  .panel__header {
+    padding: 10px 12px;
+  }
+  .panel__title {
+    font-size: 11px;
+  }
+  .panel__body {
+    padding: 14px 16px 18px;
+    gap: 18px;
+  }
+  .panel__bracket {
+    width: 16px;
+    height: 16px;
+  }
+  .panel__bracket--tl { top: -5px; left: -5px; }
+  .panel__bracket--tr { top: -5px; right: -5px; }
+  .panel__bracket--bl { bottom: -5px; left: -5px; }
+  .panel__bracket--br { bottom: -5px; right: -5px; }
+}
+
 .panel__chips {
   display: flex;
   flex-wrap: wrap;

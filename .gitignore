@@ -12,6 +12,9 @@ pnpm-debug.log*
 dist/
 dist-ssr/
 
+# Vite dep optimization cache
+.vite/
+
 # TypeScript incremental build info
 *.tsbuildinfo
 
