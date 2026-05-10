@@ -99,21 +99,26 @@ const fragmentShader = /* glsl */ `
     vec2 drift = vec2(uTime * 0.18, sin(uTime * 0.4) * 0.06);
 
     // Cellular-noise particle field. Lower scale = bigger cells.
-    vec2 cell = worley((sp + drift) * 6.0);
-    float dotSize = mix(0.06, 0.18, cell.y);  // per-cell size variation
+    vec2 cell = worley((sp + drift) * 5.0);
+    float dotSize = mix(0.10, 0.30, cell.y);  // per-cell size variation
     float dot = 1.0 - smoothstep(0.0, dotSize, cell.x);
 
     // FBM-driven cluster mask: areas of high density vs sparse, drifts
-    // independently so the swarm shifts shape over time.
+    // independently so the swarm shifts shape over time. Loose
+    // thresholds so most of the screen always has *some* activity.
     float clusters = fbm(sp * 1.4 + vec2(uTime * 0.12));
-    float clusterMask = smoothstep(0.40, 0.72, clusters);
+    float clusterMask = smoothstep(0.20, 0.55, clusters);
 
     // Per-cell twinkle: each particle's brightness pulses on its own
     // phase based on the cell's hash.
     float twinklePhase = cell.y * 6.2831 + uTime * 1.6;
-    float twinkle = 0.65 + 0.35 * sin(twinklePhase);
+    float twinkle = 0.55 + 0.45 * sin(twinklePhase);
 
     float particles = dot * clusterMask * twinkle;
+
+    // Soft FBM "field glow" beneath the discrete dots so the surface
+    // reads as an active screen even between particles.
+    float fieldGlow = pow(clusters, 1.4) * 0.55;
 
     // Faint horizontal scan lines so the screen reads as a terminal
     // surface even in idle frames.
@@ -124,9 +129,10 @@ const fragmentShader = /* glsl */ `
     float edgeFade = smoothstep(1.05, 0.20, r);
     particles *= edgeFade;
 
-    // Base screen glow + particles.
-    vec3 col = uBaseColor * (0.55 + 0.45 * edgeFade) * scanlines;
-    col += uCoreColor * particles * 1.9;
+    // Base screen glow + soft field + discrete particles.
+    vec3 col = uBaseColor * (0.85 + 0.15 * edgeFade) * scanlines;
+    col += uBaseColor * fieldGlow * edgeFade * 0.9;
+    col += uCoreColor * particles * 2.2;
 
     // Hover boost / dim.
     col *= 1.0 + uHover * 0.45;
