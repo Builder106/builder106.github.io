@@ -15,6 +15,12 @@ dist-ssr/
 # TypeScript incremental build info
 *.tsbuildinfo
 
+# Blender source files (binary; commit only the exported .glb in public/models/)
+*.blend
+*.blend1
+blend/**/*.blend
+blend/**/*.blend1
+
 # Editor / IDE
 .vscode/*
 !.vscode/extensions.json
