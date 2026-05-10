@@ -57,48 +57,78 @@ const fragmentShader = /* glsl */ `
     return v;
   }
 
+  // 2D Worley / cellular noise. Returns the distance to the nearest
+  // jittered cell point in a unit grid, plus the cell's hash for
+  // per-cell randomization (twinkle).
+  vec2 worley(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float minDist = 1.0;
+    float cellHash = 0.0;
+    for (int y = -1; y <= 1; y++) {
+      for (int x = -1; x <= 1; x++) {
+        vec2 n = vec2(float(x), float(y));
+        vec2 cellOrigin = i + n;
+        vec2 jitter = vec2(
+          hash(cellOrigin),
+          hash(cellOrigin + vec2(17.3, 31.7))
+        );
+        float d = length(n + jitter - f);
+        if (d < minDist) {
+          minDist = d;
+          cellHash = hash(cellOrigin + vec2(91.1));
+        }
+      }
+    }
+    return vec2(minDist, cellHash);
+  }
+
   void main() {
     // Centered coords. Normalize to an ellipse so the radial mask
     // covers the whole monitor face evenly regardless of aspect.
     vec2 p = vUv * 2.0 - 1.0;
-    vec2 elliptical = vec2(p.x * 0.72, p.y);  // squash X for circular mask
+    vec2 elliptical = vec2(p.x * 0.72, p.y);
     float r = length(elliptical);
 
-    // Wider sample space so the FBM detail reads at a useful scale.
+    // Sample space is widened so detail reads at a sensible scale on
+    // the ultrawide monitor.
     vec2 sp = p * vec2(1.4, 1.0);
 
-    // Slow swirl (rotation) of the sample space.
-    float swirl = uTime * 0.10 + sin(uTime * 0.35) * 0.25;
-    float ca = cos(swirl);
-    float sa = sin(swirl);
-    vec2 rot = vec2(ca * sp.x - sa * sp.y, sa * sp.x + ca * sp.y);
+    // Slow rightward drift + a tiny vertical bob — suggests data
+    // streaming horizontally, with subtle motion.
+    vec2 drift = vec2(uTime * 0.18, sin(uTime * 0.4) * 0.06);
 
-    // Domain-warp the FBM by another FBM for the swirling-data look.
-    vec2 q = rot * 2.5;
-    vec2 displ = vec2(
-      fbm(q + vec2(uTime * 0.15)),
-      fbm(q + vec2(5.2, 1.3) - vec2(uTime * 0.12))
-    );
-    q += (displ - 0.5) * 1.4;
+    // Cellular-noise particle field. Lower scale = bigger cells.
+    vec2 cell = worley((sp + drift) * 6.0);
+    float dotSize = mix(0.06, 0.18, cell.y);  // per-cell size variation
+    float dot = 1.0 - smoothstep(0.0, dotSize, cell.x);
 
-    float density = fbm(q + vec2(uTime * 0.18));
-    density = pow(density, 1.5);
+    // FBM-driven cluster mask: areas of high density vs sparse, drifts
+    // independently so the swarm shifts shape over time.
+    float clusters = fbm(sp * 1.4 + vec2(uTime * 0.12));
+    float clusterMask = smoothstep(0.40, 0.72, clusters);
 
-    // Radial fade: bright across most of the screen, dimming only at
-    // the very edges. r is in 0..~1 across the elliptical face.
+    // Per-cell twinkle: each particle's brightness pulses on its own
+    // phase based on the cell's hash.
+    float twinklePhase = cell.y * 6.2831 + uTime * 1.6;
+    float twinkle = 0.65 + 0.35 * sin(twinklePhase);
+
+    float particles = dot * clusterMask * twinkle;
+
+    // Faint horizontal scan lines so the screen reads as a terminal
+    // surface even in idle frames.
+    float scanlines = 0.5 + 0.5 * sin(vUv.y * 220.0);
+    scanlines = mix(1.0, scanlines, 0.10);
+
+    // Edge fade.
     float edgeFade = smoothstep(1.05, 0.20, r);
+    particles *= edgeFade;
 
-    // Two thresholds — a sharp core and a softer halo around it. Gives
-    // the impression of glowing particles instead of a smooth cloud.
-    float core = smoothstep(0.32, 0.62, density) * edgeFade;
-    float halo = smoothstep(0.18, 0.45, density) * 0.55 * edgeFade;
+    // Base screen glow + particles.
+    vec3 col = uBaseColor * (0.55 + 0.45 * edgeFade) * scanlines;
+    col += uCoreColor * particles * 1.9;
 
-    // Base screen glow: bright cyan that stays readable across the
-    // whole face even when the swarm is sparse.
-    vec3 col = uBaseColor * (0.55 + 0.45 * edgeFade);
-    col += uCoreColor * (core * 1.6 + halo * 0.8);
-
-    // Hover boost / dim from the parent component's hover state.
+    // Hover boost / dim.
     col *= 1.0 + uHover * 0.45;
     col *= 1.0 - uDim * 0.65;
 
