@@ -4,6 +4,7 @@ import { Scene } from "./components/Scene";
 import { HUD } from "./components/HUD";
 import { TradingTerminal } from "./components/panels/TradingTerminal";
 import { ProjectCard } from "./components/panels/ProjectCard";
+import { ContactPing } from "./components/panels/ContactPing";
 import {
   defaultCameraTarget,
   projectCameraTarget,
@@ -17,7 +18,8 @@ import { projects } from "./data/projects";
 type ActivePanel =
   | { kind: "none" }
   | { kind: "terminal" }
-  | { kind: "project"; projectId: string };
+  | { kind: "project"; projectId: string }
+  | { kind: "contact" };
 
 export function App() {
   const [booted, setBooted] = useState(false);
@@ -43,6 +45,7 @@ export function App() {
   const cameraTarget: CameraTarget | null = useMemo(() => {
     if (!anchors) return null;
     if (active.kind === "none") return defaultCameraTarget();
+    if (active.kind === "contact") return defaultCameraTarget();
     if (active.kind === "terminal") {
       const a = anchors.get("terminal");
       return a ? terminalCameraTarget(a) : defaultCameraTarget();
@@ -65,9 +68,10 @@ export function App() {
             onSelect={handleSelect}
             onAnchorsReady={setAnchors}
           />
-          <HUD onPing={() => (window.location.href = "mailto:vaughanolayinka@gmail.com")} />
+          <HUD onPing={() => setActive({ kind: "contact" })} />
           <TradingTerminal open={active.kind === "terminal"} onClose={close} />
           <ProjectCard project={activeProject} onClose={close} />
+          <ContactPing open={active.kind === "contact"} onClose={close} />
         </>
       )}
     </>
