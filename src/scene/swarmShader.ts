@@ -58,16 +58,20 @@ const fragmentShader = /* glsl */ `
   }
 
   void main() {
-    // Centered coords; widen X because the monitor is ultrawide.
+    // Centered coords. Normalize to an ellipse so the radial mask
+    // covers the whole monitor face evenly regardless of aspect.
     vec2 p = vUv * 2.0 - 1.0;
-    p.x *= 1.4;
-    float r = length(p);
+    vec2 elliptical = vec2(p.x * 0.72, p.y);  // squash X for circular mask
+    float r = length(elliptical);
+
+    // Wider sample space so the FBM detail reads at a useful scale.
+    vec2 sp = p * vec2(1.4, 1.0);
 
     // Slow swirl (rotation) of the sample space.
     float swirl = uTime * 0.10 + sin(uTime * 0.35) * 0.25;
     float ca = cos(swirl);
     float sa = sin(swirl);
-    vec2 rot = vec2(ca * p.x - sa * p.y, sa * p.x + ca * p.y);
+    vec2 rot = vec2(ca * sp.x - sa * sp.y, sa * sp.x + ca * sp.y);
 
     // Domain-warp the FBM by another FBM for the swirling-data look.
     vec2 q = rot * 2.5;
@@ -78,20 +82,21 @@ const fragmentShader = /* glsl */ `
     q += (displ - 0.5) * 1.4;
 
     float density = fbm(q + vec2(uTime * 0.18));
-    density = pow(density, 1.7);
+    density = pow(density, 1.5);
 
-    // Radial fade: bright in the centre of the monitor, dark at edges.
-    float mask = smoothstep(0.95, 0.05, r);
-    density *= mask;
+    // Radial fade: bright across most of the screen, dimming only at
+    // the very edges. r is in 0..~1 across the elliptical face.
+    float edgeFade = smoothstep(1.05, 0.20, r);
 
     // Two thresholds — a sharp core and a softer halo around it. Gives
     // the impression of glowing particles instead of a smooth cloud.
-    float core = smoothstep(0.30, 0.55, density);
-    float halo = smoothstep(0.16, 0.42, density) * 0.55;
+    float core = smoothstep(0.32, 0.62, density) * edgeFade;
+    float halo = smoothstep(0.18, 0.45, density) * 0.55 * edgeFade;
 
-    // Base screen glow + swarm.
-    vec3 col = uBaseColor * (0.45 + 0.55 * mask);
-    col += uCoreColor * (core * 1.5 + halo * 0.7);
+    // Base screen glow: bright cyan that stays readable across the
+    // whole face even when the swarm is sparse.
+    vec3 col = uBaseColor * (0.55 + 0.45 * edgeFade);
+    col += uCoreColor * (core * 1.6 + halo * 0.8);
 
     // Hover boost / dim from the parent component's hover state.
     col *= 1.0 + uHover * 0.45;
@@ -117,8 +122,8 @@ export function createSwarmMaterial(): ShaderMaterial & { uniforms: SwarmUniform
       uTime: { value: 0 },
       uHover: { value: 0 },
       uDim: { value: 0 },
-      uCoreColor: { value: new Color("#bff7ff") },
-      uBaseColor: { value: new Color("#0a3640") },
+      uCoreColor: { value: new Color("#d4faff") },
+      uBaseColor: { value: new Color("#1f8ca8") },
     },
     toneMapped: false,
   });
