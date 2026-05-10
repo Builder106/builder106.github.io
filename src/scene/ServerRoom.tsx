@@ -1,6 +1,6 @@
-import { useGLTF, Environment } from "@react-three/drei";
-import { type ThreeEvent } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useGLTF, Environment, useCursor } from "@react-three/drei";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Mesh, MeshStandardMaterial } from "three";
 import { collectAnchors, type SceneAnchor } from "./anchors";
 import { resolveClick, type ClickTarget } from "./clickResolver";
@@ -14,7 +14,35 @@ const MODEL_URL = "/models/server-room.glb";
 
 useGLTF.preload(MODEL_URL);
 
-const UNTONED_MATERIALS = new Set(["M_Screen", "M_Monitor"]);
+const UNTONED_MATERIAL_NAMES = new Set(["M_Screen", "M_Monitor"]);
+
+// On hover the screen of the targeted project (or the central monitor)
+// brightens by this multiplier. Premium-feel motion: ~180ms 95% rise.
+const HOVER_INTENSITY_MULTIPLIER = 1.8;
+const HOVER_TIME_CONSTANT = 0.06;
+
+// Per-mesh state for the emission lerp. We clone the shared M_Screen and
+// M_Monitor materials so each emissive surface can be addressed separately.
+interface Interactive {
+  mat: MeshStandardMaterial;
+  base: number;
+  hover: number;
+  current: number;
+  hoverKey: string; // "project:<id>" or "terminal"
+}
+
+function hoverKeyForState(state: ClickTarget): string | null {
+  if (state === null) return null;
+  if (state.kind === "terminal") return "terminal";
+  return `project:${state.projectId}`;
+}
+
+function hoverKeyForMesh(name: string): string | null {
+  const m = name.match(/^Screen_(.+)$/);
+  if (m) return `project:${m[1]}`;
+  if (name === "Monitor") return "terminal";
+  return null;
+}
 
 interface ServerRoomProps {
   onAnchorsReady?: (anchors: Map<string, SceneAnchor>) => void;
@@ -24,27 +52,59 @@ interface ServerRoomProps {
 export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
   const { scene } = useGLTF(MODEL_URL);
   const sentAnchorsRef = useRef(false);
+  const interactivesRef = useRef<Interactive[]>([]);
+  const [hover, setHover] = useState<ClickTarget>(null);
+
+  useCursor(hover !== null);
 
   useLayoutEffect(() => {
-    // Walk the loaded scene once: opt emissive screens out of ACES
-    // tonemapping (so cyan stays cyan) and set every Mesh as raycast-
-    // pickable so the onClick handler upstream actually receives events.
+    // Walk the loaded scene once: clone each emissive material per-mesh so
+    // we can mutate emission intensity independently on hover, and turn
+    // off ACES tonemapping on those clones so cyan stays cyan.
+    const interactives: Interactive[] = [];
     scene.traverse((obj) => {
-      if (obj instanceof Mesh) {
-        const mat = obj.material;
-        if (mat instanceof MeshStandardMaterial && UNTONED_MATERIALS.has(mat.name)) {
-          mat.toneMapped = false;
-        }
-      }
+      if (!(obj instanceof Mesh)) return;
+      const mat = obj.material;
+      if (!(mat instanceof MeshStandardMaterial)) return;
+      if (!UNTONED_MATERIAL_NAMES.has(mat.name)) return;
+
+      const cloned = mat.clone();
+      cloned.toneMapped = false;
+      obj.material = cloned;
+
+      const key = hoverKeyForMesh(obj.name);
+      if (key === null) return;
+
+      const base = cloned.emissiveIntensity ?? 1.0;
+      interactives.push({
+        mat: cloned,
+        base,
+        hover: base * HOVER_INTENSITY_MULTIPLIER,
+        current: base,
+        hoverKey: key,
+      });
     });
+    interactivesRef.current = interactives;
   }, [scene]);
 
   useEffect(() => {
-    if (sentAnchorsRef.current) return;
-    if (!onAnchorsReady) return;
+    if (sentAnchorsRef.current || !onAnchorsReady) return;
     sentAnchorsRef.current = true;
     onAnchorsReady(collectAnchors(scene));
   }, [scene, onAnchorsReady]);
+
+  // Smoothly lerp each interactive's emission intensity toward its
+  // current target (hovered or idle) every frame. Time-constant-based
+  // smoothing is frame-rate independent.
+  useFrame((_, delta) => {
+    const k = 1 - Math.exp(-delta / HOVER_TIME_CONSTANT);
+    const activeKey = hoverKeyForState(hover);
+    for (const it of interactivesRef.current) {
+      const target = it.hoverKey === activeKey ? it.hover : it.base;
+      it.current += (target - it.current) * k;
+      it.mat.emissiveIntensity = it.current;
+    }
+  });
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -52,9 +112,24 @@ export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
     if (hit && onSelect) onSelect(hit);
   };
 
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    setHover(resolveClick(e.object));
+  };
+
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    setHover(null);
+  };
+
   return (
     <group>
-      <primitive object={scene} onClick={handleClick} />
+      <primitive
+        object={scene}
+        onClick={handleClick}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+      />
 
       {/* Soft hemisphere fill so metallic surfaces (racks, desk, floor) have
           something to reflect. The .glb ships without lights on purpose;
