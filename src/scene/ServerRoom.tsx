@@ -1,4 +1,4 @@
-import { useGLTF, Environment, useCursor, Html, MeshReflectorMaterial } from "@react-three/drei";
+import { useGLTF, useCursor, Html, MeshReflectorMaterial } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -29,11 +29,10 @@ const DIM_INTENSITY_MULTIPLIER = 0.35;
 const HOVER_TIME_CONSTANT = 0.07;
 
 const LIGHTS = {
-  hemi:        { idle: 0.95, dim: 0.45 },
-  ambient:     { idle: 0.28, dim: 0.13 },
+  hemi:        { idle: 1.05, dim: 0.50 },
+  ambient:     { idle: 0.34, dim: 0.16 },
   pointKey:    { idle: 0.9,  dim: 0.40 },   // central cyan accent
-  ceilingGrid: { idle: 0.55, dim: 0.24 },   // each of 4 ceiling panels
-  envIntensity:{ idle: 0.16, dim: 0.10 },
+  ceilingGrid: { idle: 0.65, dim: 0.28 },   // each of 4 ceiling panels
 };
 
 // Four ceiling light positions in a symmetric grid above the room.
@@ -180,8 +179,9 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
       lerpLight(ceil, LIGHTS.ceilingGrid.idle, LIGHTS.ceilingGrid.dim);
     }
 
-    const envTarget = isHovering ? LIGHTS.envIntensity.dim : LIGHTS.envIntensity.idle;
-    rootScene.environmentIntensity += (envTarget - rootScene.environmentIntensity) * k;
+    // No HDRI environment — its directional cast was bleeding into
+    // the reflective floor. Force scene.environmentIntensity to 0.
+    rootScene.environmentIntensity = 0;
 
     // Curved-monitor swarm shader. Always runs (uTime advances every
     // frame); uHover boosts it when this monitor is the hover target,
@@ -256,14 +256,12 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
         />
       ))}
 
-      {/* "studio" preset is a neutral overcast-style HDRI — no window
-          streaks and no warehouse beams, so the floor reflection
-          doesn't pick up unmotivated bright bands. */}
-      <Environment
-        preset="studio"
-        environmentIntensity={LIGHTS.envIntensity.idle}
-        background={false}
-      />
+      {/* HDRI environment removed: its directional cast was being
+          mirrored by the reflective floor as a bright right-side
+          gradient. Without it, the floor reflects only the actual
+          symmetric scene geometry (racks, cables, monitor) and reads
+          evenly. Metallic specular highlights now come purely from
+          the four ceiling lights + the central cyan key. */}
 
       {/* Real-time reflective floor. Replaces the hidden glb Floor.
           14x14 to match the room footprint, lying in the XZ plane at
