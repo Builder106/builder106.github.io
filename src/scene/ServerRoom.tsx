@@ -254,18 +254,18 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[14, 14]} />
         <MeshReflectorMaterial
-          blur={[300, 90]}
-          mixBlur={1.0}
-          mixStrength={1.6}
+          blur={[220, 70]}
+          mixBlur={0.8}
+          mixStrength={2.4}
           resolution={1024}
-          mirror={0.45}
-          mixContrast={1.0}
-          depthScale={0.9}
+          mirror={0.7}
+          mixContrast={1.05}
+          depthScale={1.1}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.5}
           color="#1a1d2e"
-          metalness={0.55}
-          roughness={0.42}
+          metalness={0.6}
+          roughness={0.32}
         />
       </mesh>
 
