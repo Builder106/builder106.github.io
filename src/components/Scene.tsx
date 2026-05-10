@@ -79,12 +79,27 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
       <OrbitControls
         ref={controlsRef}
         target={DEFAULT_CAMERA_TARGET.toArray()}
-        enablePan={false}
+        enablePan
         enableZoom
+        enableRotate
         enableDamping={false}
-        minDistance={5}
-        maxDistance={20}
-        maxPolarAngle={Math.PI / 2.1}
+        minDistance={2.5}
+        maxDistance={28}
+        maxPolarAngle={Math.PI / 2.05}
+        screenSpacePanning
+        // Touch gesture mapping: 1 finger = rotate, 2 fingers = pan +
+        // pinch-zoom. Without this drei sometimes uses the desktop
+        // mapping (right-click pan) which doesn't translate.
+        touches={{
+          ONE: 0 /* THREE.TOUCH.ROTATE */,
+          TWO: 2 /* THREE.TOUCH.DOLLY_PAN */,
+        }}
+        // Mouse mapping: left = orbit, middle = pan, right = pan.
+        mouseButtons={{
+          LEFT: 0 /* THREE.MOUSE.ROTATE */,
+          MIDDLE: 1 /* THREE.MOUSE.DOLLY */,
+          RIGHT: 2 /* THREE.MOUSE.PAN */,
+        }}
       />
       <CameraRig
         target={cameraTarget}

@@ -27,20 +27,28 @@ export function CameraRig({ target, controlsRef, freeze }: CameraRigProps) {
   const home = useRef(defaultCameraTarget());
 
   useFrame((_, delta) => {
-    const t = target ?? home.current;
-    const k = 1 - Math.pow(SMOOTHING, delta);
-
-    camera.position.lerp(t.position, k);
-
     const ctrl = controlsRef.current;
+    if (ctrl) ctrl.enabled = !freeze;
+
+    // No target = user-controlled state. Don't lerp; let OrbitControls
+    // own the camera so the user can orbit / pan / zoom freely without
+    // the rig fighting them every frame.
+    if (target === null) return;
+
+    const k = 1 - Math.pow(SMOOTHING, delta);
+    camera.position.lerp(target.position, k);
+
     if (ctrl) {
-      ctrl.target.lerp(t.lookAt, k);
-      ctrl.enabled = !freeze;
+      ctrl.target.lerp(target.lookAt, k);
       ctrl.update();
     } else {
-      camera.lookAt(t.lookAt);
+      camera.lookAt(target.lookAt);
     }
   });
+
+  // Suppress unused-variable warning for home — kept for API stability
+  // in case we want to re-engage default-target lerping later.
+  void home;
 
   return null;
 }
