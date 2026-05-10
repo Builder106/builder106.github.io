@@ -29,13 +29,22 @@ const DIM_INTENSITY_MULTIPLIER = 0.35;
 const HOVER_TIME_CONSTANT = 0.07;
 
 const LIGHTS = {
-  hemi:        { idle: 0.7,  dim: 0.36 },
-  ambient:     { idle: 0.22, dim: 0.10 },
-  pointKey:    { idle: 1.2,  dim: 0.55 },
-  pointFillA:  { idle: 0.55, dim: 0.24 },
-  pointFillB:  { idle: 0.50, dim: 0.22 },
-  envIntensity:{ idle: 0.18, dim: 0.10 },
+  hemi:        { idle: 0.95, dim: 0.45 },
+  ambient:     { idle: 0.28, dim: 0.13 },
+  pointKey:    { idle: 0.9,  dim: 0.40 },   // central cyan accent
+  ceilingGrid: { idle: 0.55, dim: 0.24 },   // each of 4 ceiling panels
+  envIntensity:{ idle: 0.16, dim: 0.10 },
 };
+
+// Four ceiling light positions in a symmetric grid above the room.
+// Same height (4.4m), even spread so coverage is uniform left-to-right
+// and front-to-back rather than biased to one corner.
+const CEILING_LIGHTS = [
+  [-3.5, 4.4, -3.5],
+  [ 3.5, 4.4, -3.5],
+  [-3.5, 4.4,  3.5],
+  [ 3.5, 4.4,  3.5],
+] as const;
 
 interface Interactive {
   mat: MeshStandardMaterial;
@@ -79,8 +88,7 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
   const hemiRef = useRef<HemisphereLight | null>(null);
   const ambientRef = useRef<AmbientLight | null>(null);
   const keyRef = useRef<PointLight | null>(null);
-  const fillARef = useRef<PointLight | null>(null);
-  const fillBRef = useRef<PointLight | null>(null);
+  const ceilingRefs = useRef<(PointLight | null)[]>([null, null, null, null]);
 
   useCursor(hover !== null);
 
@@ -168,8 +176,9 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
     lerpLight(hemiRef.current,    LIGHTS.hemi.idle,        LIGHTS.hemi.dim);
     lerpLight(ambientRef.current, LIGHTS.ambient.idle,     LIGHTS.ambient.dim);
     lerpLight(keyRef.current,     LIGHTS.pointKey.idle,    LIGHTS.pointKey.dim);
-    lerpLight(fillARef.current,   LIGHTS.pointFillA.idle,  LIGHTS.pointFillA.dim);
-    lerpLight(fillBRef.current,   LIGHTS.pointFillB.idle,  LIGHTS.pointFillB.dim);
+    for (const ceil of ceilingRefs.current) {
+      lerpLight(ceil, LIGHTS.ceilingGrid.idle, LIGHTS.ceilingGrid.dim);
+    }
 
     const envTarget = isHovering ? LIGHTS.envIntensity.dim : LIGHTS.envIntensity.idle;
     rootScene.environmentIntensity += (envTarget - rootScene.environmentIntensity) * k;
@@ -212,37 +221,40 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
         onPointerOut={handlePointerOut}
       />
 
-      {/* Cool, neutral fill across the whole room. No more vivid
-          magenta/amber side lights — those read as cinematic-thriller.
-          A central cyan key + two soft white-cool fills give a
-          professional "data center under fluorescents" vibe. */}
+      {/* Lighting comes from the top: a top-down hemisphere gradient,
+          a uniform ambient floor, plus four symmetric ceiling panels
+          arranged in a 2x2 grid above the room. No side fills, so
+          the floor reflection is even left-to-right and front-to-back. */}
       <hemisphereLight
         ref={hemiRef}
-        args={["#5e6ea0", "#10131c", LIGHTS.hemi.idle]}
+        args={["#7a89bf", "#1a1d2c", LIGHTS.hemi.idle]}
       />
-      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#2a3050" />
+      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#34395a" />
 
+      {/* Central cyan accent — the only colored light, motivated by
+          the screens it lives among. */}
       <pointLight
         ref={keyRef}
         position={[0, 5, 0]}
         intensity={LIGHTS.pointKey.idle}
         color="#4cf2ff"
-        distance={16}
+        distance={14}
       />
-      <pointLight
-        ref={fillARef}
-        position={[-4, 4, 4]}
-        intensity={LIGHTS.pointFillA.idle}
-        color="#a8c5ff"
-        distance={12}
-      />
-      <pointLight
-        ref={fillBRef}
-        position={[5, 4, -4]}
-        intensity={LIGHTS.pointFillB.idle}
-        color="#a8c5ff"
-        distance={12}
-      />
+
+      {/* 2x2 ceiling-panel grid. Cool-white, equal intensity, equal
+          distance falloff. Reads as "fluorescent panels in the
+          ceiling" rather than dramatic side fixtures. */}
+      {CEILING_LIGHTS.map((pos, i) => (
+        <pointLight
+          key={i}
+          ref={(el) => { ceilingRefs.current[i] = el; }}
+          position={pos}
+          intensity={LIGHTS.ceilingGrid.idle}
+          color="#cfd8f5"
+          distance={11}
+          decay={1.6}
+        />
+      ))}
 
       {/* "studio" preset is a neutral overcast-style HDRI — no window
           streaks and no warehouse beams, so the floor reflection
