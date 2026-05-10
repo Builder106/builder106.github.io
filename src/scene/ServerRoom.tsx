@@ -20,7 +20,12 @@ const MODEL_URL = "/models/server-room.glb";
 
 useGLTF.preload(MODEL_URL);
 
-const UNTONED_MATERIAL_NAMES = new Set(["M_Screen", "M_Monitor"]);
+// Materials that should bypass ACES tonemapping so saturated cyan /
+// magenta emission renders as the literal hex value rather than a
+// chroma-compressed pastel. Screens, monitor, and every M_Cable_* one.
+function isUntonedMaterial(name: string): boolean {
+  return name === "M_Screen" || name === "M_Monitor" || name.startsWith("M_Cable_");
+}
 
 // Spotlight effect: while something is hovered, the hovered emissive
 // brightens, every other emissive dims dramatically, and the runtime
@@ -93,13 +98,15 @@ export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
       if (!(obj instanceof Mesh)) return;
       const mat = obj.material;
       if (!(mat instanceof MeshStandardMaterial)) return;
-      if (!UNTONED_MATERIAL_NAMES.has(mat.name)) return;
+      if (!isUntonedMaterial(mat.name)) return;
 
       const cloned = mat.clone();
       cloned.toneMapped = false;
       obj.material = cloned;
 
       const key = hoverKeyForMesh(obj.name);
+      // Cables stay always-bright; only screens/monitor are interactive.
+      // For the others we still set toneMapped=false above and bail here.
       if (key === null) return;
 
       const base = cloned.emissiveIntensity ?? 1.0;
