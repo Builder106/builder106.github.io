@@ -3,6 +3,7 @@ import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AmbientLight,
+  DirectionalLight,
   HemisphereLight,
   Mesh,
   MeshStandardMaterial,
@@ -32,7 +33,12 @@ const LIGHTS = {
   hemi:        { idle: 1.05, dim: 0.50 },
   ambient:     { idle: 0.34, dim: 0.16 },
   pointKey:    { idle: 0.9,  dim: 0.40 },   // central cyan accent
-  ceilingGrid: { idle: 0.65, dim: 0.28 },   // each of 4 ceiling panels
+  // Single directional light from straight overhead — parallel rays
+  // mean uniform brightness across the whole floor, no distance falloff.
+  topDown:     { idle: 1.6,  dim: 0.80 },
+  // Each of 4 ceiling pointlights. Bumped from 0.65 -> 3.5 to compensate
+  // for distance-based falloff to floor-level surfaces.
+  ceilingGrid: { idle: 3.5,  dim: 1.6 },
 };
 
 // Four ceiling light positions in a symmetric grid above the room.
@@ -87,6 +93,7 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
   const hemiRef = useRef<HemisphereLight | null>(null);
   const ambientRef = useRef<AmbientLight | null>(null);
   const keyRef = useRef<PointLight | null>(null);
+  const topDownRef = useRef<DirectionalLight | null>(null);
   const ceilingRefs = useRef<(PointLight | null)[]>([null, null, null, null]);
 
   useCursor(hover !== null);
@@ -175,6 +182,7 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
     lerpLight(hemiRef.current,    LIGHTS.hemi.idle,        LIGHTS.hemi.dim);
     lerpLight(ambientRef.current, LIGHTS.ambient.idle,     LIGHTS.ambient.dim);
     lerpLight(keyRef.current,     LIGHTS.pointKey.idle,    LIGHTS.pointKey.dim);
+    lerpLight(topDownRef.current, LIGHTS.topDown.idle,     LIGHTS.topDown.dim);
     for (const ceil of ceilingRefs.current) {
       lerpLight(ceil, LIGHTS.ceilingGrid.idle, LIGHTS.ceilingGrid.dim);
     }
@@ -241,9 +249,18 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
         distance={14}
       />
 
-      {/* 2x2 ceiling-panel grid. Cool-white, equal intensity, equal
-          distance falloff. Reads as "fluorescent panels in the
-          ceiling" rather than dramatic side fixtures. */}
+      {/* Top-down directional light — parallel rays from straight
+          overhead. No distance falloff means uniform brightness
+          across the entire floor and rack tops. This is what
+          actually makes the room read as "evenly lit from above". */}
+      <directionalLight
+        ref={topDownRef}
+        position={[0, 10, 0]}
+        intensity={LIGHTS.topDown.idle}
+        color="#dde4f5"
+      />
+
+      {/* 2x2 ceiling-panel grid for additional local highlights. */}
       {CEILING_LIGHTS.map((pos, i) => (
         <pointLight
           key={i}
@@ -251,8 +268,8 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
           position={pos}
           intensity={LIGHTS.ceilingGrid.idle}
           color="#cfd8f5"
-          distance={11}
-          decay={1.6}
+          distance={12}
+          decay={1.4}
         />
       ))}
 
