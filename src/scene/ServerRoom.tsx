@@ -1,7 +1,13 @@
 import { useGLTF, Environment, useCursor } from "@react-three/drei";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Mesh, MeshStandardMaterial } from "three";
+import {
+  AmbientLight,
+  HemisphereLight,
+  Mesh,
+  MeshStandardMaterial,
+  PointLight,
+} from "three";
 import { collectAnchors, type SceneAnchor } from "./anchors";
 import { resolveClick, type ClickTarget } from "./clickResolver";
 
@@ -16,17 +22,28 @@ useGLTF.preload(MODEL_URL);
 
 const UNTONED_MATERIAL_NAMES = new Set(["M_Screen", "M_Monitor"]);
 
-// On hover the screen of the targeted project (or the central monitor)
-// brightens by this multiplier. Premium-feel motion: ~180ms 95% rise.
-const HOVER_INTENSITY_MULTIPLIER = 1.8;
-const HOVER_TIME_CONSTANT = 0.06;
+// Spotlight effect: while something is hovered, the hovered emissive
+// brightens, every other emissive dims dramatically, and the runtime
+// fill lights pull back so the rest of the room sinks into shadow.
+const HOVER_INTENSITY_MULTIPLIER = 1.6;
+const DIM_INTENSITY_MULTIPLIER = 0.12;
+const HOVER_TIME_CONSTANT = 0.07;       // ~210ms to 95% — Premium archetype.
 
-// Per-mesh state for the emission lerp. We clone the shared M_Screen and
-// M_Monitor materials so each emissive surface can be addressed separately.
+// Light intensities mapped between idle and hover-dim states.
+const LIGHTS = {
+  hemi: { idle: 0.6, dim: 0.08 },
+  ambient: { idle: 0.15, dim: 0.02 },
+  pointKey: { idle: 1.4, dim: 0.18 },
+  pointFillA: { idle: 0.9, dim: 0.12 },
+  pointFillB: { idle: 0.8, dim: 0.1 },
+  envIntensity: { idle: 0.25, dim: 0.05 },
+};
+
 interface Interactive {
   mat: MeshStandardMaterial;
   base: number;
   hover: number;
+  dim: number;
   current: number;
   hoverKey: string; // "project:<id>" or "terminal"
 }
@@ -51,16 +68,24 @@ interface ServerRoomProps {
 
 export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
   const { scene } = useGLTF(MODEL_URL);
+  const { scene: rootScene } = useThree();
   const sentAnchorsRef = useRef(false);
   const interactivesRef = useRef<Interactive[]>([]);
   const [hover, setHover] = useState<ClickTarget>(null);
 
+  // Light refs so we can lerp intensities each frame.
+  const hemiRef = useRef<HemisphereLight | null>(null);
+  const ambientRef = useRef<AmbientLight | null>(null);
+  const keyRef = useRef<PointLight | null>(null);
+  const fillARef = useRef<PointLight | null>(null);
+  const fillBRef = useRef<PointLight | null>(null);
+
   useCursor(hover !== null);
 
   useLayoutEffect(() => {
-    // Walk the loaded scene once: clone each emissive material per-mesh so
-    // we can mutate emission intensity independently on hover, and turn
-    // off ACES tonemapping on those clones so cyan stays cyan.
+    // Walk the loaded scene once: clone each emissive material per-mesh
+    // so we can mutate emission intensity independently. Disable ACES
+    // tonemapping on the clones so cyan stays cyan.
     const interactives: Interactive[] = [];
     scene.traverse((obj) => {
       if (!(obj instanceof Mesh)) return;
@@ -80,6 +105,7 @@ export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
         mat: cloned,
         base,
         hover: base * HOVER_INTENSITY_MULTIPLIER,
+        dim: base * DIM_INTENSITY_MULTIPLIER,
         current: base,
         hoverKey: key,
       });
@@ -93,17 +119,42 @@ export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
     onAnchorsReady(collectAnchors(scene));
   }, [scene, onAnchorsReady]);
 
-  // Smoothly lerp each interactive's emission intensity toward its
-  // current target (hovered or idle) every frame. Time-constant-based
-  // smoothing is frame-rate independent.
+  // Smoothly lerp emission intensities and runtime light intensities each
+  // frame. Time-constant-based smoothing is frame-rate independent.
   useFrame((_, delta) => {
     const k = 1 - Math.exp(-delta / HOVER_TIME_CONSTANT);
+    const isHovering = hover !== null;
     const activeKey = hoverKeyForState(hover);
+
+    // Per-emissive-material targets.
     for (const it of interactivesRef.current) {
-      const target = it.hoverKey === activeKey ? it.hover : it.base;
+      let target: number;
+      if (it.hoverKey === activeKey) target = it.hover;
+      else if (isHovering) target = it.dim;
+      else target = it.base;
       it.current += (target - it.current) * k;
       it.mat.emissiveIntensity = it.current;
     }
+
+    // Runtime fill / key lights pull back when hovering.
+    const lerpLight = (
+      light: { intensity: number } | null,
+      idle: number,
+      dim: number,
+    ) => {
+      if (!light) return;
+      const t = isHovering ? dim : idle;
+      light.intensity += (t - light.intensity) * k;
+    };
+    lerpLight(hemiRef.current, LIGHTS.hemi.idle, LIGHTS.hemi.dim);
+    lerpLight(ambientRef.current, LIGHTS.ambient.idle, LIGHTS.ambient.dim);
+    lerpLight(keyRef.current, LIGHTS.pointKey.idle, LIGHTS.pointKey.dim);
+    lerpLight(fillARef.current, LIGHTS.pointFillA.idle, LIGHTS.pointFillA.dim);
+    lerpLight(fillBRef.current, LIGHTS.pointFillB.idle, LIGHTS.pointFillB.dim);
+
+    // Environment intensity is a Scene property; lerp it too.
+    const envTarget = isHovering ? LIGHTS.envIntensity.dim : LIGHTS.envIntensity.idle;
+    rootScene.environmentIntensity += (envTarget - rootScene.environmentIntensity) * k;
   });
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
@@ -131,22 +182,42 @@ export function ServerRoom({ onAnchorsReady, onSelect }: ServerRoomProps) {
         onPointerOut={handlePointerOut}
       />
 
-      {/* Soft hemisphere fill so metallic surfaces (racks, desk, floor) have
-          something to reflect. The .glb ships without lights on purpose;
-          all runtime lighting lives here. */}
-      <hemisphereLight args={["#3a4a7a", "#0a0a14", 0.6]} />
-      <ambientLight intensity={0.15} color="#1a1f3a" />
+      {/* Soft hemisphere fill so metallic surfaces have something to
+          reflect. Intensities animate down when something is hovered. */}
+      <hemisphereLight
+        ref={hemiRef}
+        args={["#3a4a7a", "#0a0a14", LIGHTS.hemi.idle]}
+      />
+      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#1a1f3a" />
 
-      {/* Three colored key lights echo the neon palette and give the dark
-          metals defined highlights from different angles. */}
-      <pointLight position={[0, 5, 0]} intensity={1.4} color="#4cf2ff" distance={16} />
-      <pointLight position={[-4, 3, 4]} intensity={0.9} color="#ff4cf2" distance={10} />
-      <pointLight position={[5, 3, -4]} intensity={0.8} color="#ffb84c" distance={10} />
+      {/* Three colored key lights echo the neon palette. */}
+      <pointLight
+        ref={keyRef}
+        position={[0, 5, 0]}
+        intensity={LIGHTS.pointKey.idle}
+        color="#4cf2ff"
+        distance={16}
+      />
+      <pointLight
+        ref={fillARef}
+        position={[-4, 3, 4]}
+        intensity={LIGHTS.pointFillA.idle}
+        color="#ff4cf2"
+        distance={10}
+      />
+      <pointLight
+        ref={fillBRef}
+        position={[5, 3, -4]}
+        intensity={LIGHTS.pointFillB.idle}
+        color="#ffb84c"
+        distance={10}
+      />
 
-      {/* Low-intensity HDRI for specular reflections on the metallic rack
-          bodies. "warehouse" reads as cool industrial — closer to the
-          intended server-room mood than "city" or "lobby". */}
-      <Environment preset="warehouse" environmentIntensity={0.25} background={false} />
+      <Environment
+        preset="warehouse"
+        environmentIntensity={LIGHTS.envIntensity.idle}
+        background={false}
+      />
     </group>
   );
 }
