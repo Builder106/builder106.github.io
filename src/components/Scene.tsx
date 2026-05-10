@@ -12,6 +12,7 @@ import {
 import type { ClickTarget } from "@/scene/clickResolver";
 import type { SceneAnchor } from "@/scene/anchors";
 import { CameraRig } from "./CameraRig";
+import { useIsMobile } from "./useIsMobile";
 
 // Pull the camera back and widen FOV on narrow / portrait viewports so
 // the room actually fits in the frame on phones. Desktop landscape gets
@@ -60,11 +61,17 @@ interface SceneProps {
 
 export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchorsReady }: SceneProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const isMobile = useIsMobile();
 
   return (
     <Canvas
-      shadows
-      gl={{ antialias: true, alpha: false }}
+      // Cap DPR so we don't shade 9x more pixels on a phone. Big perf
+      // win on high-DPI screens where 1.5x and 2x already look great.
+      dpr={isMobile ? [1, 1.25] : [1, 1.75]}
+      // No mesh in this scene actually casts shadows — disable so the
+      // shadow-map render pass + texture allocation are skipped.
+      shadows={false}
+      gl={{ antialias: !isMobile, alpha: false, powerPreference: "high-performance" }}
       style={{ background: "var(--bg-deep)" }}
       onPointerMissed={() => onSelect(null)}
     >
@@ -74,6 +81,7 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
           onAnchorsReady={onAnchorsReady}
           onSelect={onSelect}
           panelOpen={panelOpen}
+          isMobile={isMobile}
         />
       </Suspense>
       <OrbitControls

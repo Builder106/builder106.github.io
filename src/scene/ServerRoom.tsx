@@ -81,9 +81,10 @@ interface ServerRoomProps {
   onAnchorsReady?: (anchors: Map<string, SceneAnchor>) => void;
   onSelect?: (target: ClickTarget) => void;
   panelOpen?: boolean;
+  isMobile?: boolean;
 }
 
-export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomProps) {
+export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = false }: ServerRoomProps) {
   const { scene } = useGLTF(MODEL_URL);
   const { scene: rootScene } = useThree();
   const sentAnchorsRef = useRef(false);
@@ -93,6 +94,21 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
   const [anchorMap, setAnchorMap] = useState<Map<string, SceneAnchor>>(new Map());
 
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
+
+  // Mobile-adjusted light intensities. We compensate for the dropped
+  // ceiling-grid lights by boosting the remaining top-down sources;
+  // the hover-spotlight lerp uses these so the brighter idle isn't
+  // undone every frame.
+  const lightLevels = useMemo(() => {
+    const m = isMobile;
+    return {
+      hemi:    { idle: LIGHTS.hemi.idle    * (m ? 1.45 : 1), dim: LIGHTS.hemi.dim    * (m ? 1.45 : 1) },
+      ambient: { idle: LIGHTS.ambient.idle * (m ? 1.40 : 1), dim: LIGHTS.ambient.dim * (m ? 1.40 : 1) },
+      key:     { idle: LIGHTS.pointKey.idle,                  dim: LIGHTS.pointKey.dim },
+      topDown: { idle: LIGHTS.topDown.idle * (m ? 1.50 : 1),  dim: LIGHTS.topDown.dim * (m ? 1.50 : 1) },
+      ceiling: { idle: LIGHTS.ceilingGrid.idle,               dim: LIGHTS.ceilingGrid.dim },
+    };
+  }, [isMobile]);
 
   const hemiRef = useRef<HemisphereLight | null>(null);
   const ambientRef = useRef<AmbientLight | null>(null);
@@ -183,12 +199,12 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
       const t = isHovering ? dim : idle;
       light.intensity += (t - light.intensity) * k;
     };
-    lerpLight(hemiRef.current,    LIGHTS.hemi.idle,        LIGHTS.hemi.dim);
-    lerpLight(ambientRef.current, LIGHTS.ambient.idle,     LIGHTS.ambient.dim);
-    lerpLight(keyRef.current,     LIGHTS.pointKey.idle,    LIGHTS.pointKey.dim);
-    lerpLight(topDownRef.current, LIGHTS.topDown.idle,     LIGHTS.topDown.dim);
+    lerpLight(hemiRef.current,    lightLevels.hemi.idle,    lightLevels.hemi.dim);
+    lerpLight(ambientRef.current, lightLevels.ambient.idle, lightLevels.ambient.dim);
+    lerpLight(keyRef.current,     lightLevels.key.idle,     lightLevels.key.dim);
+    lerpLight(topDownRef.current, lightLevels.topDown.idle, lightLevels.topDown.dim);
     for (const ceil of ceilingRefs.current) {
-      lerpLight(ceil, LIGHTS.ceilingGrid.idle, LIGHTS.ceilingGrid.dim);
+      lerpLight(ceil, lightLevels.ceiling.idle, lightLevels.ceiling.dim);
     }
 
     // No HDRI environment — its directional cast was bleeding into
@@ -240,9 +256,17 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
           read clearly. */}
       <hemisphereLight
         ref={hemiRef}
-        args={["#d4dbe8", "#525870", LIGHTS.hemi.idle]}
+        args={[
+          "#d4dbe8",
+          "#525870",
+          isMobile ? LIGHTS.hemi.idle * 1.45 : LIGHTS.hemi.idle,
+        ]}
       />
-      <ambientLight ref={ambientRef} intensity={LIGHTS.ambient.idle} color="#8a93a6" />
+      <ambientLight
+        ref={ambientRef}
+        intensity={isMobile ? LIGHTS.ambient.idle * 1.4 : LIGHTS.ambient.idle}
+        color="#8a93a6"
+      />
 
       {/* Central cyan accent — the only colored light, motivated by
           the screens it lives among. */}
@@ -261,12 +285,16 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
       <directionalLight
         ref={topDownRef}
         position={[0, 10, 0]}
-        intensity={LIGHTS.topDown.idle}
+        intensity={isMobile ? LIGHTS.topDown.idle * 1.5 : LIGHTS.topDown.idle}
         color="#dde4f5"
       />
 
-      {/* 2x2 ceiling-panel grid for additional local highlights. */}
-      {CEILING_LIGHTS.map((pos, i) => (
+      {/* 2x2 ceiling-panel grid for additional local highlights.
+          Skipped on mobile — every fragment shader iterates all
+          lights, so 4 extra point lights compound across 161 mesh
+          primitives. The directional + hemi + cyan key cover the
+          essentials. */}
+      {!isMobile && CEILING_LIGHTS.map((pos, i) => (
         <pointLight
           key={i}
           ref={(el) => { ceilingRefs.current[i] = el; }}
@@ -290,14 +318,16 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
           / polished tile rather than office vinyl. Soft real-time
           reflection picks up the rack LED bars and the ceiling
           lights. */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[14, 14]} />
         <MeshReflectorMaterial
-          blur={[300, 100]}
-          mixBlur={1.0}
-          mixStrength={1.4}
-          resolution={1024}
-          mirror={0.5}
+          // Reflection texture is by far the most expensive thing in
+          // the scene. Drop resolution + simplify on mobile.
+          blur={isMobile ? [180, 60] : [300, 100]}
+          mixBlur={isMobile ? 1.4 : 1.0}
+          mixStrength={isMobile ? 1.0 : 1.4}
+          resolution={isMobile ? 256 : 1024}
+          mirror={isMobile ? 0.35 : 0.5}
           mixContrast={1.0}
           depthScale={1.0}
           minDepthThreshold={0.4}
@@ -308,24 +338,24 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen }: ServerRoomPr
         />
       </mesh>
 
-      {/* 1m floor tile grid sitting just above the reflective surface.
-          Datacenter-floor read; the section lines every 4m mark the
-          larger panels. Faded out toward the room edges so it doesn't
-          feel like a flat geometric overlay. */}
-      <Grid
-        position={[0, 0.005, 0]}
-        args={[14, 14]}
-        cellSize={1}
-        cellThickness={0.6}
-        cellColor="#3d4258"
-        sectionSize={4}
-        sectionThickness={1.0}
-        sectionColor="#5a607a"
-        fadeDistance={11}
-        fadeStrength={1.4}
-        infiniteGrid={false}
-        side={2}  // DoubleSide so it shows from both faces if camera dips
-      />
+      {/* 1m floor tile grid. Skipped on mobile — it's a separate render
+          pass and doesn't add much at small viewport sizes. */}
+      {!isMobile && (
+        <Grid
+          position={[0, 0.005, 0]}
+          args={[14, 14]}
+          cellSize={1}
+          cellThickness={0.6}
+          cellColor="#3d4258"
+          sectionSize={4}
+          sectionThickness={1.0}
+          sectionColor="#5a607a"
+          fadeDistance={11}
+          fadeStrength={1.4}
+          infiniteGrid={false}
+          side={2}
+        />
+      )}
 
       {/* Engraved-style nameplate on the front face of the desk.
           Same idle visibility rule as the rack callouts. */}
