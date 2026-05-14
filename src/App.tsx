@@ -5,6 +5,7 @@ import { HUD } from "./components/HUD";
 import { TradingTerminal } from "./components/panels/TradingTerminal";
 import { ProjectCard } from "./components/panels/ProjectCard";
 import { ContactPing } from "./components/panels/ContactPing";
+import { SemanticContent } from "./components/SemanticContent";
 import {
   defaultCameraTarget,
   projectCameraTarget,
@@ -80,6 +81,11 @@ export function App() {
 
   return (
     <>
+      {/* Always-on text mirror of the portfolio. Visually hidden,
+          indexable by search engines and readable by LLM agents,
+          screen readers, and link-preview crawlers. */}
+      <SemanticContent />
+
       {!booted && <BootSequence onComplete={() => setBooted(true)} />}
       {booted && (
         <>

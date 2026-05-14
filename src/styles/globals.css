@@ -71,6 +71,20 @@ button {
   color: var(--bg-deep);
 }
 
+/* Visually hidden but accessible to screen readers, search engines,
+   LLM agents, and link-preview crawlers. Standard "sr-only" pattern. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- Floating rack callouts (drei <Html>) ---------- */
 
 .rack-label {
