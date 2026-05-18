@@ -428,13 +428,11 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
             position={[x, y, z]}
             rotation={[0, ry, 0]}
             scale={[0.5, 0.5]}
+            // transparent={true} keeps each PNG's own alpha channel
+            // (so the logo silhouette stays clean against the rack
+            // face) without dimming the visible pixels themselves.
             transparent
             toneMapped={false}
-            // Knock the saturation back a touch and let a little of the
-            // dark rack face show through, so logos read as panel
-            // markings rather than printed stickers.
-            grayscale={0.3}
-            opacity={0.9}
           />
         );
       })}
