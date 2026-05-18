@@ -9,6 +9,8 @@ export interface Project {
   links: { live?: string; repo?: string };
   // Path to a banner / thumbnail under public/. Optional.
   image?: string;
+  // Path to a looping WebM demo under public/. Optional.
+  demo?: string;
   // One-line, recruiter-readable signature stat. Rendered as a big
   // monospace headline above the blurb in ProjectCard. Optional.
   headline?: string;
@@ -32,6 +34,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/EconOS",
     },
     image: "/img/projects/econos.png",
+    demo: "/img/projects/demos/econos.webm",
   },
   {
     id: "ocaml-lob",
@@ -46,6 +49,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/ocaml_limit",
     },
     image: "/img/projects/ocaml-lob.png",
+    demo: "/img/projects/demos/ocaml-lob.webm",
   },
   {
     id: "qforge",
@@ -60,6 +64,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/qforge",
     },
     image: "/img/projects/qforge.png",
+    demo: "/img/projects/demos/qforge.webm",
   },
 
   // Left wall (products cluster) ------------------------------------------
@@ -76,6 +81,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/MicroMatch",
     },
     image: "/img/projects/micromatch.png",
+    demo: "/img/projects/demos/micromatch.webm",
   },
   {
     id: "staija",
@@ -90,6 +96,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/STAIJA",
     },
     image: "/img/projects/staija.png",
+    demo: "/img/projects/demos/staija.webm",
   },
   {
     id: "studysprint",
@@ -104,5 +111,6 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/StudySprint",
     },
     image: "/img/projects/studysprint.png",
+    demo: "/img/projects/demos/studysprint.webm",
   },
 ];

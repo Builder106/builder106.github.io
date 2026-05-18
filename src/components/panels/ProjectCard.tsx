@@ -23,15 +23,29 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
     <PanelShell open={open} title={title} onClose={onClose}>
       {project && (
         <>
-          {project.image && (
+          {(project.demo || project.image) && (
             <section className="panel__section panel__section--media">
-              <img
-                src={project.image}
-                alt={`${project.name} banner`}
-                loading="lazy"
-                decoding="async"
-                className="panel__hero"
-              />
+              {project.demo ? (
+                <video
+                  className="panel__hero panel__hero--video"
+                  src={project.demo}
+                  poster={project.image}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  aria-label={`${project.name} demo loop`}
+                />
+              ) : (
+                <img
+                  src={project.image}
+                  alt={`${project.name} banner`}
+                  loading="lazy"
+                  decoding="async"
+                  className="panel__hero"
+                />
+              )}
             </section>
           )}
 

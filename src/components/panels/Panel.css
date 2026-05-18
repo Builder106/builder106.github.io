@@ -359,6 +359,12 @@
   background: rgba(0, 0, 0, 0.4);
 }
 
+/* Demo loops get slightly more vertical room than static banners
+ * since they're the panel's "money shot". */
+.panel__hero--video {
+  max-height: 240px;
+}
+
 /* Signature one-liner above the blurb. Bigger than body text, cyan
  * accent, monospace so the stats read as a terminal readout. */
 .panel__headline {
@@ -377,6 +383,9 @@
   }
   .panel__hero {
     max-height: 160px;
+  }
+  .panel__hero--video {
+    max-height: 180px;
   }
 }
 
