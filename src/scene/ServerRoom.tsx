@@ -313,6 +313,27 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
           evenly. Metallic specular highlights now come purely from
           the four ceiling lights + the central cyan key. */}
 
+      {/* Per-rack floor-glow accent: a small low-decay point light
+          at the foot of each rack, tinted with the project's signature
+          color. Reads as a coloured pool on the reflective floor and
+          subtly stains the rack's lower panels. Skipped on mobile —
+          every extra point light compounds across every fragment in
+          the scene. */}
+      {!isMobile && Array.from(anchorMap.entries()).map(([id, anchor]) => {
+        const project = projectsById.get(id);
+        if (!project?.color) return null;
+        return (
+          <pointLight
+            key={`glow-${id}`}
+            position={[anchor.position.x, 0.25, anchor.position.z]}
+            color={project.color}
+            intensity={1.6}
+            distance={2.6}
+            decay={2.0}
+          />
+        );
+      })}
+
       {/* Polished dark floor — concept-art palette, lit by the bright
           overhead fluorescents above. Reads as glossy dark concrete
           / polished tile rather than office vinyl. Soft real-time

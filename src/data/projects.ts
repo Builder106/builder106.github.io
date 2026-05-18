@@ -14,6 +14,10 @@ export interface Project {
   // One-line, recruiter-readable signature stat. Rendered as a big
   // monospace headline above the blurb in ProjectCard. Optional.
   headline?: string;
+  // Signature accent color for the rack: drives the floor-glow point
+  // light under the rack and may be reused for the rack label / chips.
+  // CSS-hex string ("#rrggbb").
+  color?: string;
   // Each project's id matches an Empty named "anchor_<id>" in the Blender
   // scene (underscore separator — Three.js's GLTFLoader strips dots). See
   // docs/blender-contract.md.
@@ -35,6 +39,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/econos.png",
     demo: "/img/projects/demos/econos.webm",
+    color: "#4cf2ff",
   },
   {
     id: "ocaml-lob",
@@ -50,6 +55,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/ocaml-lob.png",
     demo: "/img/projects/demos/ocaml-lob.webm",
+    color: "#f29100",
   },
   {
     id: "qforge",
@@ -65,6 +71,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/qforge.png",
     demo: "/img/projects/demos/qforge.webm",
+    color: "#ff5b3c",
   },
 
   // Left wall (products cluster) ------------------------------------------
@@ -82,6 +89,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/micromatch.png",
     demo: "/img/projects/demos/micromatch.webm",
+    color: "#ff6f61",
   },
   {
     id: "staija",
@@ -97,6 +105,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/staija.png",
     demo: "/img/projects/demos/staija.webm",
+    color: "#10b981",
   },
   {
     id: "studysprint",
@@ -112,5 +121,6 @@ export const projects: Project[] = [
     },
     image: "/img/projects/studysprint.png",
     demo: "/img/projects/demos/studysprint.webm",
+    color: "#84cc16",
   },
 ];
