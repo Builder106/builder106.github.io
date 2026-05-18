@@ -32,9 +32,10 @@ function isUntonedMaterial(name: string): boolean {
   );
 }
 
-// Hover behavior tuning.
-const HOVER_INTENSITY_MULTIPLIER = 1.6;
-const DIM_INTENSITY_MULTIPLIER = 0.35;
+// Hover behavior tuning. DIM is aggressive on purpose — we want the
+// hovered rack to feel spotlit, everything else to recede into shadow.
+const HOVER_INTENSITY_MULTIPLIER = 1.8;
+const DIM_INTENSITY_MULTIPLIER = 0.12;
 const HOVER_TIME_CONSTANT = 0.07;
 
 // Bright fluorescent-quality lighting designed to light dark
@@ -42,11 +43,11 @@ const HOVER_TIME_CONSTANT = 0.07;
 // pushed ~30% above the prior baseline because dark-blue base colors
 // reflect only a small fraction of incident light per channel.
 const LIGHTS = {
-  hemi:        { idle: 2.2,  dim: 1.10 },
-  ambient:     { idle: 0.95, dim: 0.45 },
-  pointKey:    { idle: 1.2,  dim: 0.55 },   // central cyan accent
-  topDown:     { idle: 3.4,  dim: 1.70 },
-  ceilingGrid: { idle: 8.0,  dim: 3.6 },
+  hemi:        { idle: 2.2,  dim: 0.55 },
+  ambient:     { idle: 0.95, dim: 0.22 },
+  pointKey:    { idle: 1.2,  dim: 0.18 },   // central cyan accent
+  topDown:     { idle: 3.4,  dim: 0.85 },
+  ceilingGrid: { idle: 8.0,  dim: 1.6 },
 };
 
 // Four ceiling light positions in a symmetric grid above the room.
