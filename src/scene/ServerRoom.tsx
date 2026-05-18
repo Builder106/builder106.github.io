@@ -1,4 +1,4 @@
-import { Image, useGLTF, useCursor, Html, MeshReflectorMaterial, Grid } from "@react-three/drei";
+import { Image, useGLTF, useCursor, Html, MeshReflectorMaterial, Grid, Stars } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -95,6 +95,66 @@ function strHash(s: string): number {
 function ledProjectId(name: string): string | null {
   const m = name.match(/^StatusLED_(.+?)_r\d+_c\d+$/);
   return m ? m[1] : null;
+}
+
+// Tiny seeded RNG so the distant-rack layout is stable across reloads.
+function mulberry32(seed: number) {
+  return () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+interface DistantRacksProps {
+  isMobile: boolean;
+}
+
+// Scatters short, slightly emissive rack-shaped pillars in a wide ring
+// outside the main room. The fog kills most of them; what survives is
+// the tiny glow at the top of each rack, reading as far-off cabinets
+// in a much bigger data hall.
+function DistantRacks({ isMobile }: DistantRacksProps) {
+  const racks = useMemo(() => {
+    const rng = mulberry32(0xCAFE_BABE);
+    const count = isMobile ? 24 : 64;
+    const out: { pos: [number, number, number]; rot: number; color: string }[] = [];
+    const palette = ["#4cf2ff", "#f29100", "#10b981", "#ff5b3c", "#ffb347", "#84cc16"];
+    for (let i = 0; i < count; i++) {
+      const r = 22 + rng() * 28;             // 22–50m from origin
+      const theta = rng() * Math.PI * 2;
+      const x = Math.cos(theta) * r;
+      const z = Math.sin(theta) * r;
+      // Skip anything that lands inside the room footprint.
+      if (Math.abs(x) < 8 && Math.abs(z) < 8) continue;
+      out.push({
+        pos: [x, 1.4 + rng() * 0.4, z],
+        rot: rng() * Math.PI,
+        color: palette[(i + Math.floor(rng() * palette.length)) % palette.length],
+      });
+    }
+    return out;
+  }, [isMobile]);
+
+  return (
+    <group>
+      {racks.map((r, i) => (
+        <mesh key={i} position={r.pos} rotation={[0, r.rot, 0]}>
+          <boxGeometry args={[1, 2.8, 0.6]} />
+          <meshStandardMaterial
+            color="#08090d"
+            emissive={r.color}
+            emissiveIntensity={0.45}
+            toneMapped={false}
+            roughness={0.85}
+            metalness={0.2}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
 }
 
 interface ServerRoomProps {
@@ -295,6 +355,12 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
 
   return (
     <group>
+      {/* Soft linear fog: anything past ~28m fades to black. Hides the
+          hard edge of the reflective floor + the static room's neon
+          edge strips when the user zooms out, so the room reads as
+          one lit island in a much larger dark facility. */}
+      <fog attach="fog" args={["#000000", 22, 55]} />
+
       <primitive
         object={scene}
         onClick={handleClick}
@@ -441,9 +507,10 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
           overhead fluorescents above. Reads as glossy dark concrete
           / polished tile rather than office vinyl. Soft real-time
           reflection picks up the rack LED bars and the ceiling
-          lights. */}
+          lights. Extended to 60×60 so the user can't see the floor
+          edge before the fog hides it. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <planeGeometry args={[14, 14]} />
+        <planeGeometry args={[60, 60]} />
         <MeshReflectorMaterial
           // Reflection texture is by far the most expensive thing in
           // the scene. Drop resolution + simplify on mobile.
@@ -462,24 +529,53 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
         />
       </mesh>
 
-      {/* 1m floor tile grid. Skipped on mobile — it's a separate render
-          pass and doesn't add much at small viewport sizes. */}
+      {/* Infinite floor-tile grid. Renders over the reflective floor
+          inside the room and extends out into the fogged void, so the
+          eye reads it as a vast data hall. Skipped on mobile — it's a
+          separate render pass and gets pricey across an infinite
+          fade distance. */}
       {!isMobile && (
         <Grid
           position={[0, 0.005, 0]}
-          args={[14, 14]}
           cellSize={1}
           cellThickness={0.6}
           cellColor="#3d4258"
           sectionSize={4}
           sectionThickness={1.0}
           sectionColor="#5a607a"
-          fadeDistance={11}
+          fadeDistance={40}
           fadeStrength={1.4}
-          infiniteGrid={false}
+          infiniteGrid
           side={2}
         />
       )}
+
+      {/* Distant data-center "skyline": cyan/amber emissive pillars
+          scattered in a wide ring far past the visible room. The fog
+          fades all but the brightest cores to nothing, so they read
+          as far-off rack glow rather than discrete geometry. */}
+      <DistantRacks isMobile={isMobile} />
+
+      {/* Starfield overhead. Cyan/desaturated so it reads as distant
+          data-hall ceiling lights, not a planetarium. Drei's <Stars>
+          is a single Points draw call so it's cheap. */}
+      <Stars
+        radius={80}
+        depth={40}
+        count={isMobile ? 1200 : 3500}
+        factor={2.2}
+        saturation={0.35}
+        fade
+        speed={0.25}
+      />
+
+      {/* Floor-level fog tint underneath the reflective floor so the
+          horizon line where the floor meets the fog reads as a soft
+          gradient rather than a hard cut. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+        <planeGeometry args={[120, 120]} />
+        <meshBasicMaterial color="#02040a" fog />
+      </mesh>
 
       {/* Engraved-style nameplate on the front face of the desk.
           Same idle visibility rule as the rack callouts. */}
