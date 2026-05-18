@@ -3,6 +3,7 @@ import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AmbientLight,
+  Color,
   DirectionalLight,
   HemisphereLight,
   Mesh,
@@ -77,6 +78,25 @@ function hoverKeyForMesh(name: string): string | null {
   return null;
 }
 
+// Deterministic 32-bit hash over a string. Used so the per-LED random
+// pattern is stable across reloads — same input → same colour / dim
+// state. (xmur3-derived; small, fast, no collisions for our 72 keys.)
+function strHash(s: string): number {
+  let h = 1779033703 ^ s.length;
+  for (let i = 0; i < s.length; i++) {
+    h = Math.imul(h ^ s.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+// Parse "StatusLED_<projectId>_r<row>_c<col>" → projectId, or null
+// if the mesh name isn't a rack LED.
+function ledProjectId(name: string): string | null {
+  const m = name.match(/^StatusLED_(.+?)_r\d+_c\d+$/);
+  return m ? m[1] : null;
+}
+
 interface ServerRoomProps {
   onAnchorsReady?: (anchors: Map<string, SceneAnchor>) => void;
   onSelect?: (target: ClickTarget) => void;
@@ -149,6 +169,39 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
       const cloned = mat.clone();
       cloned.toneMapped = false;
       obj.material = cloned;
+
+      // Per-rack LED variation — deterministic recolour / dim / hide
+      // so the six racks read as distinct identities instead of six
+      // identical amber + green columns. Driven by the per-mesh hash
+      // and the project's signature accent colour.
+      const ledId = ledProjectId(obj.name);
+      if (ledId !== null) {
+        const project = projectsById.get(ledId);
+        const accent = project?.color;
+        const h = strHash(obj.name);
+        const pick = h % 100;
+        // 8% of LEDs are off (varied density per rack)
+        if (pick < 8) {
+          obj.visible = false;
+          return;
+        }
+        // 12% are dim (idle / heartbeat look)
+        const dimFactor = pick < 20 ? 0.25 : 1.0;
+        // Color selection: 55% project, 25% amber (original), 20% green
+        const slot = (h >>> 8) % 100;
+        if (slot < 55 && accent) {
+          cloned.emissive = new Color(accent);
+          cloned.color = new Color(accent).multiplyScalar(0.35);
+        } else if (slot < 80) {
+          cloned.emissive = new Color("#ffb347");
+          cloned.color = new Color("#7a4f1e");
+        } else {
+          cloned.emissive = new Color("#3aff8a");
+          cloned.color = new Color("#1a5a32");
+        }
+        cloned.emissiveIntensity = (cloned.emissiveIntensity ?? 1.0) * dimFactor;
+        return;
+      }
 
       const key = hoverKeyForMesh(obj.name);
       if (key === null) return;
