@@ -1,6 +1,6 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { Suspense, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { Vector3 } from "three";
 import { ServerRoom } from "@/scene/ServerRoom";
@@ -59,9 +59,58 @@ interface SceneProps {
   onAnchorsReady: (anchors: Map<string, SceneAnchor>) => void;
 }
 
+// Idle window before the camera begins drifting (ms). Tuned so casual
+// readers see motion before they get bored, but anyone exploring isn't
+// interrupted mid-glance.
+const IDLE_DELAY_MS = 12_000;
+
 export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchorsReady }: SceneProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const isMobile = useIsMobile();
+
+  // Track whether the user is currently idle. Drift only kicks in after
+  // IDLE_DELAY_MS without any orbit/pan/zoom, and only while no panel
+  // is open. Any interaction resets the timer; panel close also resets.
+  const [idle, setIdle] = useState(false);
+  const idleTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const ctrl = controlsRef.current;
+    if (!ctrl) return;
+
+    const armTimer = () => {
+      if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = window.setTimeout(() => setIdle(true), IDLE_DELAY_MS);
+    };
+    const wake = () => {
+      setIdle(false);
+      armTimer();
+    };
+
+    // Only "start" — fired when the user begins a drag/pan/wheel.
+    // "change" fires every frame autoRotate runs, which would create a
+    // loop where the drift cancels itself.
+    ctrl.addEventListener("start", wake);
+    armTimer();
+
+    return () => {
+      ctrl.removeEventListener("start", wake);
+      if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
+    };
+  }, []);
+
+  // Any panel state change is "activity": wake the camera, re-arm the
+  // timer. Without this, opening then closing a panel would leave the
+  // scene immediately drifting which feels jumpy.
+  useEffect(() => {
+    setIdle(false);
+    if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
+    if (!panelOpen) {
+      idleTimerRef.current = window.setTimeout(() => setIdle(true), IDLE_DELAY_MS);
+    }
+  }, [panelOpen, cameraTarget]);
+
+  const autoRotate = idle && !panelOpen && !freezeOrbit;
 
   return (
     <Canvas
@@ -91,6 +140,11 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
         enableZoom
         enableRotate
         enableDamping={false}
+        // Gentle idle drift: ~1°/s. autoRotateSpeed is in deg/frame at
+        // 60fps, so 0.18 ≈ 10.8°/min, slow enough that it reads as
+        // "the camera's alive" not "the camera's leaving."
+        autoRotate={autoRotate}
+        autoRotateSpeed={0.18}
         minDistance={2.5}
         maxDistance={28}
         maxPolarAngle={Math.PI / 2.05}
