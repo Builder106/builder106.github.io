@@ -3,12 +3,15 @@ import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AmbientLight,
+  BufferGeometry,
   Color,
   DirectionalLight,
   HemisphereLight,
   Mesh,
   MeshStandardMaterial,
+  Object3D,
   PointLight,
+  type Material,
   type ShaderMaterial,
 } from "three";
 import { collectAnchors, type SceneAnchor } from "./anchors";
@@ -108,51 +111,92 @@ function mulberry32(seed: number) {
   };
 }
 
+// Deterministic transforms for the distant-rack scatter. Generated
+// once per "isMobile" flip; each transform places one rack instance.
+interface RackInstanceTransform {
+  position: [number, number, number];
+  rotationY: number;
+  scale: number;
+}
+
+function buildDistantRackTransforms(isMobile: boolean): RackInstanceTransform[] {
+  const rng = mulberry32(0xCAFE_BABE);
+  const count = isMobile ? 28 : 80;
+  const out: RackInstanceTransform[] = [];
+  for (let i = 0; i < count; i++) {
+    const r = 22 + rng() * 28;             // 22–50m from origin
+    const theta = rng() * Math.PI * 2;
+    const x = Math.cos(theta) * r;
+    const z = Math.sin(theta) * r;
+    // Skip anything inside the visible-room footprint.
+    if (Math.abs(x) < 9 && Math.abs(z) < 9) continue;
+    // Random orientation but bias toward facing the room interior so
+    // the LED strip on the front of each rack reads at distance.
+    const facing = Math.atan2(-x, -z);
+    const jitter = (rng() - 0.5) * Math.PI * 0.6;  // ±54°
+    const rotationY = facing + jitter;
+    out.push({
+      position: [x, 0, z],
+      rotationY,
+      scale: 0.9 + rng() * 0.35,
+    });
+  }
+  return out;
+}
+
 interface DistantRacksProps {
+  bodyGeom: BufferGeometry | null;
+  bodyMat: Material | null;
+  ledGeom: BufferGeometry | null;
+  ledMat: Material | null;
   isMobile: boolean;
 }
 
-// Scatters short, slightly emissive rack-shaped pillars in a wide ring
-// outside the main room. The fog kills most of them; what survives is
-// the tiny glow at the top of each rack, reading as far-off cabinets
-// in a much bigger data hall.
-function DistantRacks({ isMobile }: DistantRacksProps) {
-  const racks = useMemo(() => {
-    const rng = mulberry32(0xCAFE_BABE);
-    const count = isMobile ? 24 : 64;
-    const out: { pos: [number, number, number]; rot: number; color: string }[] = [];
-    const palette = ["#4cf2ff", "#f29100", "#10b981", "#ff5b3c", "#ffb347", "#84cc16"];
-    for (let i = 0; i < count; i++) {
-      const r = 22 + rng() * 28;             // 22–50m from origin
-      const theta = rng() * Math.PI * 2;
-      const x = Math.cos(theta) * r;
-      const z = Math.sin(theta) * r;
-      // Skip anything that lands inside the room footprint.
-      if (Math.abs(x) < 8 && Math.abs(z) < 8) continue;
-      out.push({
-        pos: [x, 1.4 + rng() * 0.4, z],
-        rot: rng() * Math.PI,
-        color: palette[(i + Math.floor(rng() * palette.length)) % palette.length],
-      });
-    }
-    return out;
-  }, [isMobile]);
+// Two InstancedMesh: one for the rack body, one for the LED accent
+// strip. Same per-instance transform applied to both so each rack
+// reads as a single object. Materials/geometries come from the loaded
+// glb (authored in Blender) — the template meshes themselves are
+// hidden by the scene traversal that finds them.
+function DistantRacks({
+  bodyGeom,
+  bodyMat,
+  ledGeom,
+  ledMat,
+  isMobile,
+}: DistantRacksProps) {
+  const transforms = useMemo(() => buildDistantRackTransforms(isMobile), [isMobile]);
+
+  // Build the per-instance Matrix4 array once. Shared between the
+  // body and LED InstancedMesh.
+  const matrices = useMemo(() => {
+    const dummy = new Object3D();
+    return transforms.map((t) => {
+      dummy.position.set(t.position[0], t.position[1], t.position[2]);
+      dummy.rotation.set(0, t.rotationY, 0);
+      dummy.scale.setScalar(t.scale);
+      dummy.updateMatrix();
+      return dummy.matrix.clone();
+    });
+  }, [transforms]);
+
+  if (!bodyGeom || !bodyMat || !ledGeom || !ledMat) return null;
 
   return (
     <group>
-      {racks.map((r, i) => (
-        <mesh key={i} position={r.pos} rotation={[0, r.rot, 0]}>
-          <boxGeometry args={[1, 2.8, 0.6]} />
-          <meshStandardMaterial
-            color="#08090d"
-            emissive={r.color}
-            emissiveIntensity={0.45}
-            toneMapped={false}
-            roughness={0.85}
-            metalness={0.2}
-          />
-        </mesh>
-      ))}
+      <instancedMesh args={[bodyGeom, bodyMat, matrices.length]} frustumCulled={false}
+        ref={(m) => {
+          if (!m) return;
+          matrices.forEach((mat, i) => m.setMatrixAt(i, mat));
+          m.instanceMatrix.needsUpdate = true;
+        }}
+      />
+      <instancedMesh args={[ledGeom, ledMat, matrices.length]} frustumCulled={false}
+        ref={(m) => {
+          if (!m) return;
+          matrices.forEach((mat, i) => m.setMatrixAt(i, mat));
+          m.instanceMatrix.needsUpdate = true;
+        }}
+      />
     </group>
   );
 }
@@ -196,10 +240,24 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
   const topDownRef = useRef<DirectionalLight | null>(null);
   const ceilingRefs = useRef<(PointLight | null)[]>([null, null, null, null]);
 
+  // Templates harvested from the glb: their geometry + material is
+  // reused by InstancedMesh in <DistantRacks> below. State so the
+  // first render after the glb loads triggers the rack scatter.
+  const [distantTemplates, setDistantTemplates] = useState<{
+    bodyGeom: BufferGeometry | null;
+    bodyMat: Material | null;
+    ledGeom: BufferGeometry | null;
+    ledMat: Material | null;
+  }>({ bodyGeom: null, bodyMat: null, ledGeom: null, ledMat: null });
+
   useCursor(hover !== null);
 
   useLayoutEffect(() => {
     const interactives: Interactive[] = [];
+    let bodyGeom: BufferGeometry | null = null;
+    let bodyMat: Material | null = null;
+    let ledGeom: BufferGeometry | null = null;
+    let ledMat: Material | null = null;
     scene.traverse((obj) => {
       if (!(obj instanceof Mesh)) return;
 
@@ -208,6 +266,28 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
       // instead, so the racks and cables actually mirror onto it.
       if (obj.name === "Floor") {
         obj.visible = false;
+        return;
+      }
+
+      // The two DistantRack* templates are authored in Blender at a
+      // parked location far outside the room. Hide them and stash
+      // refs to their geometry + material so InstancedMesh can scatter
+      // copies in the void.
+      if (obj.name === "DistantRackBody") {
+        obj.visible = false;
+        bodyGeom = obj.geometry;
+        bodyMat = obj.material as Material;
+        return;
+      }
+      if (obj.name === "DistantRackLED") {
+        obj.visible = false;
+        ledGeom = obj.geometry;
+        ledMat = obj.material as Material;
+        if (ledMat instanceof MeshStandardMaterial) {
+          // Skip ACES tonemapping so the cyan emission punches through
+          // the fog instead of getting crushed to grey.
+          ledMat.toneMapped = false;
+        }
         return;
       }
 
@@ -277,6 +357,9 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
       });
     });
     interactivesRef.current = interactives;
+    if (bodyGeom && bodyMat && ledGeom && ledMat) {
+      setDistantTemplates({ bodyGeom, bodyMat, ledGeom, ledMat });
+    }
   }, [scene]);
 
   useEffect(() => {
@@ -358,8 +441,10 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
       {/* Soft linear fog: anything past ~28m fades to black. Hides the
           hard edge of the reflective floor + the static room's neon
           edge strips when the user zooms out, so the room reads as
-          one lit island in a much larger dark facility. */}
-      <fog attach="fog" args={["#000000", 22, 55]} />
+          one lit island in a much larger dark facility. Tighter than
+          the original [22, 55] so the back half of the distant-rack
+          ring fades cleanly instead of staying flat-lit. */}
+      <fog attach="fog" args={["#000000", 18, 45]} />
 
       <primitive
         object={scene}
@@ -550,11 +635,18 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
         />
       )}
 
-      {/* Distant data-center skyline: temporarily disabled — the
-          procedural box pillars read as toy blocks, not racks. Proper
-          rack geometry will be modelled in Blender and instanced
-          here. */}
-      {false && <DistantRacks isMobile={isMobile} />}
+      {/* Distant data-center skyline: rack-shaped templates authored
+          in Blender, instanced ~80x in a 22–50m ring around the room.
+          The body mesh is matte dark; the LED accent strip is bright
+          cyan emissive. Fog erases most of the silhouette and leaves
+          the LED bars reading as far-off panel lights. */}
+      <DistantRacks
+        bodyGeom={distantTemplates.bodyGeom}
+        bodyMat={distantTemplates.bodyMat}
+        ledGeom={distantTemplates.ledGeom}
+        ledMat={distantTemplates.ledMat}
+        isMobile={isMobile}
+      />
 
       {/* Starfield overhead. Cyan/desaturated so it reads as distant
           data-hall ceiling lights, not a planetarium. Drei's <Stars>
