@@ -17,7 +17,7 @@ import {
 import { collectAnchors, type SceneAnchor } from "./anchors";
 import { resolveClick, type ClickTarget } from "./clickResolver";
 import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
-import { projects } from "@/data/projects";
+import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
 const MODEL_URL = "/models/server-room.glb";
 
@@ -741,7 +741,7 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
               onClick={() => onSelect?.({ kind: "project", projectId: id })}
             >
               <span className="rack-label__name">{project.name}</span>
-              <span className="rack-label__cluster">// {project.cluster}</span>
+              <span className="rack-label__cluster">// {CLUSTER_DISPLAY[project.cluster]}</span>
             </button>
           </Html>
         );

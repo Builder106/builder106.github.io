@@ -1,4 +1,4 @@
-import { type Project } from "@/data/projects";
+import { CLUSTER_DISPLAY, type Project } from "@/data/projects";
 import { repoStats } from "@/data/repoStats.generated";
 import { PanelShell } from "./PanelShell";
 
@@ -6,13 +6,6 @@ interface ProjectCardProps {
   project: Project | null;
   onClose: () => void;
 }
-
-const CLUSTER_LABEL: Record<Project["cluster"], string> = {
-  quant: "quant",
-  systems: "systems",
-  products: "products",
-  research: "research",
-};
 
 // Resolve a repo URL → "<owner>/<name>" slug, the same key the
 // build-time stats script uses.
@@ -82,7 +75,7 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
           )}
 
           <section className="panel__section">
-            <div className="panel__section-label">project / {CLUSTER_LABEL[project.cluster]}</div>
+            <div className="panel__section-label">project / {CLUSTER_DISPLAY[project.cluster]}</div>
             <h3 className="panel__list-name" style={{ fontSize: 18, marginBottom: 6 }}>
               {project.name}
             </h3>

@@ -2,7 +2,7 @@
 // both from Vite-compiled client code *and* from the vite.config.ts
 // build-time context, which uses Node resolution and doesn't have
 // the alias.
-import { projects } from "../data/projects";
+import { CLUSTER_DISPLAY, projects } from "../data/projects";
 import { experience } from "../data/experience";
 
 // Pure-string HTML generator for the portfolio's semantic mirror.
@@ -55,7 +55,7 @@ export function buildSemanticContentHTML(): string {
         `<summary><h3 id="project-${escape(p.id)}-heading">${escape(p.name)}</h3></summary>`,
         headline,
         `<p>${escape(p.blurb)}</p>`,
-        `<p>Cluster: ${escape(p.cluster)}.${stack}</p>`,
+        `<p>Cluster: ${escape(CLUSTER_DISPLAY[p.cluster])}.${stack}</p>`,
         linksBlock,
         `</details>`,
       ].join("");

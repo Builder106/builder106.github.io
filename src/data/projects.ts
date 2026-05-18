@@ -1,4 +1,14 @@
-export type ProjectCluster = "quant" | "systems" | "products" | "research";
+export type ProjectCluster = "quant" | "systems" | "swe" | "research";
+
+// Display label for each cluster, shared by every UI surface (rack
+// callouts, project card section header, SR-only mirror). Keeps the
+// "swe" → "SWE" capitalisation consistent.
+export const CLUSTER_DISPLAY: Record<ProjectCluster, string> = {
+  quant: "quant",
+  systems: "systems",
+  swe: "SWE",
+  research: "research",
+};
 
 export interface Project {
   id: string;
@@ -81,11 +91,11 @@ export const projects: Project[] = [
     logo: "/img/projects/logos/qforge.png",
   },
 
-  // Left wall (products cluster) ------------------------------------------
+  // Left wall (SWE cluster) ----------------------------------------------
   {
     id: "micromatch",
     name: "MicroMatch",
-    cluster: "products",
+    cluster: "swe",
     headline: "123 tests passing · NGO ↔ volunteer marketplace",
     blurb:
       "A micro-volunteering marketplace pairing NGOs with volunteers for 5–30 minute skill-building tasks. Volunteers browse the feed, claim missions, submit proof, and earn badges. NGOs post tasks and review submissions.",
@@ -102,7 +112,7 @@ export const projects: Project[] = [
   {
     id: "staija",
     name: "STAIJA",
-    cluster: "products",
+    cluster: "swe",
     headline: "Live applicant flow · Nigeria's STEM scholars",
     blurb:
       "Web platform for STAIJA's StepUp Scholars and Dynamerge programs — applicant tracking, mentorship workflow, and public content for Nigeria's STEM students. Application management, role-aware routing, and Mailgun-backed comms.",
@@ -119,7 +129,7 @@ export const projects: Project[] = [
   {
     id: "studysprint",
     name: "StudySprint",
-    cluster: "products",
+    cluster: "swe",
     headline: "Focus → plants → leaderboard",
     blurb:
       "A study tracker that turns focus sessions into a growing garden. Run a focus timer, log sessions toward a daily goal, watch plants grow over time, and compare streaks on a public leaderboard.",
