@@ -550,11 +550,11 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
         />
       )}
 
-      {/* Distant data-center "skyline": cyan/amber emissive pillars
-          scattered in a wide ring far past the visible room. The fog
-          fades all but the brightest cores to nothing, so they read
-          as far-off rack glow rather than discrete geometry. */}
-      <DistantRacks isMobile={isMobile} />
+      {/* Distant data-center skyline: temporarily disabled — the
+          procedural box pillars read as toy blocks, not racks. Proper
+          rack geometry will be modelled in Blender and instanced
+          here. */}
+      {false && <DistantRacks isMobile={isMobile} />}
 
       {/* Starfield overhead. Cyan/desaturated so it reads as distant
           data-hall ceiling lights, not a planetarium. Drei's <Stars>
