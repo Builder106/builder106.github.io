@@ -18,6 +18,10 @@ export interface Project {
   // light under the rack and may be reused for the rack label / chips.
   // CSS-hex string ("#rrggbb").
   color?: string;
+  // Square-cropped, transparent-PNG logo. Rendered as a textured plane
+  // on the front face of the rack so each rack reads as its own brand
+  // from the default isometric vantage.
+  logo?: string;
   // Each project's id matches an Empty named "anchor_<id>" in the Blender
   // scene (underscore separator — Three.js's GLTFLoader strips dots). See
   // docs/blender-contract.md.
@@ -40,6 +44,7 @@ export const projects: Project[] = [
     image: "/img/projects/econos.png",
     demo: "/img/projects/demos/econos.webm",
     color: "#4cf2ff",
+    logo: "/img/projects/logos/econos.png",
   },
   {
     id: "ocaml-lob",
@@ -56,6 +61,7 @@ export const projects: Project[] = [
     image: "/img/projects/ocaml-lob.png",
     demo: "/img/projects/demos/ocaml-lob.webm",
     color: "#f29100",
+    logo: "/img/projects/logos/ocaml-lob.png",
   },
   {
     id: "qforge",
@@ -72,6 +78,7 @@ export const projects: Project[] = [
     image: "/img/projects/qforge.png",
     demo: "/img/projects/demos/qforge.webm",
     color: "#ff5b3c",
+    logo: "/img/projects/logos/qforge.png",
   },
 
   // Left wall (products cluster) ------------------------------------------
@@ -90,6 +97,7 @@ export const projects: Project[] = [
     image: "/img/projects/micromatch.png",
     demo: "/img/projects/demos/micromatch.webm",
     color: "#ff6f61",
+    logo: "/img/projects/logos/micromatch.png",
   },
   {
     id: "staija",
@@ -106,6 +114,7 @@ export const projects: Project[] = [
     image: "/img/projects/staija.png",
     demo: "/img/projects/demos/staija.webm",
     color: "#10b981",
+    logo: "/img/projects/logos/staija.png",
   },
   {
     id: "studysprint",
@@ -122,5 +131,6 @@ export const projects: Project[] = [
     image: "/img/projects/studysprint.png",
     demo: "/img/projects/demos/studysprint.webm",
     color: "#84cc16",
+    logo: "/img/projects/logos/studysprint.png",
   },
 ];

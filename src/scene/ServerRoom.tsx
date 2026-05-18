@@ -1,4 +1,4 @@
-import { useGLTF, useCursor, Html, MeshReflectorMaterial, Grid } from "@react-three/drei";
+import { Image, useGLTF, useCursor, Html, MeshReflectorMaterial, Grid } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -383,6 +383,45 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
             intensity={1.6}
             distance={2.6}
             decay={2.0}
+          />
+        );
+      })}
+
+      {/* Per-rack brand badges: each project's logo as a textured plane
+          mounted on the rack's front face, near the top. Sized to live
+          *above* the LED columns so it reads as a vendor strip on a
+          server, not a sticker covering the displays. Faces the room
+          interior so the right side of the screen reads from the
+          default vantage. */}
+      {Array.from(anchorMap.entries()).map(([id, anchor]) => {
+        const project = projectsById.get(id);
+        if (!project?.logo) return null;
+        // Racks are wall-mounted; the front face is perpendicular to
+        // whichever wall (back z=-4.7 or left x=-4.7) the rack sits on.
+        // Decide axis by which coordinate dominates, then build a unit
+        // normal pointing from the wall into the room.
+        const ax = anchor.position.x;
+        const az = anchor.position.z;
+        const isBackWall = Math.abs(az) >= Math.abs(ax);
+        const nx = isBackWall ? 0 : -Math.sign(ax);
+        const nz = isBackWall ? -Math.sign(az) : 0;
+        // Sit just outside the rack face so the plane doesn't z-fight
+        // with the rack body's front surface.
+        const x = ax + nx * 0.22;
+        const z = az + nz * 0.22;
+        const y = anchor.position.y + 0.92;
+        // planeGeometry's default normal is +Z. Rotate around Y so the
+        // plane faces (nx, 0, nz).
+        const ry = Math.atan2(nx, nz);
+        return (
+          <Image
+            key={`logo-${id}`}
+            url={project.logo}
+            position={[x, y, z]}
+            rotation={[0, ry, 0]}
+            scale={[0.55, 0.55]}
+            transparent
+            toneMapped={false}
           />
         );
       })}
