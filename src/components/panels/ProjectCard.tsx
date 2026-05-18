@@ -37,9 +37,12 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
 
           <section className="panel__section">
             <div className="panel__section-label">project / {CLUSTER_LABEL[project.cluster]}</div>
-            <h3 className="panel__list-name" style={{ fontSize: 18, marginBottom: 10 }}>
+            <h3 className="panel__list-name" style={{ fontSize: 18, marginBottom: 6 }}>
               {project.name}
             </h3>
+            {project.headline && (
+              <p className="panel__headline">{project.headline}</p>
+            )}
             <p className="panel__list-blurb" style={{ fontSize: 14 }}>{project.blurb}</p>
           </section>
 

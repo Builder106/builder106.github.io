@@ -6,19 +6,22 @@ import { projects } from "../data/projects";
 import { experience } from "../data/experience";
 
 // Pure-string HTML generator for the portfolio's semantic mirror.
-// Used twice: by the Vite plugin in vite.config.ts to inject the
-// content into the static index.html at build time (so non-JS crawlers
-// see it), and conceptually as the canonical source of truth that the
-// SemanticContent React component used to render at runtime.
+// Used by the Vite plugin in vite.config.ts to inject the content into
+// the static index.html at build time (so non-JS crawlers see it).
 
 const EMAIL = "vaughanolayinka@gmail.com";
 const PHONE = "+1 475 331 4070";
+const SITE_URL = "https://yinkavaughan.me";
 
 const SOCIALS = [
   { label: "GitHub", href: "https://github.com/Builder106" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/yinka-vaughan/" },
   { label: "Devpost", href: "https://devpost.com/olayinkav" },
 ];
+
+const BIO = "Built a limit-order-book matching engine at ~18M orders/sec in OCaml, a multi-agent reinforcement-learning economic OS in Python, and a neural network from scratch in C99. Economics + Computer Science at Wesleyan University (declaring fall 2026), based in Middletown, Connecticut.";
+
+const CURRENT = "Currently: ramping up on quant trading systems and shipping side projects on the side.";
 
 function escape(s: string): string {
   return s
@@ -30,6 +33,9 @@ function escape(s: string): string {
 }
 
 export function buildSemanticContentHTML(): string {
+  // Each project gets a <details><summary> wrapper so crawlers see a
+  // clearer per-project section structure and screen-reader users can
+  // collapse/expand if the sr-only mirror is ever revealed.
   const projectArticles = projects
     .map((p) => {
       const stack = p.stack.length > 0
@@ -43,13 +49,15 @@ export function buildSemanticContentHTML(): string {
         links.push(`<li>Repository: <a href="${escape(p.links.repo)}">${escape(p.links.repo)}</a></li>`);
       }
       const linksBlock = links.length > 0 ? `<ul>${links.join("")}</ul>` : "";
+      const headline = p.headline ? `<p><strong>${escape(p.headline)}</strong></p>` : "";
       return [
-        `<article aria-labelledby="project-${escape(p.id)}-heading">`,
-        `<h3 id="project-${escape(p.id)}-heading">${escape(p.name)}</h3>`,
+        `<details open>`,
+        `<summary><h3 id="project-${escape(p.id)}-heading">${escape(p.name)}</h3></summary>`,
+        headline,
         `<p>${escape(p.blurb)}</p>`,
         `<p>Cluster: ${escape(p.cluster)}.${stack}</p>`,
         linksBlock,
-        `</article>`,
+        `</details>`,
       ].join("");
     })
     .join("");
@@ -77,7 +85,8 @@ export function buildSemanticContentHTML(): string {
   return [
     `<main class="sr-only" aria-label="Olayinka David Vaughan — portfolio content">`,
     `<h1>Olayinka David Vaughan</h1>`,
-    `<p>Quant systems and full-stack engineer. Economics major declaring Computer Science in fall 2026 at Wesleyan University. Based in Middletown, Connecticut. Interactive 3D portfolio built with React Three Fiber, Blender, and custom GLSL shaders.</p>`,
+    `<p>${escape(BIO)}</p>`,
+    `<p><em>${escape(CURRENT)}</em></p>`,
     `<section aria-labelledby="contact-heading">`,
     `<h2 id="contact-heading">Contact</h2>`,
     `<ul>`,
@@ -98,4 +107,57 @@ export function buildSemanticContentHTML(): string {
     `</section>`,
     `</main>`,
   ].join("");
+}
+
+// Build-time JSON-LD generator. Person + a CreativeWork entry per
+// project, with each project's creator pointing back to the Person.
+// Keeps LLM agents and search engines in sync with the projects.ts
+// data instead of duplicating it in static HTML.
+export function buildStructuredDataJSON(): string {
+  const person = {
+    "@type": "Person",
+    "@id": `${SITE_URL}/#person`,
+    name: "Olayinka David Vaughan",
+    givenName: "Olayinka",
+    familyName: "Vaughan",
+    alternateName: "Yinka Vaughan",
+    url: `${SITE_URL}/`,
+    email: EMAIL,
+    jobTitle: "Quant Systems & Full-Stack Engineer",
+    description: BIO,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Middletown",
+      addressRegion: "CT",
+      addressCountry: "US",
+    },
+    alumniOf: {
+      "@type": "CollegeOrUniversity",
+      name: "Wesleyan University",
+    },
+    sameAs: SOCIALS.map((s) => s.href),
+  };
+
+  const works = projects.map((p) => {
+    const work: Record<string, unknown> = {
+      "@type": "CreativeWork",
+      "@id": `${SITE_URL}/#project-${p.id}`,
+      name: p.name,
+      description: p.blurb,
+      keywords: p.stack.join(", "),
+      creator: { "@id": person["@id"] },
+    };
+    if (p.headline) work.headline = p.headline;
+    if (p.links.live) work.url = p.links.live;
+    if (p.links.repo) work.codeRepository = p.links.repo;
+    if (p.image) work.image = `${SITE_URL}${p.image}`;
+    return work;
+  });
+
+  const graph = {
+    "@context": "https://schema.org",
+    "@graph": [person, ...works],
+  };
+
+  return JSON.stringify(graph, null, 2);
 }

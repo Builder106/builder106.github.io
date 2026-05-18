@@ -1,10 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { BootSequence } from "./components/BootSequence";
 import { Scene } from "./components/Scene";
 import { HUD } from "./components/HUD";
-import { TradingTerminal } from "./components/panels/TradingTerminal";
-import { ProjectCard } from "./components/panels/ProjectCard";
-import { ContactPing } from "./components/panels/ContactPing";
+
+// Panels only render after a click resolves to a target, so they're
+// prime split-points. Named exports get unwrapped into the default
+// shape React.lazy expects.
+const TradingTerminal = lazy(() =>
+  import("./components/panels/TradingTerminal").then((m) => ({
+    default: m.TradingTerminal,
+  })),
+);
+const ProjectCard = lazy(() =>
+  import("./components/panels/ProjectCard").then((m) => ({
+    default: m.ProjectCard,
+  })),
+);
+const ContactPing = lazy(() =>
+  import("./components/panels/ContactPing").then((m) => ({
+    default: m.ContactPing,
+  })),
+);
 // SemanticContent is now injected as static HTML by the Vite plugin
 // in vite.config.ts — see src/utils/semanticHtml.ts. React doesn't
 // render it on the client; non-JS crawlers see the full content at
@@ -95,9 +111,11 @@ export function App() {
             onAnchorsReady={setAnchors}
           />
           <HUD onPing={() => setActive({ kind: "contact" })} />
-          <TradingTerminal open={active.kind === "terminal"} onClose={close} />
-          <ProjectCard project={activeProject} onClose={close} />
-          <ContactPing open={active.kind === "contact"} onClose={close} />
+          <Suspense fallback={null}>
+            <TradingTerminal open={active.kind === "terminal"} onClose={close} />
+            <ProjectCard project={activeProject} onClose={close} />
+            <ContactPing open={active.kind === "contact"} onClose={close} />
+          </Suspense>
         </>
       )}
     </>

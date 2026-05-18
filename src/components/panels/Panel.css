@@ -359,6 +359,18 @@
   background: rgba(0, 0, 0, 0.4);
 }
 
+/* Signature one-liner above the blurb. Bigger than body text, cyan
+ * accent, monospace so the stats read as a terminal readout. */
+.panel__headline {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--neon-cyan);
+  letter-spacing: 0.02em;
+  margin: 0 0 12px;
+  text-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
+}
+
 @media (max-width: 720px) {
   .panel__section--media {
     margin: -14px -16px 2px;
