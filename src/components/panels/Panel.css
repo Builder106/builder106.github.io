@@ -339,6 +339,35 @@
   text-decoration: none;
 }
 
+/* Hero image at the top of a ProjectCard. The wrapper section has
+   negative margins so the image extends edge-to-edge inside the panel
+   body's padding, then a subtle border + tonal gradient ties it back
+   into the panel chrome. */
+.panel__section--media {
+  margin: -18px -22px 4px;
+  padding: 0;
+}
+
+.panel__hero {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: cover;
+  object-position: center;
+  border-bottom: 1px solid rgba(76, 242, 255, 0.15);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 720px) {
+  .panel__section--media {
+    margin: -14px -16px 2px;
+  }
+  .panel__hero {
+    max-height: 160px;
+  }
+}
+
 /* ---------- ContactPing ---------- */
 
 .contact__status,

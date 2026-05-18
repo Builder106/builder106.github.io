@@ -23,6 +23,18 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
     <PanelShell open={open} title={title} onClose={onClose}>
       {project && (
         <>
+          {project.image && (
+            <section className="panel__section panel__section--media">
+              <img
+                src={project.image}
+                alt={`${project.name} banner`}
+                loading="lazy"
+                decoding="async"
+                className="panel__hero"
+              />
+            </section>
+          )}
+
           <section className="panel__section">
             <div className="panel__section-label">project / {CLUSTER_LABEL[project.cluster]}</div>
             <h3 className="panel__list-name" style={{ fontSize: 18, marginBottom: 10 }}>
