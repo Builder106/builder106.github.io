@@ -121,15 +121,19 @@ interface RackInstanceTransform {
 
 function buildDistantRackTransforms(isMobile: boolean): RackInstanceTransform[] {
   const rng = mulberry32(0xCAFE_BABE);
-  const count = isMobile ? 28 : 80;
+  const count = isMobile ? 22 : 56;
   const out: RackInstanceTransform[] = [];
   for (let i = 0; i < count; i++) {
-    const r = 22 + rng() * 28;             // 22–50m from origin
+    // Pull the inner radius out to 26m so distant racks don't crowd
+    // the silhouette of the main back-wall racks; outer radius 52m so
+    // there's still a sense of depth.
+    const r = 26 + rng() * 26;
     const theta = rng() * Math.PI * 2;
     const x = Math.cos(theta) * r;
     const z = Math.sin(theta) * r;
-    // Skip anything inside the visible-room footprint.
-    if (Math.abs(x) < 9 && Math.abs(z) < 9) continue;
+    // Skip anything inside the visible-room footprint plus a small
+    // breathing margin.
+    if (Math.abs(x) < 10 && Math.abs(z) < 10) continue;
     // Random orientation but bias toward facing the room interior so
     // the LED strip on the front of each rack reads at distance.
     const facing = Math.atan2(-x, -z);
@@ -138,7 +142,7 @@ function buildDistantRackTransforms(isMobile: boolean): RackInstanceTransform[] 
     out.push({
       position: [x, 0, z],
       rotationY,
-      scale: 0.9 + rng() * 0.35,
+      scale: 0.85 + rng() * 0.3,
     });
   }
   return out;
@@ -282,12 +286,17 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
       if (obj.name === "DistantRackLED") {
         obj.visible = false;
         ledGeom = obj.geometry;
-        ledMat = obj.material as Material;
-        if (ledMat instanceof MeshStandardMaterial) {
-          // Skip ACES tonemapping so the cyan emission punches through
-          // the fog instead of getting crushed to grey.
-          ledMat.toneMapped = false;
-        }
+        // Clone the material so the dim-for-distance treatment doesn't
+        // affect any future render of the original template mesh.
+        const src = obj.material as MeshStandardMaterial;
+        const cloned = src.clone();
+        cloned.toneMapped = false;
+        // The Blender material had emissionStrength=4.0 so the LEDs
+        // would read in the bake. At runtime they overpowered the main
+        // racks; knock the runtime emission way down so the distant
+        // strips read as faint ambient hint, not headlamps.
+        cloned.emissiveIntensity = 0.45;
+        ledMat = cloned;
         return;
       }
 
