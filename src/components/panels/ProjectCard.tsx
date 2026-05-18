@@ -51,7 +51,11 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
                 <video
                   className="panel__hero panel__hero--video"
                   src={project.demo}
-                  poster={project.image}
+                  // Posters can't go through <picture>, but every
+                  // supported browser handles WebP natively now — swap
+                  // the .png extension to .webp so the poster is the
+                  // smaller asset.
+                  poster={project.image?.replace(/\.png$/, ".webp")}
                   autoPlay
                   muted
                   loop
@@ -60,13 +64,19 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
                   aria-label={`${project.name} demo loop`}
                 />
               ) : (
-                <img
-                  src={project.image}
-                  alt={`${project.name} banner`}
-                  loading="lazy"
-                  decoding="async"
-                  className="panel__hero"
-                />
+                <picture>
+                  <source
+                    srcSet={project.image?.replace(/\.png$/, ".webp")}
+                    type="image/webp"
+                  />
+                  <img
+                    src={project.image}
+                    alt={`${project.name} banner`}
+                    loading="lazy"
+                    decoding="async"
+                    className="panel__hero"
+                  />
+                </picture>
               )}
             </section>
           )}
