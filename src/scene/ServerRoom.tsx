@@ -409,7 +409,10 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
         // with the rack body's front surface.
         const x = ax + nx * 0.22;
         const z = az + nz * 0.22;
-        const y = anchor.position.y + 0.92;
+        // +0.40 from the anchor lands the badge in the upper third of
+        // the rack face, *on* the body — earlier +0.92 floated above
+        // the rack top.
+        const y = anchor.position.y + 0.4;
         // planeGeometry's default normal is +Z. Rotate around Y so the
         // plane faces (nx, 0, nz).
         const ry = Math.atan2(nx, nz);
@@ -419,9 +422,14 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
             url={project.logo}
             position={[x, y, z]}
             rotation={[0, ry, 0]}
-            scale={[0.55, 0.55]}
+            scale={[0.5, 0.5]}
             transparent
             toneMapped={false}
+            // Knock the saturation back a touch and let a little of the
+            // dark rack face show through, so logos read as panel
+            // markings rather than printed stickers.
+            grayscale={0.3}
+            opacity={0.9}
           />
         );
       })}
