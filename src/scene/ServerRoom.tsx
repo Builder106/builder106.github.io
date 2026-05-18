@@ -405,13 +405,18 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
         const isBackWall = Math.abs(az) >= Math.abs(ax);
         const nx = isBackWall ? 0 : -Math.sign(ax);
         const nz = isBackWall ? -Math.sign(az) : 0;
-        // Sit just outside the rack face so the plane doesn't z-fight
-        // with the rack body's front surface.
-        const x = ax + nx * 0.22;
-        const z = az + nz * 0.22;
+        // Anchors are positioned 1.0m *in front* of the rack body (they
+        // double as "stand here to view this" points for the camera
+        // rig). The rack's actual front face is one metre back along
+        // the face normal; we want the badge sitting ~1cm proud of
+        // that face so it reads as a panel marking, not a hovering
+        // sticker.
+        const FACE_OFFSET = 0.99;
+        const x = ax - nx * FACE_OFFSET;
+        const z = az - nz * FACE_OFFSET;
         // +0.40 from the anchor lands the badge in the upper third of
-        // the rack face, *on* the body — earlier +0.92 floated above
-        // the rack top.
+        // the rack face. Rack body extends ±1.30 around the anchor in
+        // Y, so this is comfortably within bounds.
         const y = anchor.position.y + 0.4;
         // planeGeometry's default normal is +Z. Rotate around Y so the
         // plane faces (nx, 0, nz).
