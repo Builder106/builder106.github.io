@@ -447,13 +447,14 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
 
   return (
     <group>
-      {/* Soft linear fog: anything past ~28m fades to black. Hides the
+      {/* Soft linear fog: anything past ~30m fades to black. Hides the
           hard edge of the reflective floor + the static room's neon
           edge strips when the user zooms out, so the room reads as
-          one lit island in a much larger dark facility. Tighter than
-          the original [22, 55] so the back half of the distant-rack
-          ring fades cleanly instead of staying flat-lit. */}
-      <fog attach="fog" args={["#000000", 18, 45]} />
+          one lit island in a much larger dark facility. Pushed back
+          out from [18,45] → [24,65] so the floor stays readable in
+          the mid-ground instead of crushing to black right past the
+          room edge. */}
+      <fog attach="fog" args={["#0a0d18", 24, 65]} />
 
       <primitive
         object={scene}
@@ -617,7 +618,7 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
           depthScale={1.0}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.5}
-          color="#1a1d2e"
+          color="#262a3d"
           metalness={0.55}
           roughness={0.4}
         />
@@ -632,13 +633,13 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
         <Grid
           position={[0, 0.005, 0]}
           cellSize={1}
-          cellThickness={0.6}
-          cellColor="#3d4258"
+          cellThickness={0.7}
+          cellColor="#4e5476"
           sectionSize={4}
-          sectionThickness={1.0}
-          sectionColor="#5a607a"
-          fadeDistance={40}
-          fadeStrength={1.4}
+          sectionThickness={1.1}
+          sectionColor="#727a9c"
+          fadeDistance={55}
+          fadeStrength={1.2}
           infiniteGrid
           side={2}
         />
@@ -672,10 +673,12 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
 
       {/* Floor-level fog tint underneath the reflective floor so the
           horizon line where the floor meets the fog reads as a soft
-          gradient rather than a hard cut. */}
+          gradient rather than a hard cut. Slight lift from #02040a so
+          the far floor doesn't disappear into pure black before the
+          fog has a chance to do its work. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-        <planeGeometry args={[120, 120]} />
-        <meshBasicMaterial color="#02040a" fog />
+        <planeGeometry args={[140, 140]} />
+        <meshBasicMaterial color="#11151f" fog />
       </mesh>
 
       {/* Engraved-style nameplate on the front face of the desk.
