@@ -1,4 +1,5 @@
 import { type Project } from "@/data/projects";
+import { repoStats } from "@/data/repoStats.generated";
 import { PanelShell } from "./PanelShell";
 
 interface ProjectCardProps {
@@ -13,11 +14,32 @@ const CLUSTER_LABEL: Record<Project["cluster"], string> = {
   research: "research",
 };
 
+// Resolve a repo URL → "<owner>/<name>" slug, the same key the
+// build-time stats script uses.
+function repoSlug(url: string | undefined): string | null {
+  if (!url) return null;
+  const m = url.match(/github\.com\/([^/]+\/[^/?#]+)/);
+  return m ? m[1].replace(/\.git$/, "") : null;
+}
+
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return "";
+  const days = Math.max(0, Math.round((Date.now() - then) / 86_400_000));
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days}d ago`;
+  if (days < 365) return `${Math.round(days / 30)}mo ago`;
+  return `${Math.round(days / 365)}y ago`;
+}
+
 export function ProjectCard({ project, onClose }: ProjectCardProps) {
   // The shell is rendered even when project is null so the close
   // animation can play out cleanly when the panel is dismissed.
   const open = project !== null;
   const title = project ? `// node.${project.id}` : "// node";
+  const slug = project ? repoSlug(project.links.repo) : null;
+  const stats = slug ? repoStats[slug] : null;
 
   return (
     <PanelShell open={open} title={title} onClose={onClose}>
@@ -68,6 +90,25 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
               ))}
             </div>
           </section>
+
+          {stats && (
+            <section className="panel__section">
+              <div className="panel__section-label">repo</div>
+              <div className="panel__chips panel__chips--stats">
+                {stats.lang && (
+                  <span className="panel__chip panel__chip--stat">
+                    <span aria-hidden>●</span> {stats.lang}
+                  </span>
+                )}
+                <span className="panel__chip panel__chip--stat">
+                  ★ {stats.stars}
+                </span>
+                <span className="panel__chip panel__chip--stat">
+                  ⟳ {relativeTime(stats.pushed_at)}
+                </span>
+              </div>
+            </section>
+          )}
 
           {(project.links.live || project.links.repo) && (
             <section className="panel__section">

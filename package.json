@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/fetch-repo-stats.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "refresh-stats": "node scripts/fetch-repo-stats.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.0",

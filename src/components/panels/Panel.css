@@ -322,6 +322,25 @@
   color: var(--neon-cyan);
 }
 
+/* Live-from-GitHub stat chips: warmer, more readout-y, with the dot /
+ * star / cycle glyph in a slightly brighter cyan than the surrounding
+ * stack tags. */
+.panel__chip--stat {
+  text-transform: none;
+  letter-spacing: 0.04em;
+  color: rgba(180, 245, 255, 0.92);
+  border-color: rgba(76, 242, 255, 0.28);
+  background: rgba(76, 242, 255, 0.06);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.panel__chip--stat > span {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 6px rgba(76, 242, 255, 0.4);
+}
+
 .panel__links {
   display: flex;
   gap: 18px;

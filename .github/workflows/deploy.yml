@@ -25,6 +25,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # `prebuild` calls `gh api` to refresh public repo stats
+          # (stars, language, last-push). The script falls back to the
+          # committed JSON if the token is missing.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
