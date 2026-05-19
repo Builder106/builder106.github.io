@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f6fb"/>
+      <stop offset="1" stop-color="#e6eaf3"/>
+    </linearGradient>
+    <linearGradient id="cyanFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0891b2" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#0891b2" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#0891b2" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="magentaFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c026d3" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#c026d3" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#c026d3" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f6fb" stop-opacity="0"/>
+      <stop offset="1" stop-color="#dce2ee" stop-opacity="1"/>
+    </linearGradient>
+    <linearGradient id="rackBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cdd4e3"/>
+      <stop offset="1" stop-color="#a8b0c4"/>
+    </linearGradient>
+    <linearGradient id="rackLed" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0891b2" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#0891b2" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="rackLedMagenta" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c026d3" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#c026d3" stop-opacity="0.25"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="420" fill="url(#bg)"/>
+
+  <!-- Perspective grid floor -->
+  <g stroke="#b8c1d6" stroke-width="1" opacity="0.6">
+    <line x1="0" y1="260" x2="1200" y2="260"/>
+    <line x1="-60" y1="290" x2="1260" y2="290"/>
+    <line x1="-140" y1="325" x2="1340" y2="325"/>
+    <line x1="-260" y1="370" x2="1460" y2="370"/>
+  </g>
+  <g stroke="#b8c1d6" stroke-width="1" opacity="0.45">
+    <line x1="0" y1="420" x2="600" y2="210"/>
+    <line x1="120" y1="420" x2="600" y2="210"/>
+    <line x1="240" y1="420" x2="600" y2="210"/>
+    <line x1="360" y1="420" x2="600" y2="210"/>
+    <line x1="480" y1="420" x2="600" y2="210"/>
+    <line x1="600" y1="420" x2="600" y2="210"/>
+    <line x1="720" y1="420" x2="600" y2="210"/>
+    <line x1="840" y1="420" x2="600" y2="210"/>
+    <line x1="960" y1="420" x2="600" y2="210"/>
+    <line x1="1080" y1="420" x2="600" y2="210"/>
+    <line x1="1200" y1="420" x2="600" y2="210"/>
+  </g>
+  <rect x="0" y="200" width="1200" height="120" fill="url(#floor)" opacity="0.9"/>
+
+  <!-- Neon perimeter strips (toned down for light bg) -->
+  <line x1="0" y1="210" x2="1200" y2="210" stroke="url(#cyanFade)" stroke-width="1.5" filter="url(#glow)"/>
+  <line x1="0" y1="395" x2="1200" y2="395" stroke="url(#magentaFade)" stroke-width="1.5" filter="url(#glow)"/>
+
+  <!-- Distant rack silhouettes (left cluster) -->
+  <g opacity="0.95">
+    <rect x="70"  y="222" width="36" height="100" fill="url(#rackBody)" stroke="#8892a8" stroke-width="0.5"/>
+    <rect x="78"  y="232" width="3"  height="80"  fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="86"  y="232" width="3"  height="80"  fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="94"  y="232" width="3"  height="80"  fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="120" y="232" width="32" height="86" fill="url(#rackBody)" stroke="#8892a8" stroke-width="0.5"/>
+    <rect x="127" y="240" width="2.5" height="70" fill="url(#rackLedMagenta)" filter="url(#glow)"/>
+    <rect x="134" y="240" width="2.5" height="70" fill="url(#rackLedMagenta)" filter="url(#glow)"/>
+    <rect x="141" y="240" width="2.5" height="70" fill="url(#rackLedMagenta)" filter="url(#glow)"/>
+    <rect x="166" y="240" width="28" height="74" fill="url(#rackBody)" stroke="#8892a8" stroke-width="0.5"/>
+    <rect x="172" y="248" width="2"  height="58" fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="178" y="248" width="2"  height="58" fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="184" y="248" width="2"  height="58" fill="url(#rackLed)" filter="url(#glow)"/>
+  </g>
+
+  <!-- Distant rack silhouettes (right cluster) -->
+  <g opacity="0.95">
+    <rect x="1006" y="240" width="28" height="74" fill="url(#rackBody)" stroke="#8892a8" stroke-width="0.5"/>
+    <rect x="1012" y="248" width="2" height="58" fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="1018" y="248" width="2" height="58" fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="1024" y="248" width="2" height="58" fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="1048" y="232" width="32" height="86" fill="url(#rackBody)" stroke="#8892a8" stroke-width="0.5"/>
+    <rect x="1055" y="240" width="2.5" height="70" fill="url(#rackLedMagenta)" filter="url(#glow)"/>
+    <rect x="1062" y="240" width="2.5" height="70" fill="url(#rackLedMagenta)" filter="url(#glow)"/>
+    <rect x="1069" y="240" width="2.5" height="70" fill="url(#rackLedMagenta)" filter="url(#glow)"/>
+    <rect x="1094" y="222" width="36" height="100" fill="url(#rackBody)" stroke="#8892a8" stroke-width="0.5"/>
+    <rect x="1102" y="232" width="3" height="80" fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="1110" y="232" width="3" height="80" fill="url(#rackLed)" filter="url(#glow)"/>
+    <rect x="1118" y="232" width="3" height="80" fill="url(#rackLed)" filter="url(#glow)"/>
+  </g>
+
+  <!-- Brand mark -->
+  <g transform="translate(60, 70)">
+    <text x="0" y="0" font-size="22" fill="#0891b2" letter-spacing="2" filter="url(#glow)">&lt;OV /&gt;</text>
+    <text x="0" y="20" font-size="9" fill="#5a6478" letter-spacing="3">OLAYINKA DAVID VAUGHAN</text>
+  </g>
+
+  <!-- Centerpiece -->
+  <g text-anchor="middle">
+    <text x="600" y="155" font-size="54" font-weight="700" fill="#1a1f2e" letter-spacing="1">
+      Olayinka Vaughan
+    </text>
+    <text x="600" y="190" font-size="16" fill="#0891b2" letter-spacing="6" filter="url(#softGlow)">
+      QUANT SYSTEMS · FULL-STACK ENGINEER
+    </text>
+  </g>
+
+  <text x="600" y="395" text-anchor="middle" font-size="11" fill="#5a6478" letter-spacing="4">
+    INTERACTIVE 3D PORTFOLIO · REACT THREE FIBER · WEBGL
+  </text>
+</svg>
