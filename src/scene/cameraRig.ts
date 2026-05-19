@@ -6,6 +6,15 @@ import { type SceneAnchor } from "./anchors";
 export const DEFAULT_CAMERA_POSITION = new Vector3(8, 6, 8);
 export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0);
 
+// Portrait variant: elevated 3/4 vantage that frames the tiered amphitheater
+// (quant front, swe mid, research back). Camera pulled farther back + higher
+// than the Blender blockout's coordinates because real-device portrait
+// viewports run as narrow as ~0.4 aspect, narrower than the 9:16 = 0.5625
+// the blockout was authored against. Pivot sits between the front and mid
+// tiers so OrbitControls rotation keeps all three tiers in view.
+export const PORTRAIT_CAMERA_POSITION = new Vector3(0, 6.0, 10.5);
+export const PORTRAIT_CAMERA_TARGET = new Vector3(0, 1.8, -0.5);
+
 // When flying to a wall-mounted anchor, sit this far back and up from the
 // anchor so the camera frames the rack instead of clipping into it. The
 // direction is computed from the anchor's position (room interior).

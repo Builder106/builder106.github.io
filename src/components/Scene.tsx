@@ -7,38 +7,47 @@ import { ServerRoom } from "@/scene/ServerRoom";
 import {
   DEFAULT_CAMERA_POSITION,
   DEFAULT_CAMERA_TARGET,
+  PORTRAIT_CAMERA_POSITION,
+  PORTRAIT_CAMERA_TARGET,
   type CameraTarget,
 } from "@/scene/cameraRig";
 import type { ClickTarget } from "@/scene/clickResolver";
 import type { SceneAnchor } from "@/scene/anchors";
+import { useSceneVariant, type SceneVariant } from "@/scene/sceneVariant";
 import { CameraRig } from "./CameraRig";
 import { useIsMobile } from "./useIsMobile";
 
-// Pull the camera back and widen FOV on narrow / portrait viewports so
-// the room actually fits in the frame on phones. Desktop landscape gets
-// the original isometric vantage.
-function ResponsiveCamera() {
+// Per-variant camera framing. Portrait loads a different glTF (tiered
+// amphitheater layout, see docs/blender-contract.md + blend/server-room-
+// portrait.blend) so the vantage is fundamentally different — not just a
+// reframe of the landscape scene.
+function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
   const { size } = useThree();
   const aspect = size.width / Math.max(size.height, 1);
 
   const { position, fov } = useMemo(() => {
-    if (aspect < 0.8) {
-      // Portrait phone: pulled in close so racks are big enough to
-      // tap, with a wider FOV so the scene still fits horizontally.
+    if (variant === "portrait") {
+      // Elevated 3/4 vantage that fits all three tiers. FOV widens further
+      // on extremely narrow viewports (<0.45 aspect — most modern phones in
+      // portrait) so the room edges don't crop. Three.js PerspectiveCamera
+      // uses vertical FOV, so we bias *up* on tall-thin viewports rather
+      // than down.
       return {
-        position: new Vector3(6.5, 5, 6.5),
-        fov: 60,
+        position: PORTRAIT_CAMERA_POSITION.clone(),
+        fov: aspect < 0.45 ? 60 : 55,
       };
     }
     if (aspect < 1.3) {
-      // Squarish (tablet portrait, landscape phone).
+      // Squarish landscape (tablet portrait that didn't trip the variant
+      // threshold, or a near-square desktop window). Same glb, just
+      // slightly pulled out.
       return {
         position: new Vector3(8, 6.2, 8),
         fov: 45,
       };
     }
     return { position: DEFAULT_CAMERA_POSITION.clone(), fov: 35 };
-  }, [aspect]);
+  }, [variant, aspect]);
 
   return (
     <PerspectiveCamera
@@ -67,6 +76,8 @@ const IDLE_DELAY_MS = 12_000;
 export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchorsReady }: SceneProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const isMobile = useIsMobile();
+  const variant = useSceneVariant();
+  const orbitTarget = variant === "portrait" ? PORTRAIT_CAMERA_TARGET : DEFAULT_CAMERA_TARGET;
 
   // Track whether the user is currently idle. Drift only kicks in after
   // IDLE_DELAY_MS without any orbit/pan/zoom, and only while no panel
@@ -124,18 +135,19 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
       style={{ background: "var(--bg-deep)" }}
       onPointerMissed={() => onSelect(null)}
     >
-      <ResponsiveCamera />
+      <ResponsiveCamera variant={variant} />
       <Suspense fallback={null}>
         <ServerRoom
           onAnchorsReady={onAnchorsReady}
           onSelect={onSelect}
           panelOpen={panelOpen}
           isMobile={isMobile}
+          variant={variant}
         />
       </Suspense>
       <OrbitControls
         ref={controlsRef}
-        target={DEFAULT_CAMERA_TARGET.toArray()}
+        target={orbitTarget.toArray()}
         enablePan
         enableZoom
         enableRotate

@@ -25,17 +25,17 @@ export const repoStats: Record<string, RepoStats> = {
   },
   "Builder106/MicroMatch": {
     "lang": "Svelte",
-    "pushed_at": "2026-05-12T11:21:08Z",
+    "pushed_at": "2026-05-18T21:42:36Z",
     "stars": 0
   },
   "Builder106/STAIJA": {
     "lang": "TypeScript",
-    "pushed_at": "2026-05-18T16:04:48Z",
+    "pushed_at": "2026-05-18T21:42:40Z",
     "stars": 0
   },
   "Builder106/StudySprint": {
     "lang": "TypeScript",
-    "pushed_at": "2026-05-12T01:13:19Z",
+    "pushed_at": "2026-05-18T21:42:46Z",
     "stars": 0
   }
 };

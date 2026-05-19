@@ -29,3 +29,25 @@ export function collectAnchors(root: Object3D): Map<string, SceneAnchor> {
   });
   return out;
 }
+
+// Dev-mode-only check: every project listed in src/data/projects.ts should
+// have a matching anchor_<id> Empty in the loaded scene. A missing anchor
+// means the rack will render (if the geometry is there) but won't be
+// clickable and won't drive a camera fly. This is the single failure mode
+// most likely to silently break a portrait/landscape variant after a
+// projects.ts edit, so we surface it loudly.
+export function assertAnchorCoverage(
+  anchors: Map<string, SceneAnchor>,
+  projectIds: readonly string[],
+  variant: string,
+): void {
+  if (!import.meta.env.DEV) return;
+  const missing = projectIds.filter((id) => !anchors.has(id));
+  if (missing.length === 0) return;
+  // eslint-disable-next-line no-console
+  console.error(
+    `[scene/${variant}] Missing anchor_<id> for projects: ${missing.join(", ")}. ` +
+      `Each project in src/data/projects.ts requires a matching anchor in the ` +
+      `Blender scene — see docs/blender-contract.md.`,
+  );
+}

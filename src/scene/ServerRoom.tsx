@@ -14,14 +14,17 @@ import {
   type Material,
   type ShaderMaterial,
 } from "three";
-import { collectAnchors, type SceneAnchor } from "./anchors";
+import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from "./anchors";
 import { resolveClick, type ClickTarget } from "./clickResolver";
 import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
+import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
-const MODEL_URL = "/models/server-room.glb";
-
-useGLTF.preload(MODEL_URL);
+// Preload both variants so a viewport rotation (portrait ↔ landscape)
+// doesn't pause for a network fetch. Both glbs are small enough that
+// shipping them eagerly is cheaper than the swap latency.
+useGLTF.preload(MODEL_URLS.landscape);
+useGLTF.preload(MODEL_URLS.portrait);
 
 // Materials whose emission should bypass ACES tonemapping.
 function isUntonedMaterial(name: string): boolean {
@@ -211,13 +214,25 @@ interface ServerRoomProps {
   onSelect?: (target: ClickTarget) => void;
   panelOpen?: boolean;
   isMobile?: boolean;
+  variant?: SceneVariant;
 }
 
-export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = false }: ServerRoomProps) {
-  const { scene } = useGLTF(MODEL_URL);
+export function ServerRoom({
+  onAnchorsReady,
+  onSelect,
+  panelOpen,
+  isMobile = false,
+  variant = "landscape",
+}: ServerRoomProps) {
+  const { scene } = useGLTF(MODEL_URLS[variant]);
   const { scene: rootScene } = useThree();
-  const sentAnchorsRef = useRef(false);
   const interactivesRef = useRef<Interactive[]>([]);
+  // Wall-clock accumulator for the BackgroundTower_*_strip pulse in
+  // useFrame. We don't cache material refs — instead we traverse the
+  // scene each frame and modify materials in place (cached refs were
+  // causing the modified material not to reach the renderer; see the
+  // useFrame block for details).
+  const elapsedRef = useRef(0);
   const monitorShaderRef = useRef<(ShaderMaterial & { uniforms: SwarmUniforms }) | null>(null);
   const [hover, setHover] = useState<ClickTarget>(null);
   const [anchorMap, setAnchorMap] = useState<Map<string, SceneAnchor>>(new Map());
@@ -265,6 +280,12 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
     let ledMat: Material | null = null;
     scene.traverse((obj) => {
       if (!(obj instanceof Mesh)) return;
+
+      // Skip BackgroundTower_*_strip meshes — their materials are
+      // animated directly in useFrame, in place, without cloning.
+      if (obj.name.startsWith("BackgroundTower_") && obj.name.endsWith("_strip")) {
+        return;
+      }
 
       // The static glb floor is hidden — a separate JSX <mesh> with
       // MeshReflectorMaterial (below) renders the reflective floor
@@ -372,18 +393,21 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
     }
   }, [scene]);
 
+  // Re-emit anchors every time the loaded glTF scene changes — this is what
+  // makes a portrait↔landscape variant flip pick up the new layout instead
+  // of holding stale positions from the previous variant.
   useEffect(() => {
-    if (sentAnchorsRef.current || !onAnchorsReady) return;
-    sentAnchorsRef.current = true;
     const collected = collectAnchors(scene);
     setAnchorMap(collected);
-    onAnchorsReady(collected);
-  }, [scene, onAnchorsReady]);
+    onAnchorsReady?.(collected);
+    assertAnchorCoverage(collected, projects.map((p) => p.id), variant);
+  }, [scene, onAnchorsReady, variant]);
 
   useFrame((_, delta) => {
     const k = 1 - Math.exp(-delta / HOVER_TIME_CONSTANT);
     const isHovering = hover !== null;
     const activeKey = hoverKeyForState(hover);
+    elapsedRef.current += delta;
 
     // Per-emissive-material targets (rack screens).
     for (const it of interactivesRef.current) {
@@ -394,6 +418,28 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
       it.current += (target - it.current) * k;
       it.mat.emissiveIntensity = it.current;
     }
+
+    // Background tower accent pulse. Force all strips to brand cyan and
+    // modulate brightness by scaling the emit colour each frame (with
+    // toneMapped=false so the colour reads literally). Keeping intensity
+    // low (peak emission ~2.0) so the red channel stays well below 1
+    // and the strips read as bright cyan rather than saturating to white.
+    const tNow = elapsedRef.current;
+    scene.traverse((node) => {
+      if (!(node instanceof Mesh)) return;
+      if (!(node.name.startsWith("BackgroundTower_") && node.name.endsWith("_strip"))) return;
+      const m = node.material;
+      if (!(m instanceof MeshStandardMaterial)) return;
+      m.toneMapped = false;
+      // Per-strip phase + speed so towers don't pulse in sync.
+      const h = strHash(node.name);
+      const phase = ((h % 1000) / 1000) * Math.PI * 2;
+      const speed = 0.6 + (((h >>> 8) % 100) / 100) * 1.2;
+      const wave = 0.5 + 0.5 * Math.sin(tNow * speed + phase);
+      const t = 0.35 + 0.65 * wave;   // 0.35 — 1.00 of base brightness
+      m.emissive.setRGB(0.30 * t, 0.95 * t, 1.00 * t);
+      m.emissiveIntensity = 2.0;
+    });
 
     // Runtime fill / key lights.
     const lerpLight = (
@@ -558,15 +604,22 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
       {Array.from(anchorMap.entries()).map(([id, anchor]) => {
         const project = projectsById.get(id);
         if (!project?.logo) return null;
-        // Racks are wall-mounted; the front face is perpendicular to
-        // whichever wall (back z=-4.7 or left x=-4.7) the rack sits on.
-        // Decide axis by which coordinate dominates, then build a unit
-        // normal pointing from the wall into the room.
-        const ax = anchor.position.x;
-        const az = anchor.position.z;
-        const isBackWall = Math.abs(az) >= Math.abs(ax);
-        const nx = isBackWall ? 0 : -Math.sign(ax);
-        const nz = isBackWall ? -Math.sign(az) : 0;
+        // Determine the rack's front-face normal (pointing away from the
+        // rack into the room). The landscape glb authors racks on four
+        // walls — pick the dominant axis from the anchor position. The
+        // portrait glb arranges every rack facing +Z (toward the camera),
+        // so the normal is constant regardless of anchor x/z.
+        let nx: number, nz: number;
+        if (variant === "portrait") {
+          nx = 0;
+          nz = 1;
+        } else {
+          const ax = anchor.position.x;
+          const az = anchor.position.z;
+          const isBackWall = Math.abs(az) >= Math.abs(ax);
+          nx = isBackWall ? 0 : -Math.sign(ax);
+          nz = isBackWall ? -Math.sign(az) : 0;
+        }
         // Anchors are positioned 1.0m *in front* of the rack body (they
         // double as "stand here to view this" points for the camera
         // rig). The rack's actual front face is one metre back along
@@ -574,8 +627,8 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
         // that face so it reads as a panel marking, not a hovering
         // sticker.
         const FACE_OFFSET = 0.99;
-        const x = ax - nx * FACE_OFFSET;
-        const z = az - nz * FACE_OFFSET;
+        const x = anchor.position.x - nx * FACE_OFFSET;
+        const z = anchor.position.z - nz * FACE_OFFSET;
         // +0.40 from the anchor lands the badge in the upper third of
         // the rack face. Rack body extends ±1.30 around the anchor in
         // Y, so this is comfortably within bounds.
@@ -683,13 +736,15 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
       </mesh>
 
       {/* Engraved-style nameplate on the front face of the desk.
-          Same idle visibility rule as the rack callouts. */}
+          Same idle visibility rule as the rack callouts.
+          Portrait camera sits closer to the desk so the same distanceFactor
+          would render the nameplate at 2-3x size — drop it for portrait. */}
       {!panelOpen && (
         <Html
           position={[0, 0.55, 3.105]}
           center
           rotation={[0, 0, 0]}
-          distanceFactor={4.2}
+          distanceFactor={variant === "portrait" ? 3.0 : 4.2}
           zIndexRange={[0, 0]}
           style={{ pointerEvents: "none", userSelect: "none" }}
         >
@@ -703,13 +758,17 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
           phones; doesn't hurt desktop. Hidden while a panel is open so
           the panel content owns the screen. */}
       {!panelOpen && Array.from(anchorMap.entries()).map(([id, anchor]) => {
+        // Portrait camera frames the room tighter than the landscape
+        // vantage; the same distanceFactor would render labels ~50%
+        // larger and crowd the frame. Match label size to vantage.
+        const labelDistance = variant === "portrait" ? 6 : 9;
         if (id === "terminal") {
           return (
             <Html
               key={id}
               position={[0, 2.55, anchor.position.z - 0.7]}
               center
-              distanceFactor={9}
+              distanceFactor={labelDistance}
               zIndexRange={[0, 0]}
               style={{ userSelect: "none" }}
             >
@@ -731,7 +790,7 @@ export function ServerRoom({ onAnchorsReady, onSelect, panelOpen, isMobile = fal
             key={id}
             position={[anchor.position.x, anchor.position.y + 1.7, anchor.position.z]}
             center
-            distanceFactor={9}
+            distanceFactor={labelDistance}
             zIndexRange={[0, 0]}
             style={{ userSelect: "none" }}
           >
