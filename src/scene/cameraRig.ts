@@ -1,5 +1,6 @@
 import { Vector3 } from "three";
 import { type SceneAnchor } from "./anchors";
+import { type SceneVariant } from "./sceneVariant";
 
 // Default isometric vantage. Looking at the origin from the front-right,
 // pulled back enough to fit a ~14x14 unit room. Y is up (Three.js space).
@@ -30,7 +31,13 @@ export interface CameraTarget {
   lookAt: Vector3;
 }
 
-export function defaultCameraTarget(): CameraTarget {
+export function defaultCameraTarget(variant: SceneVariant = "landscape"): CameraTarget {
+  if (variant === "portrait") {
+    return {
+      position: PORTRAIT_CAMERA_POSITION.clone(),
+      lookAt: PORTRAIT_CAMERA_TARGET.clone(),
+    };
+  }
   return {
     position: DEFAULT_CAMERA_POSITION.clone(),
     lookAt: DEFAULT_CAMERA_TARGET.clone(),
