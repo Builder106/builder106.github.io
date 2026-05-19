@@ -66,8 +66,6 @@ Fix paths configuration in tsconfig to ensure correct module resolution
 
 If a commit touches one subsystem (cables, hover, paths), lead with that subsystem and a colon, then the change. Otherwise just describe the change. Keep the subject under ~72 characters.
 
-Never add a `Co-Authored-By: Claude` trailer (or any AI-tool attribution). Commits are attributed to the human author.
-
 ## PR process
 
 1. Open an issue first for anything beyond a small bug fix — it saves both of us a wasted PR if it's out of scope.
