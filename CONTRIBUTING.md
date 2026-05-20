@@ -73,6 +73,24 @@ If a commit touches one subsystem (cables, hover, paths), lead with that subsyst
 3. Keep PRs focused on one change. A perf fix + a refactor + a new feature in one PR is three PRs.
 4. If a change affects the Blender scene, attach a before/after screenshot.
 
+## Demo videos
+
+The README's "Demo" section embeds an animated GIF rendered from a Playwright BDD scenario in [e2e/demo/](e2e/demo/). To re-record after a UX change:
+
+```bash
+npm run dev          # in one terminal
+npm run demo:record  # in another — records to e2e/demo/output/*.mp4
+npm run demo:gif     # converts each mp4 to a GIF at 720p / 8fps
+```
+
+Notes from building this pipeline (worth knowing before touching it):
+
+- **Single-worker, slowMo=1000.** Parallel breaks Playwright's video subsystem; faster slowMo races React's panel-mount timing and the test flakes.
+- **Clicks are dispatched as synthetic events, not `.click()`.** drei's `<Html>` re-portals on every animation frame, which trips Playwright's "element is attached + stable" check. The step library dispatches a `MouseEvent` via `evaluate()` to bypass that.
+- **Animations frozen during recording.** A pre-mount `addInitScript` adds `.rack-label { animation: none !important; }` so the floating labels stay still while Playwright clicks them.
+- **Warmup scenarios.** Playwright + slowMo + `video: "on"` records a 0-byte first video for one of the first 1-2 tests. The `00-warmup.feature` has two throwaway scenarios; the custom reporter detects them by slug prefix and drops their output.
+- **mp4 also ships in `public/`** as `/demo.mp4` so the `og:video` meta tag in `index.html` has something to point to.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).

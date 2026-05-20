@@ -9,7 +9,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
-    "refresh-stats": "node scripts/fetch-repo-stats.mjs"
+    "refresh-stats": "node scripts/fetch-repo-stats.mjs",
+    "demo:record": "DEMO=1 playwright test --config=playwright.demo.config.ts",
+    "demo:gif": "for f in e2e/demo/output/*.mp4; do ffmpeg -y -i \"$f\" -vf \"fps=8,scale=720:-1:flags=lanczos\" -loop 0 \"${f%.mp4}.gif\"; done"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.0",
@@ -19,11 +21,13 @@
     "three": "^0.170.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "^25.6.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^4.3.3",
+    "playwright-bdd": "^8.5.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.10"
   }

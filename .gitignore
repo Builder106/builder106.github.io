@@ -49,3 +49,16 @@ logs
 
 # Coverage
 coverage/
+
+# Playwright test runtime + intermediate artifacts (videos, traces).
+# Demo output: the .gif IS committed (referenced from README); the .mp4
+# lives in public/demo.mp4 (committed, served for og:video). The mp4 in
+# e2e/demo/output/ is just a working file — copy it to public/ when you
+# re-record.
+test-results/
+playwright-report/
+.playwright-bdd/
+.features-gen/
+e2e/demo/output/*.webm
+e2e/demo/output/*.mp4
+e2e/demo/output/*-FAILED.*

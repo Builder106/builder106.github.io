@@ -15,6 +15,17 @@ A first-person tour through a neon server room, where each rack is one of my pro
 
 Live at **[yinkavaughan.me](https://yinkavaughan.me/)**.
 
+## Demo
+
+<details open>
+<summary>~2 min walkthrough — open the room, dive into a project, pull up the terminal, send a ping</summary>
+
+![Recruiter walkthrough](e2e/demo/output/01-hero-recruiter-explores-the-room.gif)
+
+</details>
+
+Recorded with a Playwright BDD demo suite (`npm run demo:record`). The recording infrastructure (custom reporter, cursor injection, animation freeze, dwell helper) lives in [e2e/demo/](e2e/demo/) — see [CONTRIBUTING.md](CONTRIBUTING.md#demo-videos) for the rationale.
+
 ## How it works
 
 The portfolio renders as a single WebGL canvas. Clicks raycast into the scene, resolve to a known anchor (a rack, the terminal, the ping button), and steer the camera rig toward that anchor while the matching panel hydrates and slides in. After a short transition window the rig releases control back to OrbitControls so you can freely orbit, pan, and zoom.
