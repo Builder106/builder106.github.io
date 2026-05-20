@@ -170,15 +170,19 @@ button {
 }
 
 @media (max-width: 720px) {
+  /* Bumped from 10/8px because drei's <Html> with distanceFactor scales
+     these via CSS transform, which composites the label as a GPU layer
+     and bakes in the rasterisation. Rendering at a higher native size
+     (then letting the transform scale down) keeps the text crisp. */
   .rack-label {
-    padding: 4px 8px;
-    gap: 1px;
+    padding: 5px 10px;
+    gap: 2px;
   }
   .rack-label__name {
-    font-size: 10px;
+    font-size: 14px;
   }
   .rack-label__cluster {
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.12em;
   }
 }
@@ -204,4 +208,13 @@ button {
   pointer-events: none;
   user-select: none;
   white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  /* Same reason as the rack labels above: bump native CSS size so the
+     drei <Html> transform-scale renders crisp text. */
+  .desk-nameplate {
+    font-size: 16px;
+    padding: 10px 22px;
+  }
 }
