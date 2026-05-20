@@ -24,6 +24,10 @@ dist-ssr/
 blend/**/*.blend
 blend/**/*.blend1
 
+# Scratch renders from blender previews / debug passes (live in blend/
+# alongside the .blend sources but aren't deliverables).
+blend/*.png
+
 # Editor / IDE
 .vscode/*
 !.vscode/extensions.json
