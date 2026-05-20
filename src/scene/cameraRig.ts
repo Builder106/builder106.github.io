@@ -44,14 +44,25 @@ export function defaultCameraTarget(variant: SceneVariant = "landscape"): Camera
   };
 }
 
-// Build a camera target from a wall-mounted anchor. Uses the anchor's
-// horizontal position to derive a "step back into the room" direction so
-// the camera ends up in front of the rack, looking at it.
-export function projectCameraTarget(anchor: SceneAnchor): CameraTarget {
-  const interiorDir = new Vector3(-anchor.position.x, 0, -anchor.position.z)
-    .normalize();
-  // If the anchor is somehow at origin, fall back to default-facing.
-  if (interiorDir.lengthSq() < 0.0001) interiorDir.set(0, 0, 1);
+// Build a camera target for a rack anchor. The pull-back direction depends
+// on the scene variant:
+//   - landscape: racks are wall-mounted, so step from the anchor toward
+//     room centre — the camera ends up between the wall and the centre.
+//   - portrait: every rack faces +Z (toward the camera). Step back along
+//     +Z so the camera lands in front of the rack rather than behind it.
+export function projectCameraTarget(
+  anchor: SceneAnchor,
+  variant: SceneVariant = "landscape",
+): CameraTarget {
+  let interiorDir: Vector3;
+  if (variant === "portrait") {
+    interiorDir = new Vector3(0, 0, 1);
+  } else {
+    interiorDir = new Vector3(-anchor.position.x, 0, -anchor.position.z)
+      .normalize();
+    // Anchor at origin → fall back to facing the camera-side wall.
+    if (interiorDir.lengthSq() < 0.0001) interiorDir.set(0, 0, 1);
+  }
 
   const position = anchor.position.clone()
     .addScaledVector(interiorDir, ANCHOR_PULLBACK);

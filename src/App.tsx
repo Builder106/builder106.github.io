@@ -97,7 +97,7 @@ export function App() {
       return a ? terminalCameraTarget(a) : defaultCameraTarget(variant);
     }
     const a = anchors.get(active.projectId);
-    return a ? projectCameraTarget(a) : defaultCameraTarget(variant);
+    return a ? projectCameraTarget(a, variant) : defaultCameraTarget(variant);
   }, [active, anchors, transitioning, variant]);
 
   const activeProject =
