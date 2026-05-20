@@ -131,7 +131,7 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
       // No mesh in this scene actually casts shadows — disable so the
       // shadow-map render pass + texture allocation are skipped.
       shadows={false}
-      gl={{ antialias: !isMobile, alpha: false, powerPreference: "high-performance" }}
+      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
       style={{ background: "var(--bg-deep)" }}
       onPointerMissed={() => onSelect(null)}
     >
