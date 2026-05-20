@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0a0a12" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>404 — yinkavaughan.me</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #06060c;
+        --fg: #e6e9f2;
+        --dim: #6b7280;
+        --cyan: #4cf2ff;
+        --magenta: #ff4cf2;
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+      }
+      main { max-width: 560px; width: 100%; }
+      .status {
+        color: var(--dim);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        margin: 0 0 32px;
+      }
+      .status .code { color: var(--cyan); }
+      h1 {
+        font-size: clamp(72px, 14vw, 128px);
+        line-height: 0.9;
+        margin: 0 0 16px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+      }
+      h1 .accent { color: var(--magenta); }
+      .subtitle {
+        font-size: 14px;
+        letter-spacing: 0.12em;
+        margin: 0 0 24px;
+        color: var(--fg);
+      }
+      .cursor {
+        display: inline-block;
+        width: 0.5ch;
+        height: 1em;
+        background: var(--cyan);
+        vertical-align: text-bottom;
+        margin-left: 4px;
+        animation: blink 1s steps(2, start) infinite;
+      }
+      @keyframes blink { to { visibility: hidden; } }
+      p { color: var(--dim); margin: 0 0 28px; max-width: 48ch; }
+      nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      nav a {
+        color: var(--cyan);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 0;
+        transition: color 120ms ease;
+      }
+      nav a:hover, nav a:focus-visible { color: var(--fg); }
+      nav a:focus-visible { outline: 1px solid var(--cyan); outline-offset: 4px; }
+      nav .arrow { color: var(--dim); width: 1ch; }
+      @media (prefers-reduced-motion: reduce) {
+        .cursor { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="status">HTTP/1.1 <span class="code">404</span> NOT_FOUND</p>
+      <h1>4<span class="accent">0</span>4</h1>
+      <p class="subtitle">ROUTE NOT MAPPED<span class="cursor" aria-hidden="true"></span></p>
+      <p>That path isn't served from this host. The portfolio is a single page at the root.</p>
+      <nav>
+        <ul>
+          <li><a href="/"><span class="arrow">&rarr;</span> yinkavaughan.me</a></li>
+          <li><a href="/Olayinka_Vaughan_Resume.pdf"><span class="arrow">&darr;</span> Resume (PDF)</a></li>
+        </ul>
+      </nav>
+    </main>
+  </body>
+</html>
