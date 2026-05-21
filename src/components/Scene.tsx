@@ -40,10 +40,9 @@ function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
     if (aspect < 1.3) {
       // Squarish landscape (tablet portrait that didn't trip the variant
       // threshold, or a near-square desktop window). Same glb, just
-      // slightly pulled out and bumped up so the right-wall analyst tier
-      // doesn't drift outside the narrower HFOV.
+      // slightly pulled out.
       return {
-        position: new Vector3(10, 7.2, 10),
+        position: new Vector3(8, 6.2, 8),
         fov: 45,
       };
     }

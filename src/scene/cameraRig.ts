@@ -3,12 +3,10 @@ import { type SceneAnchor } from "./anchors";
 import { type SceneVariant } from "./sceneVariant";
 
 // Default isometric vantage. Looking at the origin from the front-right,
-// pulled back enough to fit all three populated walls (back: quant,
-// left: SWE, right: analyst) inside the ~58° horizontal FOV that 35°
-// vertical + a 16:9 aspect gives us. The previous (8,6,8) framing
-// clipped the right-wall analyst racks at ~30° off-forward.
-// Y is up (Three.js space).
-export const DEFAULT_CAMERA_POSITION = new Vector3(10, 7, 10);
+// pulled back enough to fit a ~14x14 unit room. Y is up (Three.js space).
+// The analyst cluster lives on the left wall's back half so all nine
+// racks fit inside the 35° vertical FOV at this distance.
+export const DEFAULT_CAMERA_POSITION = new Vector3(8, 6, 8);
 export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0);
 
 // Portrait variant: elevated 3/4 vantage that frames the tiered amphitheater
