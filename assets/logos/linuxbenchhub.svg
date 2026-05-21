@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="lbh-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d0d18"/>
+      <stop offset="1" stop-color="#06060c"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="244" height="244" rx="36" ry="36" fill="url(#lbh-bg)" stroke="#cc342d" stroke-width="3"/>
+  <!-- Three horizontal bars, one per distro: Ubuntu, Fedora, Debian.
+       Bar lengths sized off the Ubuntu sample's relative throughput.
+       Single bright accent on the longest to read as a benchmark winner. -->
+  <g>
+    <rect x="40" y="76"  width="170" height="22" rx="4" fill="#cc342d"/>
+    <rect x="40" y="118" width="130" height="22" rx="4" fill="#a82826" opacity="0.78"/>
+    <rect x="40" y="160" width="150" height="22" rx="4" fill="#a82826" opacity="0.55"/>
+  </g>
+  <!-- Distro initials, tight monospace, left edge of each bar.  -->
+  <g font-family="ui-monospace, Menlo, monospace" font-size="14"
+     font-weight="700" fill="#06060c">
+    <text x="51" y="92">U</text>
+    <text x="51" y="134">F</text>
+    <text x="51" y="176">D</text>
+  </g>
+</svg>
