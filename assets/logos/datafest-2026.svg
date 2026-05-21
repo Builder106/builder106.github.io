@@ -1,20 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
-  <defs>
-    <linearGradient id="df-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0d0d18"/>
-      <stop offset="1" stop-color="#06060c"/>
-    </linearGradient>
-  </defs>
-  <rect x="6" y="6" width="244" height="244" rx="36" ry="36" fill="url(#df-bg)" stroke="#276dc3" stroke-width="3"/>
-  <!-- Two horizontal bars showing a 3× odds-ratio comparison.
-       Top: "no barrier" baseline. Bottom: "transport barrier" 3× wider.
-       This is the headline finding of the project. -->
-  <g>
-    <rect x="48"  y="88"  width="60"  height="22" rx="4" fill="#276dc3" opacity="0.55"/>
-    <rect x="48"  y="146" width="180" height="22" rx="4" fill="#5b9bd5"/>
-  </g>
-  <!-- Multiplier label, large + monospace, bottom-right corner. -->
-  <text x="216" y="216" font-family="ui-monospace, Menlo, monospace"
-        font-size="38" font-weight="700" fill="#5b9bd5"
-        text-anchor="end">3×</text>
+<!-- Mirror of DataFest-2026/docs/favicon.svg — a rounded dark-blue tile
+     with a cyan smile curve and two coral endpoints. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="256" height="256">
+  <rect width="32" height="32" rx="7" fill="#0c1525"/>
+  <path d="M7 21 Q16 7 25 21" stroke="#4dd0e1" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <circle cx="7" cy="21" r="2.6" fill="#ff7676"/>
+  <circle cx="25" cy="21" r="2.6" fill="#ff7676"/>
 </svg>
