@@ -610,9 +610,14 @@ export function ServerRoom({
         if (!project?.logo) return null;
         // Determine the rack's front-face normal (pointing away from the
         // rack into the room). The landscape glb authors racks on four
-        // walls — pick the dominant axis from the anchor position. The
-        // portrait glb arranges every rack facing +Z (toward the camera),
-        // so the normal is constant regardless of anchor x/z.
+        // walls and offsets each anchor 1m into the room from the rack
+        // face — so every wall-mounted anchor lies on one of the planes
+        // X=±4.7 or Z=±4.7. Pick the wall whose plane the anchor is
+        // closest to; a |z|>=|x| dominance check breaks down when a rack
+        // sits deep on a side wall (e.g. analyst at X=-4.7, Z=-6.5: |z|
+        // wins but the rack is still on the left wall, not the back).
+        // The portrait glb arranges every rack facing +Z (toward the
+        // camera), so the normal is constant regardless of anchor x/z.
         let nx: number, nz: number;
         if (variant === "portrait") {
           nx = 0;
@@ -620,9 +625,18 @@ export function ServerRoom({
         } else {
           const ax = anchor.position.x;
           const az = anchor.position.z;
-          const isBackWall = Math.abs(az) >= Math.abs(ax);
-          nx = isBackWall ? 0 : -Math.sign(ax);
-          nz = isBackWall ? -Math.sign(az) : 0;
+          const ANCHOR_PLANE = 4.7;
+          const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
+          const distToRight = Math.abs(ax - ANCHOR_PLANE);
+          const distToBack  = Math.abs(az + ANCHOR_PLANE);
+          const minDist = Math.min(distToLeft, distToRight, distToBack);
+          if (minDist === distToLeft) {
+            nx = 1; nz = 0;          // left wall, faces +X
+          } else if (minDist === distToRight) {
+            nx = -1; nz = 0;         // right wall, faces -X
+          } else {
+            nx = 0; nz = 1;          // back wall, faces +Z
+          }
         }
         // Anchors are positioned 1.0m *in front* of the rack body (they
         // double as "stand here to view this" points for the camera
