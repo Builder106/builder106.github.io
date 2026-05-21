@@ -1,8 +1,0 @@
-<!-- Mirror of CapitolAlpha/site/favicon.svg with dark-mode colours baked in.
-     PNG rasters can't honour prefers-color-scheme, and the portfolio scene
-     is always dark, so we bake the dark variant. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="256" height="256">
-  <rect width="32" height="32" fill="#0a1019"/>
-  <text x="16" y="25" font-family="Georgia, 'Times New Roman', 'Liberation Serif', serif"
-        font-size="28" font-weight="700" text-anchor="middle" fill="#22c55e">α</text>
-</svg>
