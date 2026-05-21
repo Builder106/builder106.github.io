@@ -35,19 +35,23 @@ for camera flies and React-panel pinning.
 > the prefix match would silently fail. The Rack and Screen meshes follow
 > the same rule (`Rack_imc-prosperity`, not `Rack.imc-prosperity`).
 
-| Empty name              | Purpose                                                |
-| ----------------------- | ------------------------------------------------------ |
-| `anchor_terminal`       | Central monitor — opens the Trading Terminal panel.    |
-| `anchor_imc-prosperity` | IMC Prosperity 3 rack.                                 |
-| `anchor_capitol-alpha`  | Capitol Alpha rack.                                    |
-| `anchor_linuxbenchhub`  | LinuxBenchHub rack.                                    |
-| `anchor_naijatank`      | NaijaTank rack.                                        |
-| `anchor_staija`         | STAIJA rack.                                           |
-| `anchor_applytok`       | ApplyTok rack.                                         |
+| Empty name              | Cluster | Purpose                                              |
+| ----------------------- | ------- | ---------------------------------------------------- |
+| `anchor_terminal`       | —       | Central monitor — opens the Trading Terminal panel.  |
+| `anchor_econos`         | quant   | EconOS rack (back wall, landscape).                  |
+| `anchor_ocaml-lob`      | quant   | OCaml LOB rack.                                      |
+| `anchor_qforge`         | quant   | qforge rack.                                         |
+| `anchor_micromatch`     | SWE     | MicroMatch rack (left wall, landscape).              |
+| `anchor_staija`         | SWE     | STAIJA rack.                                         |
+| `anchor_studysprint`    | SWE     | StudySprint rack.                                    |
+| `anchor_capitol-alpha`  | analyst | CapitolAlpha rack (right wall, landscape).           |
+| `anchor_datafest-2026`  | analyst | DataFest 2026 rack.                                  |
+| `anchor_linuxbenchhub`  | analyst | LinuxBenchHub rack.                                  |
 
-The id after the dot must match a `Project.anchor` value in
+The id after `anchor_` must match a `Project.id` value in
 [src/data/projects.ts](../src/data/projects.ts). When you add a project, add
-both a row there and an `anchor_<id>` Empty in Blender.
+both a row there and an `anchor_<id>` Empty in Blender — or set
+`inScene: false` on the project to opt it out of the scene presence check.
 
 Place each Empty **just in front of** the surface it represents (about 1.2
 units of clearance), so when the camera rig flies to `anchor + offset` it
