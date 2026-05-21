@@ -1,4 +1,4 @@
-export type ProjectCluster = "quant" | "systems" | "swe" | "research";
+export type ProjectCluster = "quant" | "systems" | "swe" | "analyst" | "research";
 
 // Display label for each cluster, shared by every UI surface (rack
 // callouts, project card section header, SR-only mirror). Keeps the
@@ -7,6 +7,7 @@ export const CLUSTER_DISPLAY: Record<ProjectCluster, string> = {
   quant: "quant",
   systems: "systems",
   swe: "SWE",
+  analyst: "analyst",
   research: "research",
 };
 
@@ -32,6 +33,10 @@ export interface Project {
   // on the front face of the rack so each rack reads as its own brand
   // from the default isometric vantage.
   logo?: string;
+  // Set to false for projects that ship in the semantic mirror / JSON-LD
+  // but have no rack authored in the Blender scene yet. Suppresses the
+  // dev-only "missing anchor" warning. Defaults to true.
+  inScene?: boolean;
   // Each project's id matches an Empty named "anchor_<id>" in the Blender
   // scene (underscore separator — Three.js's GLTFLoader strips dots). See
   // docs/blender-contract.md.
@@ -142,5 +147,56 @@ export const projects: Project[] = [
     demo: "/img/projects/demos/studysprint.webm",
     color: "#84cc16",
     logo: "/img/projects/logos/studysprint.png",
+  },
+
+  // Analyst cluster (right wall in landscape, back tier in portrait) -------
+  // Statistical / data-pipeline work. capitol-alpha + datafest-2026 each
+  // ship a 15 s scroll capture of their live findings page. linuxbenchhub
+  // has no live URL yet, so its panel falls back to the static blurb.
+  {
+    id: "capitol-alpha",
+    name: "CapitolAlpha",
+    cluster: "analyst",
+    headline: "16,203 trades · +2.58% alpha (p < 0.05)",
+    blurb:
+      "End-to-end Python pipeline auditing 16,203 disclosed Congressional stock trades from 2020–2024. Scrapes Senate and House Periodic Transaction Reports with Playwright + pdfplumber, computes Jensen's alpha against the S&P 500, and ships a Vercel findings page. Semester project for Wesleyan's QAC 420 — Data for Good.",
+    stack: ["Python", "Playwright", "pdfplumber", "pandas", "scipy", "Jupyter"],
+    links: {
+      live: "https://capitolalpha.vercel.app",
+      repo: "https://github.com/Builder106/CapitolAlpha",
+    },
+    demo: "/img/projects/demos/capitol-alpha.webm",
+    color: "#cc0000",
+    logo: "/img/projects/logos/capitol-alpha.png",
+  },
+  {
+    id: "datafest-2026",
+    name: "DataFest 2026",
+    cluster: "analyst",
+    headline: "3× ED-visit odds · n = 58,639 patients",
+    blurb:
+      "ASA DataFest 2026 submission for Stormont Vail Health. R + DuckDB pipeline on a 7.6M-row EHR sample joined to a social-determinants questionnaire — patients reporting a transportation barrier show ~3× crude odds of ED visits and inpatient admits, independent of age. Wesleyan team 13.",
+    stack: ["R", "DuckDB", "data.table", "ggplot2", "Flourish"],
+    links: {
+      live: "https://datafest-2026.vercel.app/",
+      repo: "https://github.com/Builder106/datafest-2026",
+    },
+    demo: "/img/projects/demos/datafest-2026.webm",
+    color: "#276dc3",
+    logo: "/img/projects/logos/datafest-2026.png",
+  },
+  {
+    id: "linuxbenchhub",
+    name: "LinuxBenchHub",
+    cluster: "analyst",
+    headline: "Phoronix Test Suite · monthly CI captures",
+    blurb:
+      "A benchmarking dataset and Rails 8 dashboard comparing Ubuntu, Fedora, and Debian under identical virtual hardware. Phoronix runs are captured monthly by GitHub Actions; R parsers and the dashboard consume the same composite XML, so the static analysis and the live UI never drift.",
+    stack: ["Ruby on Rails", "R", "Phoronix Test Suite", "GitHub Actions", "Docker"],
+    links: {
+      repo: "https://github.com/Builder106/LinuxBenchHub",
+    },
+    color: "#cc342d",
+    logo: "/img/projects/logos/linuxbenchhub.png",
   },
 ];

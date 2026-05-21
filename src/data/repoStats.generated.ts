@@ -30,12 +30,27 @@ export const repoStats: Record<string, RepoStats> = {
   },
   "Builder106/STAIJA": {
     "lang": "TypeScript",
-    "pushed_at": "2026-05-20T01:46:00Z",
+    "pushed_at": "2026-05-21T01:15:33Z",
     "stars": 0
   },
   "Builder106/StudySprint": {
     "lang": "TypeScript",
     "pushed_at": "2026-05-18T21:42:46Z",
+    "stars": 0
+  },
+  "Builder106/CapitolAlpha": {
+    "lang": "Jupyter Notebook",
+    "pushed_at": "2026-05-19T22:37:38Z",
+    "stars": 0
+  },
+  "Builder106/datafest-2026": {
+    "lang": "R",
+    "pushed_at": "2026-05-21T01:35:52Z",
+    "stars": 0
+  },
+  "Builder106/LinuxBenchHub": {
+    "lang": "JavaScript",
+    "pushed_at": "2026-05-21T12:01:31Z",
     "stars": 0
   }
 };

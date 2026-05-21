@@ -400,7 +400,11 @@ export function ServerRoom({
     const collected = collectAnchors(scene);
     setAnchorMap(collected);
     onAnchorsReady?.(collected);
-    assertAnchorCoverage(collected, projects.map((p) => p.id), variant);
+    assertAnchorCoverage(
+      collected,
+      projects.filter((p) => p.inScene !== false).map((p) => p.id),
+      variant,
+    );
   }, [scene, onAnchorsReady, variant]);
 
   useFrame((_, delta) => {
