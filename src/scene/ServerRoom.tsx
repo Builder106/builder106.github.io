@@ -226,13 +226,17 @@ const AISLE_ORDER = [
   "linuxbenchhub",
 ] as const;
 
-// Aisle geometry. Spacing is wide enough that adjacent racks don't
-// overlap at the working camera FOV; Z_START sits a hair behind the
-// (relocated) terminal desk so the first rack reads as the user's first
-// step "into" the hall.
+// Aisle geometry. Racks line both sides of a centre corridor, each pair
+// sharing the same Z position. AISLE_HALF_WIDTH is the lateral offset
+// from the corridor centreline to each rack's pivot — 1.5m gives a ~3m
+// walkway that reads as a real data-centre aisle without crowding the
+// front pair at the camera. Z_START sits a hair behind the (relocated)
+// terminal desk so the first pair reads as the user's first step into
+// the hall.
 const AISLE_SPACING = 2.6;
 const AISLE_Z_START = 1.0;
 const AISLE_TERMINAL_Z = 4.2;
+const AISLE_HALF_WIDTH = 1.5;
 
 // Per-rack-id sets of mesh-name predicates: anything matching gets moved
 // into the rack's transform group when we re-lay-out for portrait.
@@ -315,9 +319,11 @@ function applyAisleLayout(scene: Object3D): void {
 
   // Second pass: per rack, build a transform group at the rack's
   // original pivot, reparent meshes (+ anchor) into it via attach()
-  // (which preserves world transforms), then translate + rotate the
-  // group to the aisle target. attach() handles the world↔local
-  // conversion for us.
+  // (which preserves world transforms), translate to the *left* side of
+  // the aisle (x = −AISLE_HALF_WIDTH) facing +X, then deep-clone the
+  // group to the *right* side facing −X. The clone shares geometries
+  // and materials with the original; the per-mesh material clone in
+  // useLayoutEffect runs *after* this and gives each its own instance.
   const tmpWorld = new Vector3();
   for (let i = 0; i < AISLE_ORDER.length; i++) {
     const id = AISLE_ORDER[i];
@@ -329,10 +335,10 @@ function applyAisleLayout(scene: Object3D): void {
     // Rack body sits ~1m *behind* its anchor (anchor is authored 1m in
     // front of the rack face per the Blender contract).
     const origPivot = tmpWorld.clone().sub(normal);
-    // Rotation needed to turn the rack's outward normal into +Z (the
-    // direction the aisle camera looks from).
-    const origAngle = Math.atan2(normal.x, normal.z);
-    const deltaAngle = -origAngle;
+    // Rotation that turns the rack's outward normal into +X — the
+    // direction a left-side rack must face to address the corridor.
+    const leftAngle = (Math.PI / 2) - Math.atan2(normal.x, normal.z);
+    const targetZ = AISLE_Z_START - i * AISLE_SPACING;
 
     const group = new Group();
     group.position.copy(origPivot);
@@ -343,10 +349,27 @@ function applyAisleLayout(scene: Object3D): void {
       group.attach(mesh);
     }
 
-    // Aisle target: x=0, original Y, receding -Z. Rotation flips the
-    // rack to face the camera.
-    group.position.set(0, origPivot.y, AISLE_Z_START - i * AISLE_SPACING);
-    group.rotation.y = deltaAngle;
+    // Left side of the aisle, rack face pointing +X (toward corridor).
+    group.position.set(-AISLE_HALF_WIDTH, origPivot.y, targetZ);
+    group.rotation.y = leftAngle;
+
+    // Mirror clone on the right side. The 180° rotation flips the
+    // outward normal from +X to −X so the rack faces the corridor from
+    // the right wall.
+    const mirror = group.clone(true);
+    scene.add(mirror);
+    mirror.position.set(AISLE_HALF_WIDTH, origPivot.y, targetZ);
+    mirror.rotation.y = leftAngle + Math.PI;
+
+    // Strip anchor names from the mirror so collectAnchors finds only
+    // the original — one label per project, anchored off the left side.
+    // The mirror's meshes keep their real names (Rack_<id> etc.) so
+    // hovering or clicking either side still resolves to the project.
+    mirror.traverse((node) => {
+      if (node.name.startsWith("anchor_")) {
+        node.name = "_mirror_" + node.name;
+      }
+    });
   }
 
   // Pull the terminal/desk forward so it sits *in front of* the first
@@ -799,47 +822,67 @@ export function ServerRoom({
       {Array.from(anchorMap.entries()).map(([id, anchor]) => {
         const project = projectsById.get(id);
         if (!project?.logo) return null;
-        // Determine the rack's front-face normal (pointing away from the
-        // rack into the room). On portrait the aisle layout rotates
-        // every rack to face +Z, so the normal is uniform. On landscape
-        // anchors lie on one of the planes X=±4.7 or Z=±4.7; pick the
-        // closest. A naïve |z|>=|x| dominance check breaks down when a
-        // rack sits deep on a side wall (e.g. analyst at X=-4.7, Z=-6.5:
-        // |z| wins but the rack is still on the left wall, not the back).
-        let nx: number, nz: number;
-        if (variant === "portrait") {
-          nx = 0; nz = 1;
-        } else {
-          const ax = anchor.position.x;
-          const az = anchor.position.z;
-          const ANCHOR_PLANE = 4.7;
-          const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
-          const distToRight = Math.abs(ax - ANCHOR_PLANE);
-          const distToBack  = Math.abs(az + ANCHOR_PLANE);
-          const minDist = Math.min(distToLeft, distToRight, distToBack);
-          if (minDist === distToLeft) {
-            nx = 1; nz = 0;          // left wall, faces +X
-          } else if (minDist === distToRight) {
-            nx = -1; nz = 0;         // right wall, faces -X
-          } else {
-            nx = 0; nz = 1;          // back wall, faces +Z
-          }
-        }
-        // Anchors are positioned 1.0m *in front* of the rack body (they
-        // double as "stand here to view this" points for the camera
-        // rig). The rack's actual front face is one metre back along
-        // the face normal; we want the badge sitting ~1cm proud of
-        // that face so it reads as a panel marking, not a hovering
-        // sticker.
-        const FACE_OFFSET = 0.99;
-        const x = anchor.position.x - nx * FACE_OFFSET;
-        const z = anchor.position.z - nz * FACE_OFFSET;
         // +0.40 from the anchor lands the badge in the upper third of
         // the rack face. Rack body extends ±1.30 around the anchor in
         // Y, so this is comfortably within bounds.
         const y = anchor.position.y + 0.4;
-        // planeGeometry's default normal is +Z. Rotate around Y so the
-        // plane faces (nx, 0, nz).
+        // planeGeometry's default normal is +Z; rotate around Y so it
+        // faces the rack's outward normal. Portrait paints a badge on
+        // *both* sides of the aisle (the mirrored rack on the right is
+        // a deep-clone of the left rack with no project metadata of
+        // its own, so we render its badge from the React tree).
+        if (variant === "portrait") {
+          // Left badge: at rack front face (x = -AISLE_HALF_WIDTH + 0.01)
+          // facing +X (into the corridor). Right badge: symmetric,
+          // facing -X.
+          const FRONT_OFFSET = AISLE_HALF_WIDTH - 0.01;
+          return (
+            <group key={`logo-${id}`}>
+              <Image
+                url={project.logo}
+                position={[-FRONT_OFFSET, y, anchor.position.z]}
+                rotation={[0, Math.PI / 2, 0]}
+                scale={[0.5, 0.5]}
+                transparent
+                toneMapped={false}
+              />
+              <Image
+                url={project.logo}
+                position={[FRONT_OFFSET, y, anchor.position.z]}
+                rotation={[0, -Math.PI / 2, 0]}
+                scale={[0.5, 0.5]}
+                transparent
+                toneMapped={false}
+              />
+            </group>
+          );
+        }
+        // Landscape wall-mounted logic: anchors lie on one of the
+        // planes X=±4.7 or Z=±4.7; pick the closest. A naïve |z|>=|x|
+        // dominance check breaks down when a rack sits deep on a side
+        // wall (e.g. analyst at X=-4.7, Z=-6.5: |z| wins but the rack
+        // is still on the left wall, not the back).
+        const ax = anchor.position.x;
+        const az = anchor.position.z;
+        const ANCHOR_PLANE = 4.7;
+        const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
+        const distToRight = Math.abs(ax - ANCHOR_PLANE);
+        const distToBack  = Math.abs(az + ANCHOR_PLANE);
+        const minDist = Math.min(distToLeft, distToRight, distToBack);
+        let nx: number, nz: number;
+        if (minDist === distToLeft) {
+          nx = 1; nz = 0;          // left wall, faces +X
+        } else if (minDist === distToRight) {
+          nx = -1; nz = 0;         // right wall, faces -X
+        } else {
+          nx = 0; nz = 1;          // back wall, faces +Z
+        }
+        // Anchors are positioned 1.0m *in front* of the rack body; the
+        // badge sits ~1cm proud of the rack face so it reads as a
+        // panel marking, not a hovering sticker.
+        const FACE_OFFSET = 0.99;
+        const x = anchor.position.x - nx * FACE_OFFSET;
+        const z = anchor.position.z - nz * FACE_OFFSET;
         const ry = Math.atan2(nx, nz);
         return (
           <Image
@@ -848,9 +891,6 @@ export function ServerRoom({
             position={[x, y, z]}
             rotation={[0, ry, 0]}
             scale={[0.5, 0.5]}
-            // transparent={true} keeps each PNG's own alpha channel
-            // (so the logo silhouette stays clean against the rack
-            // face) without dimming the visible pixels themselves.
             transparent
             toneMapped={false}
           />
@@ -1023,10 +1063,14 @@ export function ServerRoom({
         }
         const project = projectsById.get(id);
         if (!project) return null;
+        // Portrait centres each label in the aisle (x=0) so it reads as
+        // a label for the *pair* of racks at that depth rather than
+        // floating over the left rack only.
+        const labelX = isPortrait ? 0 : anchor.position.x;
         return (
           <Html
             key={id}
-            position={[anchor.position.x, anchor.position.y + 1.7, anchor.position.z]}
+            position={[labelX, anchor.position.y + 1.7, anchor.position.z]}
             center
             distanceFactor={labelDistance}
             zIndexRange={[0, 0]}

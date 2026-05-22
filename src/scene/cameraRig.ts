@@ -9,19 +9,16 @@ import { type SceneVariant } from "./sceneVariant";
 export const DEFAULT_CAMERA_POSITION = new Vector3(8, 6, 8);
 export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0);
 
-// Portrait variant: the scene is procedurally re-laid into a single -Z
-// aisle by ServerRoom.applyAisleLayout, with the desk pulled forward to
-// z≈AISLE_TERMINAL_Z and nine racks receding from AISLE_Z_START down to
-// roughly z=-19. Camera is *elevated* and pitched ~20° down so the aisle
-// drops into the frame from the top instead of stretching past a flat
-// horizon, AND offset asymmetrically off the X-axis so the receding
-// racks reveal a side panel — without this offset the racks line up
-// perfectly along the look-vector and the back ones are eclipsed by
-// the front ones. Pivot (orbit target) sits midway down the aisle and
-// shifts opposite the camera so the look-vector crosses the aisle at
-// an angle.
-export const PORTRAIT_CAMERA_POSITION = new Vector3(-1.4, 6.6, 6.5);
-export const PORTRAIT_CAMERA_TARGET = new Vector3(0.4, 0.2, -8.0);
+// Portrait variant: the scene is procedurally re-laid into a two-row
+// aisle by ServerRoom.applyAisleLayout — each project rack on the left
+// (x=-AISLE_HALF_WIDTH) facing +X, a mirrored clone on the right facing
+// -X, terminal desk straddling the corridor centre. Camera sits dead-
+// centre in the corridor at roughly head height with a gentle downward
+// pitch. We don't need the asymmetric X offset the single-row layout
+// required — the symmetric rack pairs naturally break the look-vector
+// occlusion that flattened the previous static-frame view.
+export const PORTRAIT_CAMERA_POSITION = new Vector3(0, 3.4, 5.5);
+export const PORTRAIT_CAMERA_TARGET = new Vector3(0, 0.4, -8.0);
 
 // When flying to a wall-mounted anchor, sit this far back and up from the
 // anchor so the camera frames the rack instead of clipping into it. The
