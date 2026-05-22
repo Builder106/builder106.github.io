@@ -36,53 +36,12 @@ html, body {
   touch-action: none;
 }
 
-/* Portrait scrollytelling: window scroll drives the aisle camera
-   (AisleScrollRig in Scene.tsx). Only the *html* element is scrollable
-   here — making both html and body scrollable triggers an iOS Safari
-   quirk where position-fixed children scroll with the body during
-   momentum scrolling. body + #root pass content through to html with
-   overflow: visible so the spacer can extend the document height. */
-@media (max-aspect-ratio: 4/5) {
-  html {
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    /* none, not auto — local vertical scroll still works (drives the
-       aisle camera) but Chrome's pull-to-refresh + iOS rubber-band
-       bounce are suppressed at the top/bottom edges. */
-    overscroll-behavior-y: none;
-    touch-action: pan-y;
-  }
-  body, #root {
-    height: auto;
-    min-height: 100%;
-    overflow: visible;
-    overscroll-behavior-y: none;
-    touch-action: pan-y;
-  }
-  .scene-canvas-wrapper {
-    position: fixed;
-    inset: 0;
-    /* 100vh fallback for browsers that don't grok dvh; modern browsers
-       use dvh so the wrapper tracks the dynamic viewport (URL bar
-       collapse/expand on iOS Safari). transform: translateZ(0) forces
-       its own compositor layer so iOS doesn't repaint it every frame
-       while the page scrolls underneath. */
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    z-index: 0;
-    transform: translateZ(0);
-  }
-  .scene-canvas-wrapper canvas {
-    touch-action: pan-y;
-  }
-  .aisle-scroll-spacer {
-    width: 1px;
-    height: 400vh;
-    pointer-events: none;
-  }
-}
+/* Portrait scrollytelling captures wheel + touch *directly* (see
+   AisleScrollRig in Scene.tsx + the aisleScroll module). The page
+   itself never scrolls — html/body keep their global `overflow: hidden`
+   + `touch-action: none` so iOS Safari doesn't try to rubber-band or
+   collapse the URL bar mid-gesture. The captured gesture feeds a
+   virtual [0, 1] progress that the rig + ScrollHint subscribe to. */
 
 canvas {
   /* drei's OrbitControls calls preventDefault on its own touch events,

@@ -1,28 +1,25 @@
 import { useEffect, useState } from "react";
+import { aisleScroll } from "../scene/aisleScroll";
 import "./ScrollHint.css";
 
-// Affordance for the portrait scroll-the-aisle mechanic. Renders a
+// Affordance for the portrait swipe-the-aisle mechanic. Renders a
 // bouncing chevron + "scroll" label centred above the bottom HUD row.
-// Opacity fades from 1 → 0 as the user scrolls past the first ~12% of
-// the page so the hint disappears once they've understood the gesture.
-// Pointer-events: none so it never intercepts taps on the terminal /
-// PING button below it.
+// Opacity fades from 1 → 0 once the user has advanced ~12 % into the
+// aisle so the hint disappears after they've understood the gesture.
+// Pointer-events: none so it never intercepts taps below it.
 export function ScrollHint() {
   const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
-    const update = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const t = max > 0 ? window.scrollY / max : 0;
-      // Fully visible until 2 % scroll, then linear fade to 0 by 12 %.
-      // Tuned so a single deliberate flick on a phone drops the hint
-      // away before the user looks back down.
+    // Subscribe to the virtual scroll progress (driven by
+    // AisleScrollRig from wheel + touch capture — *not* window.scrollY,
+    // which we deliberately don't use any more).
+    const compute = (t: number) => {
       const next = 1 - Math.max(0, Math.min(1, (t - 0.02) / 0.1));
       setOpacity(next);
     };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
+    compute(aisleScroll.progress);
+    return aisleScroll.subscribe(compute);
   }, []);
 
   if (opacity <= 0.01) return null;

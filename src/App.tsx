@@ -117,13 +117,6 @@ export function App() {
             onAnchorsReady={setAnchors}
           />
           <HUD onPing={() => setActive({ kind: "contact" })} />
-          {/* Scrollytelling spacer: gives the body 4 screens of vertical
-              scroll on portrait so window.scrollY can drive the aisle
-              camera (AisleScrollRig). On landscape this div is hidden
-              by the media query in globals.css. */}
-          {variant === "portrait" && (
-            <div className="aisle-scroll-spacer" aria-hidden />
-          )}
           {variant === "portrait" && active.kind === "none" && <ScrollHint />}
           <Suspense fallback={null}>
             <TradingTerminal open={active.kind === "terminal"} onClose={close} />

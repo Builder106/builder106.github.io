@@ -14,6 +14,7 @@ import {
 import type { ClickTarget } from "@/scene/clickResolver";
 import type { SceneAnchor } from "@/scene/anchors";
 import { useSceneVariant, type SceneVariant } from "@/scene/sceneVariant";
+import { aisleScroll } from "@/scene/aisleScroll";
 import { CameraRig } from "./CameraRig";
 import { useIsMobile } from "./useIsMobile";
 
@@ -89,29 +90,119 @@ const SCROLL_TARGET_END = new Vector3(0, 0.6, -22.0);
 
 // Frame-rate-independent smoothing toward the scroll target. At 60 fps
 // with SMOOTHING=0.001 the camera reaches ~95 % of the target distance
-// in ~100 ms, which feels "attached" to the scroll without snapping on
-// mobile's discrete 80–120 px scroll ticks.
+// in ~100 ms, which feels "attached" to the gesture without snapping
+// on mobile's discrete 80–120 px scroll ticks.
 const SCROLL_SMOOTHING = 0.001;
+
+// Inertia decay rate per second. After the user releases a swipe, the
+// captured velocity multiplies by this fraction each second so the
+// camera coasts and then settles. 0.0001 = ~10 % of the gesture's
+// total distance carries past release; tuned so a deliberate swipe
+// moves the camera 1/4–1/3 of the aisle without overshooting.
+const INERTIA_DECAY = 0.0001;
+// Each gesture-pixel translates into `1 / (innerHeight × GESTURE_SPAN)`
+// progress. 4 × innerHeight means a full-viewport swipe advances ~25 %,
+// so the user crosses the whole aisle in 3–4 deliberate swipes.
+const GESTURE_SPAN = 4;
 
 function AisleScrollRig() {
   const { camera } = useThree();
-  // Smoothed camera + look-at vectors, updated each frame with a lerp
-  // toward the scroll-derived target. Reading window.scrollY directly
-  // inside useFrame (rather than via a scroll-event listener writing to
-  // a ref) keeps the rig in sync with whatever value the browser has
-  // *right now*, avoiding the one-frame lag where useFrame runs before
-  // a scroll event has fired.
   const smoothPos = useRef(new Vector3().copy(SCROLL_CAMERA_START));
   const smoothLook = useRef(new Vector3().copy(SCROLL_TARGET_START));
   const targetPos = useRef(new Vector3());
   const targetLook = useRef(new Vector3());
 
-  useFrame((_, delta) => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const t = max > 0
-      ? Math.max(0, Math.min(1, window.scrollY / max))
-      : 0;
+  // Inertia state. velocityRef is "progress per second". We update it on
+  // each touchmove and decay it in useFrame after touchend so the camera
+  // coasts naturally.
+  const velocity = useRef(0);
+  const lastTouchY = useRef<number | null>(null);
+  const lastTouchTime = useRef(0);
 
+  useEffect(() => {
+    const fullGesture = () => Math.max(window.innerHeight * GESTURE_SPAN, 800);
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      aisleScroll.add(e.deltaY / fullGesture());
+      // Wheel ticks aren't continuous — kill any leftover swipe inertia
+      // so the camera doesn't drift past where the user stopped scrolling.
+      velocity.current = 0;
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      lastTouchY.current = e.touches[0].clientY;
+      lastTouchTime.current = performance.now();
+      velocity.current = 0;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (lastTouchY.current === null || e.touches.length !== 1) return;
+      e.preventDefault();
+      const now = performance.now();
+      const y = e.touches[0].clientY;
+      const dy = lastTouchY.current - y;
+      const dt = Math.max(0.001, (now - lastTouchTime.current) / 1000);
+      const dp = dy / fullGesture();
+      aisleScroll.add(dp);
+      // Track velocity for post-release inertia. Use the latest sample's
+      // instantaneous rate rather than averaging — feels more responsive.
+      velocity.current = dp / dt;
+      lastTouchY.current = y;
+      lastTouchTime.current = now;
+    };
+
+    const onTouchEnd = () => {
+      lastTouchY.current = null;
+      // Cap so a stray flick doesn't shoot the camera through the aisle.
+      const max = 2.0;
+      if (velocity.current > max) velocity.current = max;
+      if (velocity.current < -max) velocity.current = -max;
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      const step = 1 / 8;
+      if (e.key === "ArrowDown" || e.key === "PageDown") {
+        e.preventDefault();
+        aisleScroll.add(step);
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+        e.preventDefault();
+        aisleScroll.add(-step);
+      } else if (e.key === "Home") {
+        aisleScroll.set(0);
+      } else if (e.key === "End") {
+        aisleScroll.set(1);
+      }
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd);
+    window.addEventListener("touchcancel", onTouchEnd);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  useFrame((_, delta) => {
+    // Inertia coast after touchend. The velocity decays exponentially;
+    // we add per-frame contribution to aisleScroll until it falls below
+    // a threshold and we round it to zero.
+    if (velocity.current !== 0) {
+      aisleScroll.add(velocity.current * delta);
+      velocity.current *= Math.pow(INERTIA_DECAY, delta);
+      if (Math.abs(velocity.current) < 0.001) velocity.current = 0;
+    }
+
+    const t = aisleScroll.progress;
     targetPos.current.set(
       MathUtils.lerp(SCROLL_CAMERA_START.x, SCROLL_CAMERA_END.x, t),
       MathUtils.lerp(SCROLL_CAMERA_START.y, SCROLL_CAMERA_END.y, t),
