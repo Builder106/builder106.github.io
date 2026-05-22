@@ -87,15 +87,27 @@ async function recordVideo() {
   });
   const page = await context.newPage();
 
-  // 1. Land + boot. Page-load itself + boot sequence eats ~5 s.
+  // Recording starts the moment newPage() returns. Mark t=0 against
+  // it so we can compute a dynamic trim offset later — the boot
+  // sequence + GLB load + R3F hydration takes ~20-30 s on a fresh
+  // production fetch, and that's all dead air we want trimmed off
+  // the head of the final clip. Hard-coding the offset is fragile
+  // across network conditions; measuring it isn't.
+  const recordStartMs = Date.now();
+
+  // 1. Land + boot.
   await page.goto(BASE_URL, { waitUntil: "networkidle", timeout: 30_000 });
   await waitForBoot(page);
-  // Establish the iso vantage for ~4 s — long enough for the boot-
-  // sequence fade-out to complete (the rack callouts mount before the
-  // overlay dissipates, but they're not interactive until it's gone)
-  // and for social platforms grabbing a single thumbnail to land on a
-  // stable composition.
-  await page.waitForTimeout(4_000);
+  // Wait until the analyst-cluster rack callouts have actually mounted
+  // and are interactive — this is the first moment the scene is in its
+  // "complete" state and what we want as the trimmed clip's first frame.
+  await page.getByRole("button", { name: /CapitolAlpha/i }).first()
+    .waitFor({ state: "visible", timeout: 60_000 });
+  // Settle ~1.5 s on the iso vantage so the first frame of the trimmed
+  // clip is a stable composition (rather than the very tick the labels
+  // popped in).
+  await page.waitForTimeout(1_500);
+  const trimOffsetMs = Date.now() - recordStartMs;
 
   // 2. Click a rack from the newest cluster (analyst) to show off the
   //    feature that motivated this recording.
@@ -127,16 +139,38 @@ async function recordVideo() {
     throw new Error(`no .webm produced in ${workdir}`);
   }
 
-  // Re-encode to H.264 mp4 — the format og:video:type expects. -crf 28
-  // + a 1 Mbps cap lands around 2-3 MB for a 22 s 1920x1080 capture and
-  // matches the visual quality of the previous demo.mp4. -movflags
-  // +faststart puts the moov atom up front so unfurlers can begin
-  // playback before the whole file downloads.
+  // Re-encode to H.264 mp4 — the format og:video:type expects.
+  //
+  // Tuning notes (motion-heavy 1080p):
+  //   -crf 20 + maxrate 5M  → ~3-4 MB for a 14 s clip; the previous
+  //     CRF 28 / 1 Mbps cap looked acceptable on a still frame but
+  //     ran out of bit budget during the camera flies, producing
+  //     visible blocking and a stuttery feel during playback.
+  //   -g 50 -keyint_min 25 → keyframe every 50 frames (= 2 s at 25
+  //     fps). Default x264 keyframe interval is 250, which leaves
+  //     embedded players with too few seek points and makes scrub /
+  //     buffering jerky on social previews.
+  //   -r 25 -vsync cfr     → force constant 25 fps. Playwright
+  //     recordVideo writes variable-framerate webm; left implicit,
+  //     ffmpeg can pass through irregular timing that some players
+  //     present as dropped frames.
+  //   -movflags +faststart → moov atom up front so unfurlers can
+  //     begin playback before the full file downloads.
+  // Trim off the load + boot lead-in so the final clip starts on
+  // the established scene. trimOffsetMs is the wall-clock interval
+  // from recording start to "all labels mounted + 1.5 s settle";
+  // -ss before -i seeks to that point in the source webm.
+  const trimOffsetSec = (trimOffsetMs / 1000).toFixed(3);
+  console.log(`[og-video] trim offset: ${trimOffsetSec}s`);
+
   execFileSync("ffmpeg", [
     "-y", "-loglevel", "error",
+    "-ss", trimOffsetSec,
     "-i", recorded,
-    "-c:v", "libx264", "-preset", "veryslow", "-crf", "28",
-    "-maxrate", "1200k", "-bufsize", "2400k",
+    "-c:v", "libx264", "-preset", "slow", "-crf", "20",
+    "-maxrate", "5M", "-bufsize", "10M",
+    "-r", "25", "-vsync", "cfr",
+    "-g", "50", "-keyint_min", "25",
     "-pix_fmt", "yuv420p",
     "-movflags", "+faststart",
     "-an",
