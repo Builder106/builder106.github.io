@@ -1257,20 +1257,26 @@ export function ServerRoom({
           if (ahead < 10) return (10 - ahead) / 6;
           return 0;
         };
+        // Both opacity and label render-position reference the *rack
+        // body* z, not anchor.z. The anchor is authored 1 m in front
+        // of the rack body — using it as the opacity reference means
+        // a label fades out a metre before the camera actually reaches
+        // its rack, so the label visually feels like it belongs to
+        // the rack ahead of it instead of the one it names. Subtracting
+        // 1 puts both calculations on the rack body.
+        const rackZ = anchor.position.z - 1;
         if (isPortrait && id === "terminal") {
-          const ahead = camZ - anchor.position.z;
+          const ahead = camZ - rackZ;
           labelOpacity = portraitOpacityForAhead(ahead);
           if (labelOpacity < 0.2) return null;
         }
         if (isPortrait && id !== "terminal") {
-          // Same portraitOpacityForAhead curve as the terminal: fade
-          // in as we approach, peak at 2-4 m ahead, fade out beyond
-          // 10 m, hidden once camera passes within 0.5 m. Net effect:
-          // ~3 labels visible at any scroll position, cluster cycles
-          // quant → swe → analyst as the camera scrolls the corridor,
-          // and labels never balloon to 4-5× native size from the
-          // distanceFactor / distance singularity during close-passes.
-          const ahead = camZ - anchor.position.z;
+          // Rack-label opacity peaks when the camera is 2-4 m in
+          // front of the *rack body* (not the anchor 1 m further
+          // ahead). Earlier off-by-one meant labels disappeared 1 m
+          // before the camera actually reached their rack, which
+          // visually associated them with the wrong rack pair.
+          const ahead = camZ - rackZ;
           labelOpacity = portraitOpacityForAhead(ahead);
         }
         // Below ~0.2 opacity the rack label is too faded to read and
@@ -1319,9 +1325,9 @@ export function ServerRoom({
         // label projects to a screen position one rack pair forward
         // and looks like it's labelling the *next* rack instead.
         const labelX = isPortrait ? 0 : anchor.position.x;
-        const labelZ = isPortrait
-          ? anchor.position.z - 1
-          : anchor.position.z;
+        // Use the same rackZ already computed above for opacity, so
+        // both opacity and visual position track the same world Z.
+        const labelZ = isPortrait ? rackZ : anchor.position.z;
         return (
           <Html
             key={id}
