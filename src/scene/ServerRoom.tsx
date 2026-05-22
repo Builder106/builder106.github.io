@@ -728,6 +728,37 @@ export function ServerRoom({
         onPointerOut={handlePointerOut}
       />
 
+      {/* Overhead fluorescent strips for the portrait aisle. The two-row
+          rack layout left a void above the corridor; these emissive
+          strips fill the top third of the frame and read as a real
+          data-centre's ceiling lighting receding into the fog.
+          Positioned high (y=6) and *behind* the first rack pair so the
+          camera doesn't see the front strip edge-on as a giant glow
+          slab — it starts at z=0 (between the first two rack pairs)
+          and recedes into the fog. Length is along Z so each strip is
+          a long tube parallel to the aisle. */}
+      {variant === "portrait" && (
+        <group name="aisle-overhead">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <mesh
+              key={`fluo-${i}`}
+              position={[
+                0,
+                6,
+                -i * AISLE_SPACING * 0.9,
+              ]}
+            >
+              <boxGeometry args={[0.35, 0.06, 1.6]} />
+              <meshBasicMaterial
+                color="#9fe6ff"
+                toneMapped={false}
+                fog
+              />
+            </mesh>
+          ))}
+        </group>
+      )}
+
       {/* Bright fluorescent-quality overhead lighting tinted slightly
           cool. Hemisphere top is near-white, ground is mid-grey so
           shadow areas catch some bounce instead of going pitch black.
@@ -1039,12 +1070,18 @@ export function ServerRoom({
           labelOpacity = Math.max(0.05, Math.min(1, (z + 18) / 18));
         }
         if (id === "terminal") {
+          // The terminal anchor sits ~2.5 m from the portrait camera —
+          // far closer than the rack labels (~6 m+) — so reusing the
+          // same distanceFactor blows the label up to ~3× the rack
+          // labels. A dedicated factor of 2 keeps it roughly the same
+          // rendered size as the front rack labels.
+          const terminalDistance = isPortrait ? 2 : labelDistance;
           return (
             <Html
               key={id}
               position={[0, 2.55, anchor.position.z - 0.7]}
               center
-              distanceFactor={labelDistance}
+              distanceFactor={terminalDistance}
               zIndexRange={[0, 0]}
               style={{ userSelect: "none" }}
             >

@@ -1,8 +1,8 @@
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { Vector3 } from "three";
+import { MathUtils, Vector3 } from "three";
 import { ServerRoom } from "@/scene/ServerRoom";
 import {
   DEFAULT_CAMERA_POSITION,
@@ -64,6 +64,67 @@ function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
       far={100}
     />
   );
+}
+
+// Scroll-driven aisle camera for portrait. Reads window.scrollY (the
+// page is made scrollable by the .aisle-scroll-spacer + portrait media
+// query in globals.css) and lerps the camera + orbit target along the
+// -Z aisle every frame. At progress 0 the camera sits at the corridor
+// entrance (the PORTRAIT_CAMERA_POSITION baseline); at progress 1 it
+// has walked roughly to the back of the rack column. The rig disables
+// itself while a panel is open so the click-fly rig can take over.
+const SCROLL_CAMERA_START = new Vector3(0, 3.4, 5.5);
+// End camera sits roughly between racks 5 and 6 of the aisle (rack
+// spacing 2.6m, indexed from z=1). Going further makes the next pair
+// pass behind the camera at >35° lateral angle — outside the narrow
+// horizontal FOV on portrait — so the user sees only empty void.
+const SCROLL_CAMERA_END = new Vector3(0, 1.8, -12.0);
+const SCROLL_TARGET_START = new Vector3(0, 0.4, -8.0);
+const SCROLL_TARGET_END = new Vector3(0, 0.6, -22.0);
+
+function AisleScrollRig({
+  controlsRef,
+}: {
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
+}) {
+  const { camera } = useThree();
+  const progressRef = useRef(0);
+
+  useEffect(() => {
+    const update = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      progressRef.current = max > 0
+        ? Math.max(0, Math.min(1, window.scrollY / max))
+        : 0;
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  useFrame(() => {
+    const t = progressRef.current;
+    camera.position.set(
+      MathUtils.lerp(SCROLL_CAMERA_START.x, SCROLL_CAMERA_END.x, t),
+      MathUtils.lerp(SCROLL_CAMERA_START.y, SCROLL_CAMERA_END.y, t),
+      MathUtils.lerp(SCROLL_CAMERA_START.z, SCROLL_CAMERA_END.z, t),
+    );
+    const ctrl = controlsRef.current;
+    if (ctrl) {
+      ctrl.target.set(
+        MathUtils.lerp(SCROLL_TARGET_START.x, SCROLL_TARGET_END.x, t),
+        MathUtils.lerp(SCROLL_TARGET_START.y, SCROLL_TARGET_END.y, t),
+        MathUtils.lerp(SCROLL_TARGET_START.z, SCROLL_TARGET_END.z, t),
+      );
+      ctrl.update();
+    }
+  });
+
+  return null;
 }
 
 interface SceneProps {
@@ -134,6 +195,11 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
   const autoRotate = idle && !panelOpen && !freezeOrbit;
 
   return (
+    // Wrapper exists so the portrait scrollytelling CSS can pin *the
+    // container* to the viewport without collapsing the WebGL parent
+    // that R3F observes for sizing. See .scene-canvas-wrapper in
+    // globals.css under the (max-aspect-ratio: 4/5) media query.
+    <div className="scene-canvas-wrapper" style={{ width: "100%", height: "100%" }}>
     <Canvas
       // Cap DPR so we don't shade 9x more pixels on a phone. Big perf
       // win on high-DPI screens where 1.5x and 2x already look great.
@@ -183,13 +249,17 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
         minPolarAngle={variant === "portrait" ? Math.PI * 0.38 : 0}
         maxPolarAngle={variant === "portrait" ? Math.PI * 0.52 : Math.PI / 2.05}
         screenSpacePanning
-        // Touch gesture mapping: 1 finger = rotate, 2 fingers = pan +
-        // pinch-zoom. Without this drei sometimes uses the desktop
-        // mapping (right-click pan) which doesn't translate.
-        touches={{
-          ONE: 0 /* THREE.TOUCH.ROTATE */,
-          TWO: 2 /* THREE.TOUCH.DOLLY_PAN */,
-        }}
+        // Touch gesture mapping. Desktop: 1 finger = rotate, 2 fingers
+        // = pan + pinch-zoom. Portrait: single-finger gestures are
+        // *unset* so vertical swipes fall through to the page-level
+        // scroll handler (AisleScrollRig reads window.scrollY and drives
+        // the camera down the aisle). Two-finger pinch still dollies
+        // for power users.
+        touches={
+          variant === "portrait"
+            ? ({ TWO: 2 } as { ONE?: number; TWO?: number })
+            : { ONE: 0, TWO: 2 }
+        }
         // Mouse mapping: left = orbit, middle = pan, right = pan.
         mouseButtons={{
           LEFT: 0 /* THREE.MOUSE.ROTATE */,
@@ -202,6 +272,10 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
         controlsRef={controlsRef}
         freeze={freezeOrbit}
       />
+      {variant === "portrait" && !panelOpen && (
+        <AisleScrollRig controlsRef={controlsRef} />
+      )}
     </Canvas>
+    </div>
   );
 }

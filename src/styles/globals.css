@@ -36,6 +36,41 @@ html, body {
   touch-action: none;
 }
 
+/* Portrait scrollytelling: window scroll drives the aisle camera
+   (AisleScrollRig in Scene.tsx). Enable vertical scroll on the page,
+   pin the canvas's wrapper to the viewport so the WebGL container
+   keeps its dimensions (R3F observes the wrapper for sizing — pinning
+   the canvas itself collapses the wrapper to 0×0 and the scene goes
+   dark). The scroll-spacer in App.tsx provides the scrollable distance. */
+@media (max-aspect-ratio: 4/5) {
+  html, body, #root {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  html, body {
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+  }
+  .scene-canvas-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    z-index: 0;
+  }
+  .scene-canvas-wrapper canvas {
+    touch-action: pan-y;
+  }
+  .aisle-scroll-spacer {
+    width: 1px;
+    height: 400vh;
+    pointer-events: none;
+  }
+}
+
 canvas {
   /* drei's OrbitControls calls preventDefault on its own touch events,
      but the canvas tag itself needs touch-action: none to keep the
