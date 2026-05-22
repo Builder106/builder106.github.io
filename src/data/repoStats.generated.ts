@@ -10,17 +10,17 @@ export interface RepoStats {
 export const repoStats: Record<string, RepoStats> = {
   "Builder106/EconOS": {
     "lang": "JavaScript",
-    "pushed_at": "2026-05-12T17:02:59Z",
+    "pushed_at": "2026-05-22T10:25:52Z",
     "stars": 0
   },
   "Builder106/ocaml_limit": {
     "lang": "OCaml",
-    "pushed_at": "2026-05-12T02:55:49Z",
+    "pushed_at": "2026-05-22T10:25:57Z",
     "stars": 1
   },
   "Builder106/qforge": {
     "lang": "C",
-    "pushed_at": "2026-05-13T12:57:28Z",
+    "pushed_at": "2026-05-22T10:26:03Z",
     "stars": 0
   },
   "Builder106/MicroMatch": {
@@ -40,12 +40,12 @@ export const repoStats: Record<string, RepoStats> = {
   },
   "Builder106/CapitolAlpha": {
     "lang": "Jupyter Notebook",
-    "pushed_at": "2026-05-19T22:37:38Z",
+    "pushed_at": "2026-05-22T10:25:40Z",
     "stars": 0
   },
   "Builder106/datafest-2026": {
     "lang": "R",
-    "pushed_at": "2026-05-21T01:35:52Z",
+    "pushed_at": "2026-05-22T10:25:45Z",
     "stars": 0
   },
   "Builder106/LinuxBenchHub": {
