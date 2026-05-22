@@ -71,11 +71,26 @@ async function recordVideo() {
 
   const browser = await chromium.launch({
     headless: true,
-    // slowMo paces every Playwright action — keeps interactions readable
-    // in the recording without inflating click latency too much. 600 ms
-    // strikes a balance between "viewer can tell what happened" and "we
-    // need to fit a four-beat scene into ~22 seconds".
-    args: ["--no-sandbox"],
+    // Headless Chrome runs software-rasterised by default, which makes
+    // a shader-heavy 3D scene render at ~10-15 fps even on a fast
+    // machine. The captured webm inherits those frame drops, and no
+    // amount of re-encoding can paper over them. These flags switch
+    // to the new headless mode (which uses Chrome's actual renderer)
+    // and turn on GPU acceleration via ANGLE so the scene renders
+    // at a steady 60 fps and Playwright's recorder gets smooth source
+    // frames to sample.
+    args: [
+      "--no-sandbox",
+      "--headless=new",
+      "--use-angle=metal",
+      "--enable-gpu",
+      "--enable-gpu-rasterization",
+      "--enable-zero-copy",
+      "--ignore-gpu-blocklist",
+      "--disable-background-timer-throttling",
+      "--disable-renderer-backgrounding",
+      "--disable-backgrounding-occluded-windows",
+    ],
   });
   const context = await browser.newContext({
     viewport: { width: VIDEO_W, height: VIDEO_H },
@@ -178,8 +193,12 @@ async function recordVideo() {
   ], { stdio: "inherit" });
 
   const sizeKB = (statSync(DEMO_OUT).size / 1024).toFixed(1);
-  rmSync(workdir, { recursive: true, force: true });
+  // Leave the source webm on disk so we can inspect frame timing if
+  // playback still feels off after re-encode. ffprobe -count_frames
+  // against `recorded` will show whether the lag is in the source or
+  // the encode.
   console.log(`[og-video] wrote ${path.relative(REPO_ROOT, DEMO_OUT)} (${sizeKB} KB)`);
+  console.log(`[og-video] source webm retained at ${recorded}`);
 }
 
 // --- 2. Capture the OG card ------------------------------------------------
