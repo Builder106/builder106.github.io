@@ -12,6 +12,7 @@ import {
   MeshStandardMaterial,
   Object3D,
   PointLight,
+  SRGBColorSpace,
   Vector3,
   type Material,
   type ShaderMaterial,
@@ -452,12 +453,25 @@ export function ServerRoom({
   }, []);
   const logoTextures = useTexture(logoUrlMap) as Record<string, import("three").Texture>;
   useLayoutEffect(() => {
+    // Max anisotropic filtering + sRGB colour space. The colour-space
+    // step matters because drei's <Image> internally sets
+    // SRGBColorSpace on the texture; useTexture leaves it at the
+    // default LinearSRGBColorSpace, so logos rendered through the
+    // sRGB output pipeline come out gamma-uncorrected and look washed
+    // out / desaturated. Setting it back to SRGBColorSpace restores
+    // the same colour the PNGs were authored in.
     const max = gl.capabilities.getMaxAnisotropy();
     for (const t of Object.values(logoTextures)) {
+      let touched = false;
       if (t.anisotropy !== max) {
         t.anisotropy = max;
-        t.needsUpdate = true;
+        touched = true;
       }
+      if (t.colorSpace !== SRGBColorSpace) {
+        t.colorSpace = SRGBColorSpace;
+        touched = true;
+      }
+      if (touched) t.needsUpdate = true;
     }
   }, [logoTextures, gl]);
   const interactivesRef = useRef<Interactive[]>([]);
