@@ -1256,9 +1256,7 @@ export function ServerRoom({
                 onClick={() => onSelect?.({ kind: "terminal" })}
               >
                 <span className="rack-label__name">trading_terminal</span>
-                {!isPortrait && (
-                  <span className="rack-label__cluster">// quant</span>
-                )}
+                <span className="rack-label__cluster">// quant</span>
               </button>
             </Html>
           );
@@ -1291,9 +1289,7 @@ export function ServerRoom({
               onClick={() => onSelect?.({ kind: "project", projectId: id })}
             >
               <span className="rack-label__name">{project.name}</span>
-              {!isPortrait && (
-                <span className="rack-label__cluster">// {CLUSTER_DISPLAY[project.cluster]}</span>
-              )}
+              <span className="rack-label__cluster">// {CLUSTER_DISPLAY[project.cluster]}</span>
             </button>
           </Html>
         );
