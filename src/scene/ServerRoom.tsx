@@ -984,6 +984,20 @@ export function ServerRoom({
       {!panelOpen && Array.from(anchorMap.entries()).map(([id, anchor]) => {
         const isPortrait = variant === "portrait";
         const labelDistance = isPortrait ? 5 : 9;
+        // Depth-based opacity for portrait aisle labels. drei <Html>
+        // elements live in DOM, not WebGL, so they don't naturally
+        // respect 3D occlusion — without this every rack's label would
+        // pile on top of every other label in the back of the aisle.
+        // Map anchor.z (running from ~+5 at the desk to ~-20 at the
+        // farthest rack) to opacity 1.0 → 0.0 with a knee that keeps
+        // the front three racks fully readable and fades the back six
+        // toward the fog. Landscape always renders at full opacity.
+        let labelOpacity = 1;
+        if (isPortrait && id !== "terminal") {
+          const z = anchor.position.z;
+          // Front-of-aisle z≈+2 → 1.0; back-of-aisle z≈-19 → 0.05.
+          labelOpacity = Math.max(0.05, Math.min(1, (z + 18) / 18));
+        }
         if (id === "terminal") {
           return (
             <Html
@@ -1016,7 +1030,14 @@ export function ServerRoom({
             center
             distanceFactor={labelDistance}
             zIndexRange={[0, 0]}
-            style={{ userSelect: "none" }}
+            style={{
+              userSelect: "none",
+              opacity: labelOpacity,
+              transition: "opacity 220ms ease",
+              // Disable interaction on fully-faded labels so users can't
+              // accidentally tap an invisible button.
+              pointerEvents: labelOpacity < 0.2 ? "none" : "auto",
+            }}
           >
             <button
               type="button"

@@ -14,12 +14,14 @@ export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0);
 // z≈AISLE_TERMINAL_Z and nine racks receding from AISLE_Z_START down to
 // roughly z=-19. Camera is *elevated* and pitched ~20° down so the aisle
 // drops into the frame from the top instead of stretching past a flat
-// horizon (the previous near-horizontal pose left ~60 % of the viewport
-// as empty sky). Pivot (orbit target) sits midway down the aisle so
-// OrbitControls rotation rocks the perspective without ever leaving
-// the corridor.
-export const PORTRAIT_CAMERA_POSITION = new Vector3(0, 6.8, 5.5);
-export const PORTRAIT_CAMERA_TARGET = new Vector3(0, 0.2, -8.0);
+// horizon, AND offset asymmetrically off the X-axis so the receding
+// racks reveal a side panel — without this offset the racks line up
+// perfectly along the look-vector and the back ones are eclipsed by
+// the front ones. Pivot (orbit target) sits midway down the aisle and
+// shifts opposite the camera so the look-vector crosses the aisle at
+// an angle.
+export const PORTRAIT_CAMERA_POSITION = new Vector3(-1.4, 6.6, 6.5);
+export const PORTRAIT_CAMERA_TARGET = new Vector3(0.4, 0.2, -8.0);
 
 // When flying to a wall-mounted anchor, sit this far back and up from the
 // anchor so the camera frames the rack instead of clipping into it. The
