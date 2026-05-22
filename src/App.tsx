@@ -3,6 +3,7 @@ import { BootSequence } from "./components/BootSequence";
 import { Scene } from "./components/Scene";
 import { HUD } from "./components/HUD";
 import { ScrollHint } from "./components/ScrollHint";
+import { useAisleAudio } from "./components/useAisleAudio";
 
 // Panels only render after a click resolves to a target, so they're
 // prime split-points. Named exports get unwrapped into the default
@@ -54,6 +55,11 @@ export function App() {
   const [booted, setBooted] = useState(false);
   const [active, setActive] = useState<ActivePanel>({ kind: "none" });
   const [anchors, setAnchors] = useState<Map<string, SceneAnchor> | null>(null);
+  // Ambient audio (WebAudio synth — see useAisleAudio). Defaults on
+  // post-boot; the synth needs a user-gesture to actually start per
+  // browser policy, so first interaction is what really kicks it off.
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  useAisleAudio(booted && audioEnabled);
   // Drives the "fly back to home" target after a panel closes — portrait
   // and landscape have different default vantages, so we route the
   // variant into defaultCameraTarget() below.
@@ -116,7 +122,11 @@ export function App() {
             onSelect={handleSelect}
             onAnchorsReady={setAnchors}
           />
-          <HUD onPing={() => setActive({ kind: "contact" })} />
+          <HUD
+            onPing={() => setActive({ kind: "contact" })}
+            audioEnabled={audioEnabled}
+            onToggleAudio={() => setAudioEnabled((v) => !v)}
+          />
           {variant === "portrait" && active.kind === "none" && <ScrollHint />}
           <Suspense fallback={null}>
             <TradingTerminal open={active.kind === "terminal"} onClose={close} />

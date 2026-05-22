@@ -81,6 +81,33 @@
   opacity: 0.5;
 }
 
+.hud__audio {
+  position: absolute;
+  pointer-events: auto;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  /* Sits just left of the PING button. Width ~36px + 8px gap. */
+  right: calc(116px + env(safe-area-inset-right, 0px));
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: rgba(76, 242, 255, 0.04);
+  border: 1px solid rgba(76, 242, 255, 0.22);
+  border-radius: 4px;
+  color: var(--neon-cyan);
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.hud__audio:hover,
+.hud__audio:focus-visible {
+  background: rgba(76, 242, 255, 0.1);
+  border-color: rgba(76, 242, 255, 0.45);
+  outline: none;
+}
+
 .hud__ping {
   position: absolute;
   pointer-events: auto;

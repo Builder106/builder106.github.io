@@ -838,6 +838,80 @@ export function ServerRoom({
             <planeGeometry args={[4.4, 0.06]} />
             <meshBasicMaterial color="#4cf2ff" toneMapped={false} fog />
           </mesh>
+
+          {/* Side ambience: parallel background rack columns at
+              x=±3.2 — slightly outside the main aisle pair, visible
+              at the lateral edges of the narrow portrait FOV. Each
+              "rack" is a dim body box + a thin vertical cyan LED
+              strip on the face turned toward the main aisle, so the
+              edge of the frame catches peeks of a *second* aisle
+              going past. 10 pairs along the same Z range as the main
+              column. */}
+          {Array.from({ length: 10 }).map((_, i) => {
+            const z = AISLE_Z_START + 0.4 - i * AISLE_SPACING;
+            return (
+              <group key={`side-${i}`}>
+                {/* left-side parallel rack */}
+                <mesh position={[-3.25, 1.0, z]}>
+                  <boxGeometry args={[0.5, 1.95, 1.25]} />
+                  <meshBasicMaterial color="#0a1422" toneMapped={false} fog />
+                </mesh>
+                <mesh position={[-3.0, 1.0, z]} rotation={[0, Math.PI / 2, 0]}>
+                  <planeGeometry args={[0.9, 1.4]} />
+                  <meshBasicMaterial
+                    color="#4cf2ff"
+                    toneMapped={false}
+                    transparent
+                    opacity={0.35}
+                    fog
+                  />
+                </mesh>
+                {/* mirrored right-side parallel rack */}
+                <mesh position={[3.25, 1.0, z]}>
+                  <boxGeometry args={[0.5, 1.95, 1.25]} />
+                  <meshBasicMaterial color="#0a1422" toneMapped={false} fog />
+                </mesh>
+                <mesh position={[3.0, 1.0, z]} rotation={[0, -Math.PI / 2, 0]}>
+                  <planeGeometry args={[0.9, 1.4]} />
+                  <meshBasicMaterial
+                    color="#4cf2ff"
+                    toneMapped={false}
+                    transparent
+                    opacity={0.35}
+                    fog
+                  />
+                </mesh>
+              </group>
+            );
+          })}
+
+          {/* Volumetric light cones under each overhead fluorescent.
+              An open cone (no end-caps) with additive blending + very
+              low opacity reads as a beam of light passing through the
+              atmospheric dust (the Sparkles below them). depthWrite
+              false so the cones don't z-fight with each other or
+              occlude geometry behind them. */}
+          {Array.from({ length: 16 }).map((_, i) => {
+            const z = -i * AISLE_SPACING * 0.9;
+            return (
+              <mesh
+                key={`beam-${i}`}
+                position={[0, 3.5, z]}
+              >
+                <coneGeometry args={[0.65, 5, 14, 1, true]} />
+                <meshBasicMaterial
+                  color="#a8eeff"
+                  transparent
+                  opacity={0.07}
+                  side={2 /* THREE.DoubleSide */}
+                  depthWrite={false}
+                  toneMapped={false}
+                  blending={2 /* THREE.AdditiveBlending */}
+                  fog
+                />
+              </mesh>
+            );
+          })}
         </group>
       )}
 
