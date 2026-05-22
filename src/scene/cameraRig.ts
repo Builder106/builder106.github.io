@@ -9,19 +9,17 @@ import { type SceneVariant } from "./sceneVariant";
 export const DEFAULT_CAMERA_POSITION = new Vector3(8, 6, 8);
 export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0);
 
-// Portrait variant now loads the landscape glb (the amphitheater was
-// retired — see sceneVariant.ts). The camera sits front-and-centre,
-// elevated enough to look *down* into the room (the user complaint about
-// the previous framing was that it stared straight through the rack
-// silhouettes, flattening perspective). FOV is widened in
-// ResponsiveCamera so the side walls still read.
-//
-// Pivot at desk-height, slightly behind the desk, so OrbitControls
-// rotation keeps the back-wall quant cluster centred while the left
-// (swe) and right (analyst) walls sweep into view as the camera auto-
-// tours.
-export const PORTRAIT_CAMERA_POSITION = new Vector3(0, 5.2, 12.5);
-export const PORTRAIT_CAMERA_TARGET = new Vector3(0, 1.2, -0.5);
+// Portrait variant: the scene is procedurally re-laid into a single -Z
+// aisle by ServerRoom.applyAisleLayout, with the desk pulled forward to
+// z≈AISLE_TERMINAL_Z and nine racks receding from AISLE_Z_START down to
+// roughly z=-19. Camera is *elevated* and pitched ~20° down so the aisle
+// drops into the frame from the top instead of stretching past a flat
+// horizon (the previous near-horizontal pose left ~60 % of the viewport
+// as empty sky). Pivot (orbit target) sits midway down the aisle so
+// OrbitControls rotation rocks the perspective without ever leaving
+// the corridor.
+export const PORTRAIT_CAMERA_POSITION = new Vector3(0, 6.8, 5.5);
+export const PORTRAIT_CAMERA_TARGET = new Vector3(0, 0.2, -8.0);
 
 // When flying to a wall-mounted anchor, sit this far back and up from the
 // anchor so the camera frames the rack instead of clipping into it. The
@@ -51,20 +49,25 @@ export function defaultCameraTarget(variant: SceneVariant = "landscape"): Camera
   };
 }
 
-// Build a camera target for a rack anchor. Racks are wall-mounted in the
-// landscape glb (the only one we ship now — see sceneVariant.ts), so the
-// pull-back direction always points from the anchor toward room centre.
-// The `variant` argument is kept on the signature so the call sites in
-// App.tsx don't need to change; the framing rule itself is now identical
-// across viewports.
+// Build a camera target for a rack anchor. Pull-back direction depends
+// on the scene variant:
+//   - landscape: racks are wall-mounted, so step from the anchor toward
+//     room centre — the camera ends up between the wall and the centre.
+//   - portrait: the aisle layout (ServerRoom.applyAisleLayout) rotates
+//     every rack to face +Z, so step back along +Z to land in front of
+//     the rack rather than behind it.
 export function projectCameraTarget(
   anchor: SceneAnchor,
-  _variant: SceneVariant = "landscape",
+  variant: SceneVariant = "landscape",
 ): CameraTarget {
-  const interiorDir = new Vector3(-anchor.position.x, 0, -anchor.position.z)
-    .normalize();
-  // Anchor at origin → fall back to facing the camera-side wall.
-  if (interiorDir.lengthSq() < 0.0001) interiorDir.set(0, 0, 1);
+  let interiorDir: Vector3;
+  if (variant === "portrait") {
+    interiorDir = new Vector3(0, 0, 1);
+  } else {
+    interiorDir = new Vector3(-anchor.position.x, 0, -anchor.position.z)
+      .normalize();
+    if (interiorDir.lengthSq() < 0.0001) interiorDir.set(0, 0, 1);
+  }
 
   const position = anchor.position.clone()
     .addScaledVector(interiorDir, ANCHOR_PULLBACK);

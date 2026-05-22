@@ -6,11 +6,13 @@ import {
   BufferGeometry,
   Color,
   DirectionalLight,
+  Group,
   HemisphereLight,
   Mesh,
   MeshStandardMaterial,
   Object3D,
   PointLight,
+  Vector3,
   type Material,
   type ShaderMaterial,
 } from "three";
@@ -207,6 +209,182 @@ function DistantRacks({
   );
 }
 
+// Project ids in the order they should appear down the portrait aisle —
+// closest to camera first, receding into the fog. Quant cluster anchors
+// the front because OCaml LOB / qforge are the strongest "headline" tech
+// surfaces; swe + analyst clusters follow in cluster groupings so the
+// colour-coding reads as you walk.
+const AISLE_ORDER = [
+  "ocaml-lob",
+  "qforge",
+  "econos",
+  "staija",
+  "studysprint",
+  "micromatch",
+  "capitol-alpha",
+  "datafest-2026",
+  "linuxbenchhub",
+] as const;
+
+// Aisle geometry. Spacing is wide enough that adjacent racks don't
+// overlap at the working camera FOV; Z_START sits a hair behind the
+// (relocated) terminal desk so the first rack reads as the user's first
+// step "into" the hall.
+const AISLE_SPACING = 2.6;
+const AISLE_Z_START = 1.0;
+const AISLE_TERMINAL_Z = 4.2;
+
+// Per-rack-id sets of mesh-name predicates: anything matching gets moved
+// into the rack's transform group when we re-lay-out for portrait.
+function isRackMesh(name: string, id: string): boolean {
+  return (
+    name === `Rack_${id}` ||
+    name === `Screen_${id}` ||
+    name.startsWith(`StatusLED_${id}_`)
+  );
+}
+
+// Whitelist of mesh-name patterns that should remain visible after the
+// portrait aisle layout is applied. Walls, ceiling beams, and other
+// authored "room" geometry get hidden — the racks now stand in a fogged
+// void rather than inside the four-walled landscape room, so anything
+// not in the whitelist would float in place of a missing wall.
+function isPortraitKeepMesh(name: string): boolean {
+  if (
+    name.startsWith("Rack_") ||
+    name.startsWith("Screen_") ||
+    name.startsWith("StatusLED_") ||
+    name.startsWith("BackgroundTower_") ||
+    name === "Monitor" ||
+    name === "Desk" ||
+    name === "Floor" ||
+    name === "DistantRackBody" ||
+    name === "DistantRackLED"
+  ) return true;
+  return false;
+}
+
+// Determine which wall a landscape-glb rack lives on, given its anchor
+// world position. Returns the anchor-plane axis-aligned unit vector
+// pointing *outward from the wall* (i.e. the rack's forward direction
+// in the landscape composition).
+function wallNormalFor(anchorPos: Vector3): Vector3 {
+  const ANCHOR_PLANE = 4.7;
+  const distToLeft  = Math.abs(anchorPos.x + ANCHOR_PLANE);
+  const distToRight = Math.abs(anchorPos.x - ANCHOR_PLANE);
+  const distToBack  = Math.abs(anchorPos.z + ANCHOR_PLANE);
+  const minDist = Math.min(distToLeft, distToRight, distToBack);
+  if (minDist === distToLeft)  return new Vector3(1, 0, 0);   // left wall faces +X
+  if (minDist === distToRight) return new Vector3(-1, 0, 0);  // right wall faces -X
+  return new Vector3(0, 0, 1);                                 // back wall faces +Z
+}
+
+// Apply the portrait aisle layout to a *cloned* scene. Mutates the scene
+// in place: each rack (Rack_<id> + Screen_<id> + StatusLED_<id>_*) and
+// its anchor empty get reparented into a per-rack Group, which is then
+// positioned along the -Z axis and rotated to face +Z. The Monitor + Desk
+// pair move forward to z=AISLE_TERMINAL_Z. Non-whitelisted geometry
+// (walls, ceiling, decorative trim) is hidden so the aisle reads in the
+// fogged void rather than as racks poking through an empty room.
+function applyAisleLayout(scene: Object3D): void {
+  // Cache anchor refs by id so we can update them in lockstep with the
+  // meshes they pin. Anchors are Object3D empties named "anchor_<id>".
+  const anchorByName = new Map<string, Object3D>();
+  scene.traverse((node) => {
+    if (node.name.startsWith("anchor_")) {
+      anchorByName.set(node.name.slice("anchor_".length), node);
+    }
+  });
+
+  // First pass: collect each rack's meshes. We do this before any
+  // reparenting because traversal order during attach() can skip nodes
+  // that have moved subtrees.
+  const meshesByRack = new Map<string, Object3D[]>();
+  for (const id of AISLE_ORDER) {
+    meshesByRack.set(id, []);
+  }
+  scene.traverse((node) => {
+    if (!(node instanceof Mesh)) return;
+    for (const id of AISLE_ORDER) {
+      if (isRackMesh(node.name, id)) {
+        meshesByRack.get(id)!.push(node);
+        return;
+      }
+    }
+  });
+
+  // Second pass: per rack, build a transform group at the rack's
+  // original pivot, reparent meshes (+ anchor) into it via attach()
+  // (which preserves world transforms), then translate + rotate the
+  // group to the aisle target. attach() handles the world↔local
+  // conversion for us.
+  const tmpWorld = new Vector3();
+  for (let i = 0; i < AISLE_ORDER.length; i++) {
+    const id = AISLE_ORDER[i];
+    const anchor = anchorByName.get(id);
+    if (!anchor) continue;
+
+    anchor.getWorldPosition(tmpWorld);
+    const normal = wallNormalFor(tmpWorld);
+    // Rack body sits ~1m *behind* its anchor (anchor is authored 1m in
+    // front of the rack face per the Blender contract).
+    const origPivot = tmpWorld.clone().sub(normal);
+    // Rotation needed to turn the rack's outward normal into +Z (the
+    // direction the aisle camera looks from).
+    const origAngle = Math.atan2(normal.x, normal.z);
+    const deltaAngle = -origAngle;
+
+    const group = new Group();
+    group.position.copy(origPivot);
+    scene.add(group);
+
+    group.attach(anchor);
+    for (const mesh of meshesByRack.get(id) ?? []) {
+      group.attach(mesh);
+    }
+
+    // Aisle target: x=0, original Y, receding -Z. Rotation flips the
+    // rack to face the camera.
+    group.position.set(0, origPivot.y, AISLE_Z_START - i * AISLE_SPACING);
+    group.rotation.y = deltaAngle;
+  }
+
+  // Pull the terminal/desk forward so it sits *in front of* the first
+  // aisle rack. The terminal anchor name is `anchor_terminal`; the
+  // Monitor + Desk meshes share its frame in the authored scene.
+  const terminalAnchor = anchorByName.get("terminal");
+  if (terminalAnchor) {
+    terminalAnchor.getWorldPosition(tmpWorld);
+    const termPivot = tmpWorld.clone();
+    // Pre-collect Monitor/Desk before reparenting — calling attach()
+    // splices the node out of its parent's children array, which would
+    // corrupt the traverse iteration if done inline.
+    const termMeshes: Object3D[] = [];
+    scene.traverse((node) => {
+      if (!(node instanceof Mesh)) return;
+      if (node.name === "Monitor" || node.name === "Desk") {
+        termMeshes.push(node);
+      }
+    });
+    const termGroup = new Group();
+    termGroup.position.copy(termPivot);
+    scene.add(termGroup);
+    termGroup.attach(terminalAnchor);
+    for (const m of termMeshes) termGroup.attach(m);
+    termGroup.position.set(0, termPivot.y, AISLE_TERMINAL_Z);
+  }
+
+  // Hide everything not in the keep-list. Run *after* the rack
+  // repositions so we don't accidentally hide meshes we were about to
+  // move.
+  scene.traverse((node) => {
+    if (!(node instanceof Mesh)) return;
+    if (!isPortraitKeepMesh(node.name)) {
+      node.visible = false;
+    }
+  });
+}
+
 interface ServerRoomProps {
   onAnchorsReady?: (anchors: Map<string, SceneAnchor>) => void;
   onSelect?: (target: ClickTarget) => void;
@@ -222,7 +400,22 @@ export function ServerRoom({
   isMobile = false,
   variant = "landscape",
 }: ServerRoomProps) {
-  const { scene } = useGLTF(MODEL_URLS[variant]);
+  const { scene: originalScene } = useGLTF(MODEL_URLS[variant]);
+  // Portrait viewports get a procedural aisle layout (racks repositioned
+  // into a single -Z column with the desk pulled forward) baked onto a
+  // cloned scene. Landscape uses the authored geometry unchanged. Clone
+  // is keyed on the loaded glb identity so a re-load (variant flip,
+  // HMR) produces a fresh transform.
+  const scene = useMemo(() => {
+    if (variant !== "portrait") return originalScene;
+    const cloned = originalScene.clone(true);
+    try {
+      applyAisleLayout(cloned);
+    } catch (err) {
+      console.error("[aisle] applyAisleLayout threw:", err);
+    }
+    return cloned;
+  }, [originalScene, variant]);
   const { scene: rootScene } = useThree();
   const interactivesRef = useRef<Interactive[]>([]);
   // Wall-clock accumulator for the BackgroundTower_*_strip pulse in
@@ -607,27 +800,30 @@ export function ServerRoom({
         const project = projectsById.get(id);
         if (!project?.logo) return null;
         // Determine the rack's front-face normal (pointing away from the
-        // rack into the room). Both viewport variants now load the same
-        // landscape glb (see sceneVariant.ts), so the wall-detection
-        // logic is shared. Anchors lie on one of the planes X=±4.7 or
-        // Z=±4.7; pick the closest. A naïve |z|>=|x| dominance check
-        // breaks down when a rack sits deep on a side wall (e.g. analyst
-        // at X=-4.7, Z=-6.5: |z| wins but the rack is still on the left
-        // wall, not the back).
-        const ax = anchor.position.x;
-        const az = anchor.position.z;
-        const ANCHOR_PLANE = 4.7;
-        const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
-        const distToRight = Math.abs(ax - ANCHOR_PLANE);
-        const distToBack  = Math.abs(az + ANCHOR_PLANE);
-        const minDist = Math.min(distToLeft, distToRight, distToBack);
+        // rack into the room). On portrait the aisle layout rotates
+        // every rack to face +Z, so the normal is uniform. On landscape
+        // anchors lie on one of the planes X=±4.7 or Z=±4.7; pick the
+        // closest. A naïve |z|>=|x| dominance check breaks down when a
+        // rack sits deep on a side wall (e.g. analyst at X=-4.7, Z=-6.5:
+        // |z| wins but the rack is still on the left wall, not the back).
         let nx: number, nz: number;
-        if (minDist === distToLeft) {
-          nx = 1; nz = 0;          // left wall, faces +X
-        } else if (minDist === distToRight) {
-          nx = -1; nz = 0;         // right wall, faces -X
+        if (variant === "portrait") {
+          nx = 0; nz = 1;
         } else {
-          nx = 0; nz = 1;          // back wall, faces +Z
+          const ax = anchor.position.x;
+          const az = anchor.position.z;
+          const ANCHOR_PLANE = 4.7;
+          const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
+          const distToRight = Math.abs(ax - ANCHOR_PLANE);
+          const distToBack  = Math.abs(az + ANCHOR_PLANE);
+          const minDist = Math.min(distToLeft, distToRight, distToBack);
+          if (minDist === distToLeft) {
+            nx = 1; nz = 0;          // left wall, faces +X
+          } else if (minDist === distToRight) {
+            nx = -1; nz = 0;         // right wall, faces -X
+          } else {
+            nx = 0; nz = 1;          // back wall, faces +Z
+          }
         }
         // Anchors are positioned 1.0m *in front* of the rack body (they
         // double as "stand here to view this" points for the camera
@@ -744,23 +940,32 @@ export function ServerRoom({
         <meshBasicMaterial color="#11151f" fog />
       </mesh>
 
-      {/* Engraved-style nameplate on the front face of the desk.
-          Same idle visibility rule as the rack callouts. Portrait keeps
-          the same distanceFactor as landscape now (the camera sits
-          farther back than the previous amphitheater vantage), so the
-          nameplate doesn't dominate the foreground. */}
-      {!panelOpen && (
-        <Html
-          position={[0, 0.55, 3.105]}
-          center
-          rotation={[0, 0, 0]}
-          distanceFactor={4.2}
-          zIndexRange={[0, 0]}
-          style={{ pointerEvents: "none", userSelect: "none" }}
-        >
-          <div className="desk-nameplate">Olayinka David Vaughan</div>
-        </Html>
-      )}
+      {/* Engraved-style nameplate on the front face of the desk. On
+          portrait the desk has been pulled forward to z≈AISLE_TERMINAL_Z
+          by applyAisleLayout, so the nameplate position rides off the
+          (moved) terminal anchor rather than the authored z=3.105. */}
+      {!panelOpen && (() => {
+        const isPortrait = variant === "portrait";
+        const terminalAnchor = anchorMap.get("terminal");
+        // Landscape: hardcoded front face of the original desk.
+        // Portrait: anchor.z + a small forward offset puts the plate
+        // on the desk's user-facing edge.
+        const z = isPortrait && terminalAnchor
+          ? terminalAnchor.position.z + 0.55
+          : 3.105;
+        return (
+          <Html
+            position={[0, 0.55, z]}
+            center
+            rotation={[0, 0, 0]}
+            distanceFactor={4.2}
+            zIndexRange={[0, 0]}
+            style={{ pointerEvents: "none", userSelect: "none" }}
+          >
+            <div className="desk-nameplate">Olayinka David Vaughan</div>
+          </Html>
+        );
+      })()}
 
       {/* Floating callout labels above each rack + the central monitor.
           Each label is a clickable shortcut that triggers the same
