@@ -91,11 +91,15 @@ function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
 // the 35° vertical half-FOV. z=8.5 drops the lateral angle to ~19° so
 // the desk reads as a foreground element under the racks.
 const SCROLL_CAMERA_START = new Vector3(0, 3.4, 8.5);
-// End camera sits roughly between racks 5 and 6 of the aisle (rack
-// spacing 2.6m, indexed from z=1). Going further makes the next pair
-// pass behind the camera at >35° lateral angle — outside the narrow
-// horizontal FOV on portrait — so the user sees only empty void.
-const SCROLL_CAMERA_END = new Vector3(0, 1.8, -12.0);
+// End camera sits between rack 7 (datafest, z=-17.2) and rack 8
+// (linuxbenchhub, z=-19.8). The rack labels are centred at x=0 (not
+// at the rack bodies' x=±1.5), so even though the *body* of the rack
+// pair the camera is currently next to swings to lateral angles
+// outside the narrow portrait FOV, the *labels* stay anchored in
+// frame. Net result: the user can scroll through the entire 9-rack
+// column instead of being capped after rack 5; each analyst label
+// gets its turn as the dominant on-screen label.
+const SCROLL_CAMERA_END = new Vector3(0, 1.8, -16.0);
 const SCROLL_TARGET_START = new Vector3(0, 0.4, -8.0);
 const SCROLL_TARGET_END = new Vector3(0, 0.6, -22.0);
 

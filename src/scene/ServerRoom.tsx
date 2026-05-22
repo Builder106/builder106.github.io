@@ -1242,15 +1242,16 @@ export function ServerRoom({
         if (isPortrait && id !== "terminal") {
           // Opacity tracks the camera's current Z, which moves as the
           // user scrolls down the aisle. SCROLL_CAMERA_START.z = 8.5,
-          // SCROLL_CAMERA_END.z = -12; lerp by progress to get the
+          // SCROLL_CAMERA_END.z = -16; lerp by progress to get the
           // camera's current position. Then fade rack labels by their
           // distance *ahead of* the camera — racks just past the
           // camera (ahead < -1 m) are hidden, racks 0-3 m ahead are
           // full opacity, racks 3-10 m ahead fade linearly to zero,
           // racks > 10 m are hidden. Net effect: only ~3 labels are
           // visible at any scroll position and the cluster that's
-          // visible cycles quant → swe → analyst as the user scrolls.
-          const camZ = 8.5 + (-12 - 8.5) * scrollProgress;
+          // visible cycles quant → swe → analyst as the user scrolls
+          // the camera through the full aisle.
+          const camZ = 8.5 + (-16 - 8.5) * scrollProgress;
           const ahead = camZ - anchor.position.z;
           if (ahead < -1) labelOpacity = 0;
           else if (ahead < 3) labelOpacity = 1;
