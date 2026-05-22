@@ -12,9 +12,7 @@
 
 import { chromium } from "@playwright/test";
 import { execFileSync } from "node:child_process";
-import {
-  mkdtempSync, readdirSync, renameSync, rmSync, statSync, writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,7 +22,7 @@ const REPO_ROOT = path.resolve(__dirname, "..", "..");
 
 const BASE_URL = process.env.OG_BASE_URL ?? "https://yinkavaughan.me";
 
-// OG video target: 1920x1080 H.264 at ~1 Mbps, ~22 s total.
+// OG video target: 1920x1080 H.264 at native renderer framerate.
 const VIDEO_W = 1920;
 const VIDEO_H = 1080;
 
@@ -32,8 +30,8 @@ const VIDEO_H = 1080;
 const CARD_W = 1200;
 const CARD_H = 630;
 
-const DEMO_OUT  = path.join(REPO_ROOT, "public", "demo.mp4");
-const CARD_OUT  = path.join(REPO_ROOT, "public", "og-card.jpg");
+const DEMO_OUT = path.join(REPO_ROOT, "public", "demo.mp4");
+const CARD_OUT = path.join(REPO_ROOT, "public", "og-card.jpg");
 
 // --- Helpers ---------------------------------------------------------------
 
@@ -67,18 +65,16 @@ async function closeOpenPanel(page) {
 
 async function recordVideo() {
   const workdir = mkdtempSync(path.join(tmpdir(), "og-video-"));
-  console.log(`[og-video] recording to ${workdir}`);
+  const framesDir = path.join(workdir, "frames");
+  mkdirSync(framesDir, { recursive: true });
+  console.log(`[og-video] recording frames to ${framesDir}`);
 
   const browser = await chromium.launch({
     headless: true,
-    // Headless Chrome runs software-rasterised by default, which makes
-    // a shader-heavy 3D scene render at ~10-15 fps even on a fast
-    // machine. The captured webm inherits those frame drops, and no
-    // amount of re-encoding can paper over them. These flags switch
-    // to the new headless mode (which uses Chrome's actual renderer)
-    // and turn on GPU acceleration via ANGLE so the scene renders
-    // at a steady 60 fps and Playwright's recorder gets smooth source
-    // frames to sample.
+    // --headless=new puts Chromium in real-renderer mode (legacy
+    // headless is software-only). GPU rasterisation via ANGLE/Metal
+    // lets the WebGL scene render at ~60 fps instead of the ~15 fps
+    // a CPU rasteriser would manage at 1080p with reflection passes.
     args: [
       "--no-sandbox",
       "--headless=new",
@@ -95,97 +91,108 @@ async function recordVideo() {
   const context = await browser.newContext({
     viewport: { width: VIDEO_W, height: VIDEO_H },
     deviceScaleFactor: 1,
-    recordVideo: {
-      dir: workdir,
-      size: { width: VIDEO_W, height: VIDEO_H },
-    },
   });
   const page = await context.newPage();
 
-  // Recording starts the moment newPage() returns. Mark t=0 against
-  // it so we can compute a dynamic trim offset later — the boot
-  // sequence + GLB load + R3F hydration takes ~20-30 s on a fresh
-  // production fetch, and that's all dead air we want trimmed off
-  // the head of the final clip. Hard-coding the offset is fragile
-  // across network conditions; measuring it isn't.
-  const recordStartMs = Date.now();
+  // Playwright's recordVideo() caps capture at 25 fps inside Chromium
+  // (hardcoded — no API knob), which reads as judder-y on the camera
+  // flies. Drive the CDP Page.startScreencast / screencastFrame pair
+  // directly instead: every frame the renderer commits gets delivered
+  // as JPEG with a real timestamp, so the assembled video runs at
+  // whatever fps the GPU actually produced (typically 30-60).
+  const client = await page.context().newCDPSession(page);
+  const frames = [];
+  let firstFrameTs = null;
+  client.on("Page.screencastFrame", ({ data, sessionId, metadata }) => {
+    const tsMs = (metadata?.timestamp ?? Date.now() / 1000) * 1000;
+    if (firstFrameTs === null) firstFrameTs = tsMs;
+    frames.push({ data, tMs: tsMs - firstFrameTs });
+    // Fire-and-forget ack — without this Chrome stops delivering frames
+    // after the first one. Don't await inside the listener because that
+    // would serialise frame delivery to round-trip time and bottleneck
+    // us back to ~10 fps.
+    client.send("Page.screencastFrameAck", { sessionId }).catch(() => {});
+  });
+
+  await client.send("Page.startScreencast", {
+    format: "jpeg",
+    quality: 90,
+    maxWidth: VIDEO_W,
+    maxHeight: VIDEO_H,
+    everyNthFrame: 1,
+  });
 
   // 1. Land + boot.
   await page.goto(BASE_URL, { waitUntil: "networkidle", timeout: 30_000 });
   await waitForBoot(page);
-  // Wait until the analyst-cluster rack callouts have actually mounted
-  // and are interactive — this is the first moment the scene is in its
-  // "complete" state and what we want as the trimmed clip's first frame.
+  // Wait until the analyst-cluster rack callouts mount + are interactive
+  // — the first moment the scene is in its "complete" state and what we
+  // want as the trimmed clip's first frame.
   await page.getByRole("button", { name: /CapitolAlpha/i }).first()
     .waitFor({ state: "visible", timeout: 60_000 });
-  // Settle ~1.5 s on the iso vantage so the first frame of the trimmed
-  // clip is a stable composition (rather than the very tick the labels
-  // popped in).
+  // Settle so the first frame after trim is a stable composition.
   await page.waitForTimeout(1_500);
-  const trimOffsetMs = Date.now() - recordStartMs;
+  const trimAfterMs = frames.length > 0 ? frames[frames.length - 1].tMs : 0;
 
-  // 2. Click a rack from the newest cluster (analyst) to show off the
-  //    feature that motivated this recording.
+  // 2. Click an analyst rack.
   await dispatchClickByName(page, /CapitolAlpha/i);
-  await page.waitForTimeout(2_500);   // let camera fly + panel mount finish
+  await page.waitForTimeout(2_500);
 
-  // 3. Close. Dwell briefly so the close-animation reads.
+  // 3. Close, settle.
   await closeOpenPanel(page);
   await page.waitForTimeout(1_500);
 
-  // 4. Click the central trading terminal to demonstrate that the room's
-  //    centerpiece is also interactive.
+  // 4. Click the trading terminal.
   await dispatchClickByName(page, /trading_terminal/i);
   await page.waitForTimeout(2_500);
 
-  // 5. Close and settle on the default vantage for the closing frame.
+  // 5. Close + final dwell.
   await closeOpenPanel(page);
   await page.waitForTimeout(2_500);
 
+  await client.send("Page.stopScreencast");
   await context.close();
   await browser.close();
 
-  // Playwright writes a randomly-named .webm into workdir.
-  const recorded = readdirSync(workdir)
-    .filter((f) => f.endsWith(".webm"))
-    .map((f) => path.join(workdir, f))
-    .find((f) => statSync(f).size > 0);
-  if (!recorded) {
-    throw new Error(`no .webm produced in ${workdir}`);
+  if (frames.length === 0) {
+    throw new Error("no frames captured via CDP screencast");
   }
+  const totalDurMs = frames[frames.length - 1].tMs;
+  const captureFps = frames.length / (totalDurMs / 1000);
+  console.log(`[og-video] captured ${frames.length} frames at ~${captureFps.toFixed(1)} fps`);
+  console.log(`[og-video] trim offset: ${(trimAfterMs / 1000).toFixed(3)}s`);
 
-  // Re-encode to H.264 mp4 — the format og:video:type expects.
-  //
-  // Tuning notes (motion-heavy 1080p):
-  //   -crf 20 + maxrate 5M  → ~3-4 MB for a 14 s clip; the previous
-  //     CRF 28 / 1 Mbps cap looked acceptable on a still frame but
-  //     ran out of bit budget during the camera flies, producing
-  //     visible blocking and a stuttery feel during playback.
-  //   -g 50 -keyint_min 25 → keyframe every 50 frames (= 2 s at 25
-  //     fps). Default x264 keyframe interval is 250, which leaves
-  //     embedded players with too few seek points and makes scrub /
-  //     buffering jerky on social previews.
-  //   -r 25 -vsync cfr     → force constant 25 fps. Playwright
-  //     recordVideo writes variable-framerate webm; left implicit,
-  //     ffmpeg can pass through irregular timing that some players
-  //     present as dropped frames.
-  //   -movflags +faststart → moov atom up front so unfurlers can
-  //     begin playback before the full file downloads.
-  // Trim off the load + boot lead-in so the final clip starts on
-  // the established scene. trimOffsetMs is the wall-clock interval
-  // from recording start to "all labels mounted + 1.5 s settle";
-  // -ss before -i seeks to that point in the source webm.
-  const trimOffsetSec = (trimOffsetMs / 1000).toFixed(3);
-  console.log(`[og-video] trim offset: ${trimOffsetSec}s`);
+  // Write frames to disk after the trim point. Re-index from 0 so
+  // ffmpeg's image2 demuxer can pick them up as a sequence.
+  let kept = 0;
+  for (const { data, tMs } of frames) {
+    if (tMs < trimAfterMs) continue;
+    writeFileSync(
+      path.join(framesDir, `f${String(kept).padStart(6, "0")}.jpg`),
+      Buffer.from(data, "base64"),
+    );
+    kept++;
+  }
+  const trimmedDurSec = (totalDurMs - trimAfterMs) / 1000;
+  const finalFps = kept / Math.max(trimmedDurSec, 0.001);
+  const fpsRounded = Math.max(20, Math.round(finalFps));
+  console.log(
+    `[og-video] ${kept} frames kept (${trimmedDurSec.toFixed(2)}s, ${finalFps.toFixed(1)} fps → ${fpsRounded} fps output)`,
+  );
 
+  // Encode the JPEG sequence into MP4 at the captured framerate.
+  // -framerate in input position tells image2 how to time the stills;
+  // -r in output position fixes the stream's claimed fps. Match both
+  // to the actual capture rate so motion plays back at native speed.
+  const keyint = fpsRounded * 2;     // keyframe every 2 s
   execFileSync("ffmpeg", [
     "-y", "-loglevel", "error",
-    "-ss", trimOffsetSec,
-    "-i", recorded,
+    "-framerate", String(fpsRounded),
+    "-i", path.join(framesDir, "f%06d.jpg"),
     "-c:v", "libx264", "-preset", "slow", "-crf", "20",
-    "-maxrate", "5M", "-bufsize", "10M",
-    "-r", "25", "-vsync", "cfr",
-    "-g", "50", "-keyint_min", "25",
+    "-maxrate", "6M", "-bufsize", "12M",
+    "-r", String(fpsRounded),
+    "-g", String(keyint), "-keyint_min", String(Math.floor(keyint / 2)),
     "-pix_fmt", "yuv420p",
     "-movflags", "+faststart",
     "-an",
@@ -193,12 +200,8 @@ async function recordVideo() {
   ], { stdio: "inherit" });
 
   const sizeKB = (statSync(DEMO_OUT).size / 1024).toFixed(1);
-  // Leave the source webm on disk so we can inspect frame timing if
-  // playback still feels off after re-encode. ffprobe -count_frames
-  // against `recorded` will show whether the lag is in the source or
-  // the encode.
   console.log(`[og-video] wrote ${path.relative(REPO_ROOT, DEMO_OUT)} (${sizeKB} KB)`);
-  console.log(`[og-video] source webm retained at ${recorded}`);
+  console.log(`[og-video] source frames retained at ${framesDir}`);
 }
 
 // --- 2. Capture the OG card ------------------------------------------------
