@@ -20,11 +20,9 @@ import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
-// Preload both variants so a viewport rotation (portrait ↔ landscape)
-// doesn't pause for a network fetch. Both glbs are small enough that
-// shipping them eagerly is cheaper than the swap latency.
+// Preload the one glb both variants now resolve to (portrait used to
+// load a separate amphitheater file — retired, see sceneVariant.ts).
 useGLTF.preload(MODEL_URLS.landscape);
-useGLTF.preload(MODEL_URLS.portrait);
 
 // Materials whose emission should bypass ACES tonemapping.
 function isUntonedMaterial(name: string): boolean {
@@ -609,34 +607,27 @@ export function ServerRoom({
         const project = projectsById.get(id);
         if (!project?.logo) return null;
         // Determine the rack's front-face normal (pointing away from the
-        // rack into the room). The landscape glb authors racks on four
-        // walls and offsets each anchor 1m into the room from the rack
-        // face — so every wall-mounted anchor lies on one of the planes
-        // X=±4.7 or Z=±4.7. Pick the wall whose plane the anchor is
-        // closest to; a |z|>=|x| dominance check breaks down when a rack
-        // sits deep on a side wall (e.g. analyst at X=-4.7, Z=-6.5: |z|
-        // wins but the rack is still on the left wall, not the back).
-        // The portrait glb arranges every rack facing +Z (toward the
-        // camera), so the normal is constant regardless of anchor x/z.
+        // rack into the room). Both viewport variants now load the same
+        // landscape glb (see sceneVariant.ts), so the wall-detection
+        // logic is shared. Anchors lie on one of the planes X=±4.7 or
+        // Z=±4.7; pick the closest. A naïve |z|>=|x| dominance check
+        // breaks down when a rack sits deep on a side wall (e.g. analyst
+        // at X=-4.7, Z=-6.5: |z| wins but the rack is still on the left
+        // wall, not the back).
+        const ax = anchor.position.x;
+        const az = anchor.position.z;
+        const ANCHOR_PLANE = 4.7;
+        const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
+        const distToRight = Math.abs(ax - ANCHOR_PLANE);
+        const distToBack  = Math.abs(az + ANCHOR_PLANE);
+        const minDist = Math.min(distToLeft, distToRight, distToBack);
         let nx: number, nz: number;
-        if (variant === "portrait") {
-          nx = 0;
-          nz = 1;
+        if (minDist === distToLeft) {
+          nx = 1; nz = 0;          // left wall, faces +X
+        } else if (minDist === distToRight) {
+          nx = -1; nz = 0;         // right wall, faces -X
         } else {
-          const ax = anchor.position.x;
-          const az = anchor.position.z;
-          const ANCHOR_PLANE = 4.7;
-          const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
-          const distToRight = Math.abs(ax - ANCHOR_PLANE);
-          const distToBack  = Math.abs(az + ANCHOR_PLANE);
-          const minDist = Math.min(distToLeft, distToRight, distToBack);
-          if (minDist === distToLeft) {
-            nx = 1; nz = 0;          // left wall, faces +X
-          } else if (minDist === distToRight) {
-            nx = -1; nz = 0;         // right wall, faces -X
-          } else {
-            nx = 0; nz = 1;          // back wall, faces +Z
-          }
+          nx = 0; nz = 1;          // back wall, faces +Z
         }
         // Anchors are positioned 1.0m *in front* of the rack body (they
         // double as "stand here to view this" points for the camera
@@ -754,15 +745,16 @@ export function ServerRoom({
       </mesh>
 
       {/* Engraved-style nameplate on the front face of the desk.
-          Same idle visibility rule as the rack callouts.
-          Portrait camera sits closer to the desk so the same distanceFactor
-          would render the nameplate at 2-3x size — drop it for portrait. */}
+          Same idle visibility rule as the rack callouts. Portrait keeps
+          the same distanceFactor as landscape now (the camera sits
+          farther back than the previous amphitheater vantage), so the
+          nameplate doesn't dominate the foreground. */}
       {!panelOpen && (
         <Html
           position={[0, 0.55, 3.105]}
           center
           rotation={[0, 0, 0]}
-          distanceFactor={variant === "portrait" ? 3.0 : 4.2}
+          distanceFactor={4.2}
           zIndexRange={[0, 0]}
           style={{ pointerEvents: "none", userSelect: "none" }}
         >
@@ -774,12 +766,19 @@ export function ServerRoom({
           Each label is a clickable shortcut that triggers the same
           ClickTarget the underlying mesh would. Tap-friendly target on
           phones; doesn't hurt desktop. Hidden while a panel is open so
-          the panel content owns the screen. */}
+          the panel content owns the screen.
+
+          Portrait-only treatments:
+            - Smaller distanceFactor → labels render at a smaller world
+              size so adjacent racks don't crash into each other.
+            - Cluster sublabel ("// quant", "// swe") dropped — on a
+              narrow viewport the duplicate cluster tag across three
+              adjacent racks reads as noise. The project name + the
+              colour-coded rack body carry the cluster identity already.
+        */}
       {!panelOpen && Array.from(anchorMap.entries()).map(([id, anchor]) => {
-        // Portrait camera frames the room tighter than the landscape
-        // vantage; the same distanceFactor would render labels ~50%
-        // larger and crowd the frame. Match label size to vantage.
-        const labelDistance = variant === "portrait" ? 6 : 9;
+        const isPortrait = variant === "portrait";
+        const labelDistance = isPortrait ? 5 : 9;
         if (id === "terminal") {
           return (
             <Html
@@ -796,7 +795,9 @@ export function ServerRoom({
                 onClick={() => onSelect?.({ kind: "terminal" })}
               >
                 <span className="rack-label__name">trading_terminal</span>
-                <span className="rack-label__cluster">// quant</span>
+                {!isPortrait && (
+                  <span className="rack-label__cluster">// quant</span>
+                )}
               </button>
             </Html>
           );
@@ -818,7 +819,9 @@ export function ServerRoom({
               onClick={() => onSelect?.({ kind: "project", projectId: id })}
             >
               <span className="rack-label__name">{project.name}</span>
-              <span className="rack-label__cluster">// {CLUSTER_DISPLAY[project.cluster]}</span>
+              {!isPortrait && (
+                <span className="rack-label__cluster">// {CLUSTER_DISPLAY[project.cluster]}</span>
+              )}
             </button>
           </Html>
         );

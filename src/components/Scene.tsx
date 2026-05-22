@@ -17,30 +17,41 @@ import { useSceneVariant, type SceneVariant } from "@/scene/sceneVariant";
 import { CameraRig } from "./CameraRig";
 import { useIsMobile } from "./useIsMobile";
 
-// Per-variant camera framing. Portrait loads a different glTF (tiered
-// amphitheater layout, see docs/blender-contract.md + blend/server-room-
-// portrait.blend) so the vantage is fundamentally different — not just a
-// reframe of the landscape scene.
+// Per-variant camera framing. Portrait and landscape variants now load
+// the same landscape glb (see sceneVariant.ts) — the amphitheater was
+// retired. We still reframe the camera based on viewport aspect so the
+// authored cityscape reads well in a narrow viewport.
 function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
   const { size } = useThree();
   const aspect = size.width / Math.max(size.height, 1);
 
   const { position, fov } = useMemo(() => {
     if (variant === "portrait") {
-      // Elevated 3/4 vantage that fits all three tiers. FOV widens further
-      // on extremely narrow viewports (<0.45 aspect — most modern phones in
-      // portrait) so the room edges don't crop. Three.js PerspectiveCamera
-      // uses vertical FOV, so we bias *up* on tall-thin viewports rather
-      // than down.
-      return {
-        position: PORTRAIT_CAMERA_POSITION.clone(),
-        fov: aspect < 0.45 ? 60 : 55,
-      };
+      // Portrait vantage: front-and-centre, elevated, pulled back further
+      // than landscape. FOV widens aggressively on tall viewports — at
+      // aspect 0.5 (typical phone) we need ~70° vertical FOV to keep the
+      // 14m-wide room readable without squashing it. The camera is also
+      // angled *down* slightly (target.y < camera.y) so the user reads
+      // the scene as "looking into a data hall" rather than "staring
+      // through rack silhouettes," which was the previous complaint.
+      const pos = PORTRAIT_CAMERA_POSITION.clone();
+      // Phone-narrow viewports (aspect < 0.5) want even more pullback +
+      // FOV so the side walls stay in frame.
+      if (aspect < 0.5) {
+        pos.z = 14.5;
+        pos.y = 5.6;
+        return { position: pos, fov: 72 };
+      }
+      if (aspect < 0.65) {
+        return { position: pos, fov: 66 };
+      }
+      // Squarish portrait (tablet, phone-landscape that still tripped the
+      // 4/5 aspect threshold).
+      return { position: pos, fov: 58 };
     }
     if (aspect < 1.3) {
       // Squarish landscape (tablet portrait that didn't trip the variant
-      // threshold, or a near-square desktop window). Same glb, just
-      // slightly pulled out.
+      // threshold, or a near-square desktop window).
       return {
         position: new Vector3(8, 6.2, 8),
         fov: 45,
@@ -70,14 +81,18 @@ interface SceneProps {
 
 // Idle window before the camera begins drifting (ms). Tuned so casual
 // readers see motion before they get bored, but anyone exploring isn't
-// interrupted mid-glance.
-const IDLE_DELAY_MS = 12_000;
+// interrupted mid-glance. Portrait viewports lose the "wow" fastest
+// from a static view (no peripheral cues, racks crammed into a column),
+// so we kick the auto-tour in much sooner there.
+const IDLE_DELAY_DESKTOP_MS = 12_000;
+const IDLE_DELAY_PORTRAIT_MS = 2_500;
 
 export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchorsReady }: SceneProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const isMobile = useIsMobile();
   const variant = useSceneVariant();
   const orbitTarget = variant === "portrait" ? PORTRAIT_CAMERA_TARGET : DEFAULT_CAMERA_TARGET;
+  const idleDelayMs = variant === "portrait" ? IDLE_DELAY_PORTRAIT_MS : IDLE_DELAY_DESKTOP_MS;
 
   // Track whether the user is currently idle. Drift only kicks in after
   // IDLE_DELAY_MS without any orbit/pan/zoom, and only while no panel
@@ -91,7 +106,7 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
 
     const armTimer = () => {
       if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
-      idleTimerRef.current = window.setTimeout(() => setIdle(true), IDLE_DELAY_MS);
+      idleTimerRef.current = window.setTimeout(() => setIdle(true), idleDelayMs);
     };
     const wake = () => {
       setIdle(false);
@@ -108,7 +123,7 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
       ctrl.removeEventListener("start", wake);
       if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
     };
-  }, []);
+  }, [idleDelayMs]);
 
   // Any panel state change is "activity": wake the camera, re-arm the
   // timer. Without this, opening then closing a panel would leave the
@@ -117,9 +132,9 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
     setIdle(false);
     if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
     if (!panelOpen) {
-      idleTimerRef.current = window.setTimeout(() => setIdle(true), IDLE_DELAY_MS);
+      idleTimerRef.current = window.setTimeout(() => setIdle(true), idleDelayMs);
     }
-  }, [panelOpen, cameraTarget]);
+  }, [panelOpen, cameraTarget, idleDelayMs]);
 
   const autoRotate = idle && !panelOpen && !freezeOrbit;
 
@@ -152,11 +167,13 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
         enableZoom
         enableRotate
         enableDamping={false}
-        // Gentle idle drift: ~1°/s. autoRotateSpeed is in deg/frame at
-        // 60fps, so 0.18 ≈ 10.8°/min, slow enough that it reads as
-        // "the camera's alive" not "the camera's leaving."
+        // Idle drift speed. On desktop ~1°/s reads as "the camera's
+        // alive" without distracting from exploration. On portrait the
+        // user can't see the whole room at once, so we crank the orbit
+        // ~3x faster — the camera actively *tours* the racks instead of
+        // drifting in place, which restores the "wow" from desktop.
         autoRotate={autoRotate}
-        autoRotateSpeed={0.18}
+        autoRotateSpeed={variant === "portrait" ? 0.55 : 0.18}
         minDistance={2.5}
         maxDistance={28}
         maxPolarAngle={Math.PI / 2.05}
