@@ -41,6 +41,28 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Post-deploy synthetic perf check. Runs Lighthouse 3× against the
+  # live URL, averages the runs, uploads HTML + JSON reports to
+  # temporary-public-storage (linked from the Action summary) and as
+  # build artifacts. Assertions are all `warn`-level so a regression
+  # doesn't block deploys — it just shows up in the run log + the
+  # report link. Tighten to `error` once budgets stabilise.
+  lighthouse:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: needs.deploy.outputs.url != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            ${{ needs.deploy.outputs.url }}
+          configPath: ./.lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
