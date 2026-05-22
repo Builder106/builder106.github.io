@@ -1,8 +1,9 @@
-// Record the OG video (public/demo.mp4) and capture the OG card
+// Record the OG video (public/demo.mp4 — landscape) plus a portrait
+// counterpart (public/demo-portrait.mp4) and capture the OG card
 // (public/og-card.jpg) from the current scene. Standalone Playwright
-// run rather than the full e2e/demo BDD suite — this clip is shorter
-// and tighter than the recruiter walkthrough, and doesn't need the
-// reporter / per-test slot scaffolding.
+// run rather than the full e2e/demo BDD suite — these clips are
+// shorter and tighter than the recruiter walkthrough, and don't need
+// the reporter / per-test slot scaffolding.
 //
 // Drives the production site at yinkavaughan.me by default. Override
 // with OG_BASE_URL for a localhost preview:
@@ -22,16 +23,36 @@ const REPO_ROOT = path.resolve(__dirname, "..", "..");
 
 const BASE_URL = process.env.OG_BASE_URL ?? "https://yinkavaughan.me";
 
-// OG video target: 1920x1080 H.264 at native renderer framerate.
-const VIDEO_W = 1920;
-const VIDEO_H = 1080;
-
 // OG card target: 1200x630 JPEG (Facebook / Twitter recommended size).
 const CARD_W = 1200;
 const CARD_H = 630;
-
-const DEMO_OUT = path.join(REPO_ROOT, "public", "demo.mp4");
 const CARD_OUT = path.join(REPO_ROOT, "public", "og-card.jpg");
+
+// Two video variants. Landscape is the canonical OG asset (referenced
+// from index.html's og:video meta). Portrait ships alongside as a
+// standalone asset for mobile-first contexts — README embed, direct
+// share to Instagram-style apps, etc. — and isn't currently wired
+// into the OG meta because most unfurlers letterbox portrait video
+// inside their landscape preview card.
+//
+// Portrait viewport aspect 0.5625 (1080:1920) sits below the 4/5
+// threshold src/scene/sceneVariant.ts uses to flip to the tiered-
+// amphitheater layout, so the recorder gets the actually-different
+// scene rather than a re-framed landscape one.
+const VARIANTS = [
+  {
+    name: "landscape",
+    width:  1920,
+    height: 1080,
+    output: path.join(REPO_ROOT, "public", "demo.mp4"),
+  },
+  {
+    name: "portrait",
+    width:  1080,
+    height: 1920,
+    output: path.join(REPO_ROOT, "public", "demo-portrait.mp4"),
+  },
+];
 
 // --- Helpers ---------------------------------------------------------------
 
@@ -61,13 +82,13 @@ async function closeOpenPanel(page) {
   });
 }
 
-// --- 1. Record the video ---------------------------------------------------
+// --- 1. Record one variant -------------------------------------------------
 
-async function recordVideo() {
-  const workdir = mkdtempSync(path.join(tmpdir(), "og-video-"));
+async function recordVariant(variant) {
+  const workdir = mkdtempSync(path.join(tmpdir(), `og-video-${variant.name}-`));
   const framesDir = path.join(workdir, "frames");
   mkdirSync(framesDir, { recursive: true });
-  console.log(`[og-video] recording frames to ${framesDir}`);
+  console.log(`[${variant.name}] recording frames to ${framesDir}`);
 
   const browser = await chromium.launch({
     headless: true,
@@ -89,7 +110,7 @@ async function recordVideo() {
     ],
   });
   const context = await browser.newContext({
-    viewport: { width: VIDEO_W, height: VIDEO_H },
+    viewport: { width: variant.width, height: variant.height },
     deviceScaleFactor: 1,
   });
   const page = await context.newPage();
@@ -117,8 +138,8 @@ async function recordVideo() {
   await client.send("Page.startScreencast", {
     format: "jpeg",
     quality: 90,
-    maxWidth: VIDEO_W,
-    maxHeight: VIDEO_H,
+    maxWidth: variant.width,
+    maxHeight: variant.height,
     everyNthFrame: 1,
   });
 
@@ -167,12 +188,12 @@ async function recordVideo() {
   await browser.close();
 
   if (frames.length === 0) {
-    throw new Error("no frames captured via CDP screencast");
+    throw new Error(`[${variant.name}] no frames captured via CDP screencast`);
   }
   const totalDurMs = frames[frames.length - 1].tMs;
   const captureFps = frames.length / (totalDurMs / 1000);
-  console.log(`[og-video] captured ${frames.length} frames at ~${captureFps.toFixed(1)} fps`);
-  console.log(`[og-video] trim offset: ${(trimAfterMs / 1000).toFixed(3)}s`);
+  console.log(`[${variant.name}] captured ${frames.length} frames at ~${captureFps.toFixed(1)} fps`);
+  console.log(`[${variant.name}] trim offset: ${(trimAfterMs / 1000).toFixed(3)}s`);
 
   // Write frames to disk after the trim point. Re-index from 0 so
   // ffmpeg's image2 demuxer can pick them up as a sequence.
@@ -189,7 +210,7 @@ async function recordVideo() {
   const finalFps = kept / Math.max(trimmedDurSec, 0.001);
   const fpsRounded = Math.max(20, Math.round(finalFps));
   console.log(
-    `[og-video] ${kept} frames kept (${trimmedDurSec.toFixed(2)}s, ${finalFps.toFixed(1)} fps → ${fpsRounded} fps output)`,
+    `[${variant.name}] ${kept} frames kept (${trimmedDurSec.toFixed(2)}s, ${finalFps.toFixed(1)} fps → ${fpsRounded} fps output)`,
   );
 
   // Encode the JPEG sequence into MP4 at the captured framerate.
@@ -208,12 +229,12 @@ async function recordVideo() {
     "-pix_fmt", "yuv420p",
     "-movflags", "+faststart",
     "-an",
-    DEMO_OUT,
+    variant.output,
   ], { stdio: "inherit" });
 
-  const sizeKB = (statSync(DEMO_OUT).size / 1024).toFixed(1);
-  console.log(`[og-video] wrote ${path.relative(REPO_ROOT, DEMO_OUT)} (${sizeKB} KB)`);
-  console.log(`[og-video] source frames retained at ${framesDir}`);
+  const sizeKB = (statSync(variant.output).size / 1024).toFixed(1);
+  console.log(`[${variant.name}] wrote ${path.relative(REPO_ROOT, variant.output)} (${sizeKB} KB)`);
+  console.log(`[${variant.name}] source frames retained at ${framesDir}`);
 }
 
 // --- 2. Capture the OG card ------------------------------------------------
@@ -258,7 +279,18 @@ async function captureCard() {
 }
 
 // --- Drive ------------------------------------------------------------------
+//
+// Filter variants via OG_VARIANT=landscape (or =portrait) for iteration.
+const variantFilter = process.env.OG_VARIANT;
+const variantsToRun = variantFilter
+  ? VARIANTS.filter((v) => v.name === variantFilter)
+  : VARIANTS;
+if (variantsToRun.length === 0) {
+  throw new Error(`OG_VARIANT=${variantFilter} doesn't match any known variant`);
+}
 
-await recordVideo();
+for (const variant of variantsToRun) {
+  await recordVariant(variant);
+}
 await captureCard();
 console.log("done");
