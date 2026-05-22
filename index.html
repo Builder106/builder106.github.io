@@ -87,5 +87,15 @@
       </main>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!--
+      Cloudflare Web Analytics — real-user Core Web Vitals (LCP / INP /
+      CLS) + pageviews for the live site. Complements the Lighthouse CI
+      lab data: Lighthouse catches build-time regressions, CWA shows
+      what actual visitors on actual devices experience. Cookieless, no
+      consent banner needed. Dashboard:
+      dash.cloudflare.com/?to=/:account/web-analytics
+    -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "fabd15e75373473ca21e21b3214a1862"}'></script>
   </body>
 </html>
