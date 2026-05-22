@@ -885,33 +885,6 @@ export function ServerRoom({
             );
           })}
 
-          {/* Volumetric light cones under each overhead fluorescent.
-              An open cone (no end-caps) with additive blending + very
-              low opacity reads as a beam of light passing through the
-              atmospheric dust (the Sparkles below them). depthWrite
-              false so the cones don't z-fight with each other or
-              occlude geometry behind them. */}
-          {Array.from({ length: 16 }).map((_, i) => {
-            const z = -i * AISLE_SPACING * 0.9;
-            return (
-              <mesh
-                key={`beam-${i}`}
-                position={[0, 3.5, z]}
-              >
-                <coneGeometry args={[0.65, 5, 14, 1, true]} />
-                <meshBasicMaterial
-                  color="#a8eeff"
-                  transparent
-                  opacity={0.07}
-                  side={2 /* THREE.DoubleSide */}
-                  depthWrite={false}
-                  toneMapped={false}
-                  blending={2 /* THREE.AdditiveBlending */}
-                  fog
-                />
-              </mesh>
-            );
-          })}
         </group>
       )}
 
