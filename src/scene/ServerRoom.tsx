@@ -1,4 +1,4 @@
-import { Image, useGLTF, useCursor, Html, MeshReflectorMaterial, Grid, Stars } from "@react-three/drei";
+import { useGLTF, useCursor, useTexture, Html, MeshReflectorMaterial, Grid, Stars } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -439,7 +439,27 @@ export function ServerRoom({
     }
     return cloned;
   }, [originalScene, variant]);
-  const { scene: rootScene } = useThree();
+  const { scene: rootScene, gl } = useThree();
+  // Preload every project logo as a texture and crank the anisotropy
+  // to the GPU max. Without this the rack badges are sampled with
+  // basic trilinear filtering and blur out at the grazing camera
+  // angles the portrait aisle creates (camera in the corridor, badges
+  // on side-wall planes at ~70° off-axis — classic anisotropy case).
+  const logoUrlMap = useMemo<Record<string, string>>(() => {
+    const out: Record<string, string> = {};
+    for (const p of projects) if (p.logo) out[p.id] = p.logo;
+    return out;
+  }, []);
+  const logoTextures = useTexture(logoUrlMap) as Record<string, import("three").Texture>;
+  useLayoutEffect(() => {
+    const max = gl.capabilities.getMaxAnisotropy();
+    for (const t of Object.values(logoTextures)) {
+      if (t.anisotropy !== max) {
+        t.anisotropy = max;
+        t.needsUpdate = true;
+      }
+    }
+  }, [logoTextures, gl]);
   const interactivesRef = useRef<Interactive[]>([]);
   // Wall-clock accumulator for the BackgroundTower_*_strip pulse in
   // useFrame. We don't cache material refs — instead we traverse the
@@ -853,38 +873,21 @@ export function ServerRoom({
       {Array.from(anchorMap.entries()).map(([id, anchor]) => {
         const project = projectsById.get(id);
         if (!project?.logo) return null;
-        // +0.40 from the anchor lands the badge in the upper third of
-        // the rack face. Rack body extends ±1.30 around the anchor in
-        // Y, so this is comfortably within bounds.
+        const tex = logoTextures[id];
+        if (!tex) return null;
         const y = anchor.position.y + 0.4;
-        // planeGeometry's default normal is +Z; rotate around Y so it
-        // faces the rack's outward normal. Portrait paints a badge on
-        // *both* sides of the aisle (the mirrored rack on the right is
-        // a deep-clone of the left rack with no project metadata of
-        // its own, so we render its badge from the React tree).
         if (variant === "portrait") {
-          // Left badge: at rack front face (x = -AISLE_HALF_WIDTH + 0.01)
-          // facing +X (into the corridor). Right badge: symmetric,
-          // facing -X.
           const FRONT_OFFSET = AISLE_HALF_WIDTH - 0.01;
           return (
             <group key={`logo-${id}`}>
-              <Image
-                url={project.logo}
-                position={[-FRONT_OFFSET, y, anchor.position.z]}
-                rotation={[0, Math.PI / 2, 0]}
-                scale={[0.5, 0.5]}
-                transparent
-                toneMapped={false}
-              />
-              <Image
-                url={project.logo}
-                position={[FRONT_OFFSET, y, anchor.position.z]}
-                rotation={[0, -Math.PI / 2, 0]}
-                scale={[0.5, 0.5]}
-                transparent
-                toneMapped={false}
-              />
+              <mesh position={[-FRONT_OFFSET, y, anchor.position.z]} rotation={[0, Math.PI / 2, 0]}>
+                <planeGeometry args={[0.5, 0.5]} />
+                <meshBasicMaterial map={tex} transparent toneMapped={false} />
+              </mesh>
+              <mesh position={[FRONT_OFFSET, y, anchor.position.z]} rotation={[0, -Math.PI / 2, 0]}>
+                <planeGeometry args={[0.5, 0.5]} />
+                <meshBasicMaterial map={tex} transparent toneMapped={false} />
+              </mesh>
             </group>
           );
         }
@@ -902,29 +905,21 @@ export function ServerRoom({
         const minDist = Math.min(distToLeft, distToRight, distToBack);
         let nx: number, nz: number;
         if (minDist === distToLeft) {
-          nx = 1; nz = 0;          // left wall, faces +X
+          nx = 1; nz = 0;
         } else if (minDist === distToRight) {
-          nx = -1; nz = 0;         // right wall, faces -X
+          nx = -1; nz = 0;
         } else {
-          nx = 0; nz = 1;          // back wall, faces +Z
+          nx = 0; nz = 1;
         }
-        // Anchors are positioned 1.0m *in front* of the rack body; the
-        // badge sits ~1cm proud of the rack face so it reads as a
-        // panel marking, not a hovering sticker.
         const FACE_OFFSET = 0.99;
         const x = anchor.position.x - nx * FACE_OFFSET;
         const z = anchor.position.z - nz * FACE_OFFSET;
         const ry = Math.atan2(nx, nz);
         return (
-          <Image
-            key={`logo-${id}`}
-            url={project.logo}
-            position={[x, y, z]}
-            rotation={[0, ry, 0]}
-            scale={[0.5, 0.5]}
-            transparent
-            toneMapped={false}
-          />
+          <mesh key={`logo-${id}`} position={[x, y, z]} rotation={[0, ry, 0]}>
+            <planeGeometry args={[0.5, 0.5]} />
+            <meshBasicMaterial map={tex} transparent toneMapped={false} />
+          </mesh>
         );
       })}
 
