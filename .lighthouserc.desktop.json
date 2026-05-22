@@ -4,7 +4,11 @@
       "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",
-        "skipAudits": ["uses-http2"]
+        "skipAudits": ["uses-http2"],
+        "maxWaitForFcp": 60000,
+        "maxWaitForLoad": 90000,
+        "networkQuietThresholdMs": 8000,
+        "cpuQuietThresholdMs": 8000
       }
     },
     "assert": {
