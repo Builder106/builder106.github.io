@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import "./Panel.css";
 
 interface PanelShellProps {
@@ -13,8 +13,19 @@ interface PanelShellProps {
 // reticle-corner brackets, scan-line reveal, and close button so the
 // entrance animation is consistent across the site.
 export function PanelShell({ open, title, onClose, children }: PanelShellProps) {
+  // Set the `inert` DOM property on the root when closed. inert removes
+  // every descendant from focus + the accessibility tree, which fixes
+  // the Lighthouse "aria-hidden=true with focusable descendents" audit
+  // (the close button + the contact-card COPY buttons were tab-reachable
+  // even when the panel was visually hidden). Set via ref because
+  // React 18 doesn't type the inert JSX prop yet (added in React 19).
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (rootRef.current) rootRef.current.inert = !open;
+  }, [open]);
+
   return (
-    <div className={`panel ${open ? "panel--open" : ""}`} role="dialog" aria-hidden={!open}>
+    <div ref={rootRef} className={`panel ${open ? "panel--open" : ""}`} role="dialog" aria-hidden={!open}>
       {/* Brackets sit on the outer wrapper so they aren't clipped by the
           inner box's overflow:hidden + rounded corners. */}
       <span className="panel__bracket panel__bracket--tl" aria-hidden />
