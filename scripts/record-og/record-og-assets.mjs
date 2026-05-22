@@ -134,21 +134,33 @@ async function recordVideo() {
   await page.waitForTimeout(1_500);
   const trimAfterMs = frames.length > 0 ? frames[frames.length - 1].tMs : 0;
 
-  // 2. Click an analyst rack.
+  // One click per cluster — quant, analyst, SWE. OCaml LOB leads
+  // because "~18M orders/sec · p99 < 1µs" is the strongest hook for
+  // a scroll-past viewer. CapitolAlpha and STAIJA round out the
+  // breadth across the three clusters; trading_terminal is dropped
+  // because it isn't a real project.
+  //
+  // Panel dwell is 2.4 s — long enough for the headline + first
+  // line of blurb to read at OG-preview size, short enough that
+  // three clicks still fit a ~16 s window.
+
+  // 2. Quant — OCaml LOB (~18M orders/sec, p99 < 1µs).
+  await dispatchClickByName(page, /OCaml LOB/i);
+  await page.waitForTimeout(2_400);
+  await closeOpenPanel(page);
+  await page.waitForTimeout(1_000);
+
+  // 3. Analyst — CapitolAlpha (+2.58% alpha, p < 0.05).
   await dispatchClickByName(page, /CapitolAlpha/i);
-  await page.waitForTimeout(2_500);
-
-  // 3. Close, settle.
+  await page.waitForTimeout(2_400);
   await closeOpenPanel(page);
-  await page.waitForTimeout(1_500);
+  await page.waitForTimeout(1_000);
 
-  // 4. Click the trading terminal.
-  await dispatchClickByName(page, /trading_terminal/i);
-  await page.waitForTimeout(2_500);
-
-  // 5. Close + final dwell.
+  // 4. SWE — STAIJA (live applicant flow, Nigeria's STEM scholars).
+  await dispatchClickByName(page, /STAIJA/i);
+  await page.waitForTimeout(2_400);
   await closeOpenPanel(page);
-  await page.waitForTimeout(2_500);
+  await page.waitForTimeout(2_000);   // final settle for loop point
 
   await client.send("Page.stopScreencast");
   await context.close();
