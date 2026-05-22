@@ -57,12 +57,25 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     if: needs.deploy.outputs.url != ''
-    # Desktop runs are intrinsically flakier on the headless GitHub
-    # runner (no GPU, WebGL falls back to software rasterizer that
-    # occasionally hits Chrome DevTools Protocol timeouts collecting
-    # response bodies). Keep mobile strict; let desktop fail-soft so
-    # a flake doesn't block deploys. The mobile job is the one we
-    # actually gate on; desktop is a "nice to have a number" signal.
+    # Why mobile is the gate and desktop is fail-soft:
+    #
+    # GitHub Actions runners have no GPU. Chrome M122+ disabled the
+    # SwiftShader software-WebGL fallback by default, so headless
+    # Lighthouse needs explicit chromeFlags (see lighthouserc.desktop.json)
+    # to render the WebGL scene at all. Even with SwiftShader enabled,
+    # the runner has to do all the GPU work on the CPU, which blocks the
+    # main thread for ~5 s during scene boot and tanks TBT + Speed Index
+    # to 0 — a CI-runner artifact, not a real-user signal.
+    #
+    # So: mobile preset's built-in CPU throttling masks the software-
+    # rasterizer cost (everything's slow and expected to be slow) and
+    # produces representative numbers we gate on. Desktop is collected
+    # for the report URL + the GPU-independent metrics (LCP, FCP, CLS,
+    # a11y, best-practices, SEO) which still pass strict assertions in
+    # the desktop config. CPU-bound desktop metrics (perf score, TBT,
+    # Speed Index) are warn-only because the CI runner can't represent
+    # them honestly — real desktop user perf gets measured by Cloudflare
+    # Web Analytics with actual GPUs in the loop.
     continue-on-error: ${{ matrix.profile == 'desktop' }}
     strategy:
       fail-fast: false
