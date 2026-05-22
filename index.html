@@ -4,7 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+    <!-- maximum-scale removed: it blocked pinch-zoom which is an a11y
+         violation. The portrait body is overflow: hidden + touch-
+         action: none so the user can't actually pinch-zoom-scroll the
+         page anyway, but the meta-zoom restriction itself was the
+         audit flag. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Interactive 3D portfolio of Olayinka David Vaughan — quant systems and full-stack engineer at Wesleyan. Trading bots, custom matching engines, shipped products." />
     <meta name="author" content="Olayinka Vaughan" />
     <meta property="og:title" content="Olayinka Vaughan — Quant Systems & Full-Stack Engineer" />

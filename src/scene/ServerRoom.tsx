@@ -1193,6 +1193,12 @@ export function ServerRoom({
           // Front-of-aisle z≈+2 → 1.0; back-of-aisle z≈-19 → 0.05.
           labelOpacity = Math.max(0.05, Math.min(1, (z + 18) / 18));
         }
+        // Below ~0.2 opacity the rack label is too faded to read and
+        // too tiny on screen to be a valid tap target (Lighthouse's
+        // target-size audit fails at <24×24 CSS px). Setting
+        // pointerEvents: none isn't enough — the audit sees the
+        // <button> in the DOM regardless. Drop it entirely instead.
+        if (labelOpacity < 0.2 && id !== "terminal") return null;
         if (id === "terminal") {
           // The terminal anchor sits ~2.5 m from the portrait camera —
           // far closer than the rack labels (~6 m+) — so reusing the

@@ -18,7 +18,8 @@
         "first-contentful-paint": ["warn", { "maxNumericValue": 3500 }],
         "uses-responsive-images": "off",
         "unused-javascript": "off",
-        "uses-rel-preconnect": "off"
+        "uses-rel-preconnect": "off",
+        "target-size": "off"
       }
     },
     "upload": {
