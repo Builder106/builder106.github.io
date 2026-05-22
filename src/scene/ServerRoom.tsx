@@ -1239,24 +1239,39 @@ export function ServerRoom({
         // the front three racks fully readable and fades the back six
         // toward the fog. Landscape always renders at full opacity.
         let labelOpacity = 1;
-        if (isPortrait && id !== "terminal") {
-          // Opacity tracks the camera's current Z, which moves as the
-          // user scrolls down the aisle. SCROLL_CAMERA_START.z = 8.5,
-          // SCROLL_CAMERA_END.z = -16; lerp by progress to get the
-          // camera's current position. Then fade rack labels by their
-          // distance *ahead of* the camera — racks just past the
-          // camera (ahead < -1 m) are hidden, racks 0-3 m ahead are
-          // full opacity, racks 3-10 m ahead fade linearly to zero,
-          // racks > 10 m are hidden. Net effect: only ~3 labels are
-          // visible at any scroll position and the cluster that's
-          // visible cycles quant → swe → analyst as the user scrolls
-          // the camera through the full aisle.
-          const camZ = 8.5 + (-16 - 8.5) * scrollProgress;
+        // Camera Z lerped across the scroll progress, used by both
+        // rack-label and terminal-label opacity. Hoisted here so both
+        // branches below can use it without recomputing.
+        const camZ = 8.5 + (-16 - 8.5) * scrollProgress;
+        // Shared portrait label-opacity rule. Distance-from-camera in
+        // metres, ahead-of-camera positive. Fade in as the camera
+        // approaches (so distanceFactor's 1/distance scaling never
+        // gets to balloon the label when ahead → 0), peak readability
+        // at 2-4 m ahead, fade out beyond. Hidden < 0.5 m ahead
+        // because by then the camera is on top of / past the label,
+        // and the close-pass scale-up looks like a bug.
+        const portraitOpacityForAhead = (ahead: number): number => {
+          if (ahead < 0.5) return 0;
+          if (ahead < 2) return (ahead - 0.5) / 1.5;
+          if (ahead < 4) return 1;
+          if (ahead < 10) return (10 - ahead) / 6;
+          return 0;
+        };
+        if (isPortrait && id === "terminal") {
           const ahead = camZ - anchor.position.z;
-          if (ahead < -1) labelOpacity = 0;
-          else if (ahead < 3) labelOpacity = 1;
-          else if (ahead < 10) labelOpacity = (10 - ahead) / 7;
-          else labelOpacity = 0;
+          labelOpacity = portraitOpacityForAhead(ahead);
+          if (labelOpacity < 0.2) return null;
+        }
+        if (isPortrait && id !== "terminal") {
+          // Same portraitOpacityForAhead curve as the terminal: fade
+          // in as we approach, peak at 2-4 m ahead, fade out beyond
+          // 10 m, hidden once camera passes within 0.5 m. Net effect:
+          // ~3 labels visible at any scroll position, cluster cycles
+          // quant → swe → analyst as the camera scrolls the corridor,
+          // and labels never balloon to 4-5× native size from the
+          // distanceFactor / distance singularity during close-passes.
+          const ahead = camZ - anchor.position.z;
+          labelOpacity = portraitOpacityForAhead(ahead);
         }
         // Below ~0.2 opacity the rack label is too faded to read and
         // too tiny on screen to be a valid tap target. Drop it entirely.
@@ -1275,7 +1290,12 @@ export function ServerRoom({
               position={[0, 2.55, anchor.position.z - 0.7]}
               center
               distanceFactor={terminalDistance}
-              style={{ userSelect: "none" }}
+              style={{
+                userSelect: "none",
+                opacity: labelOpacity,
+                transition: "opacity 220ms ease",
+                pointerEvents: labelOpacity < 0.2 ? "none" : "auto",
+              }}
             >
               <button
                 type="button"
@@ -1290,14 +1310,22 @@ export function ServerRoom({
         }
         const project = projectsById.get(id);
         if (!project) return null;
-        // Portrait centres each label in the aisle (x=0) so it reads as
-        // a label for the *pair* of racks at that depth rather than
-        // floating over the left rack only.
+        // Portrait centres each label in the aisle (x=0) so it reads
+        // as a label for the *pair* of racks at that depth rather than
+        // floating over the left rack only. The label's Z also shifts
+        // 1m back from the anchor (which was authored 1m *in front* of
+        // the rack face) so the label sits directly above the rack
+        // body — otherwise as the camera approaches the anchor, the
+        // label projects to a screen position one rack pair forward
+        // and looks like it's labelling the *next* rack instead.
         const labelX = isPortrait ? 0 : anchor.position.x;
+        const labelZ = isPortrait
+          ? anchor.position.z - 1
+          : anchor.position.z;
         return (
           <Html
             key={id}
-            position={[labelX, anchor.position.y + 1.7, anchor.position.z]}
+            position={[labelX, anchor.position.y + 1.7, labelZ]}
             center
             distanceFactor={labelDistance}
             style={{
