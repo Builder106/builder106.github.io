@@ -1257,7 +1257,6 @@ export function ServerRoom({
               position={[0, 2.55, anchor.position.z - 0.7]}
               center
               distanceFactor={terminalDistance}
-              zIndexRange={[0, 0]}
               style={{ userSelect: "none" }}
             >
               <button
@@ -1283,7 +1282,6 @@ export function ServerRoom({
             position={[labelX, anchor.position.y + 1.7, anchor.position.z]}
             center
             distanceFactor={labelDistance}
-            zIndexRange={[0, 0]}
             style={{
               userSelect: "none",
               opacity: labelOpacity,
