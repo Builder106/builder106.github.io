@@ -2,6 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react
 import { BootSequence } from "./components/BootSequence";
 import { Scene } from "./components/Scene";
 import { HUD } from "./components/HUD";
+import { ScrollHint } from "./components/ScrollHint";
 
 // Panels only render after a click resolves to a target, so they're
 // prime split-points. Named exports get unwrapped into the default
@@ -123,6 +124,7 @@ export function App() {
           {variant === "portrait" && (
             <div className="aisle-scroll-spacer" aria-hidden />
           )}
+          {variant === "portrait" && active.kind === "none" && <ScrollHint />}
           <Suspense fallback={null}>
             <TradingTerminal open={active.kind === "terminal"} onClose={close} />
             <ProjectCard project={activeProject} onClose={close} />

@@ -1,0 +1,68 @@
+.scroll-hint {
+  /* Pinned to the viewport so it doesn't scroll with the page (the
+     spacer that drives AisleScrollRig sits below). Sits at the bottom
+     edge between the desk nameplate (which projects to ~95px from the
+     bottom at the entrance frame) and the PING button corner; the
+     "scroll" word is dropped in favour of just a chevron so the
+     bottom strip stays uncluttered next to the nameplate. */
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  transform: translateX(-50%);
+  z-index: 9;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+
+  pointer-events: none;
+  user-select: none;
+
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(76, 242, 255, 0.45);
+
+  transition: opacity 220ms ease;
+}
+
+.scroll-hint__label {
+  opacity: 0.85;
+}
+
+.scroll-hint__chevron {
+  color: var(--neon-cyan);
+  filter: drop-shadow(0 0 6px rgba(76, 242, 255, 0.6));
+  animation: scroll-hint-bounce 1600ms ease-in-out infinite;
+  /* Row layout — translate the chevron horizontally rather than
+     vertically so the hint rests on a single baseline next to the
+     "scroll" label. */
+}
+
+@keyframes scroll-hint-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(4px);
+    opacity: 1;
+  }
+}
+
+/* Only render the hint on portrait. Landscape has no scroll
+   mechanic — the OrbitControls + click flies own the camera. */
+@media (min-aspect-ratio: 4/5) {
+  .scroll-hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint__chevron {
+    animation: none;
+  }
+}
