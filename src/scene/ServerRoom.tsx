@@ -1078,10 +1078,12 @@ export function ServerRoom({
 
       {/* Infinite floor-tile grid. Renders over the reflective floor
           inside the room and extends out into the fogged void, so the
-          eye reads it as a vast data hall. Skipped on mobile — it's a
-          separate render pass and gets pricey across an infinite
-          fade distance. */}
-      {!isMobile && (
+          eye reads it as a vast data hall. Kept on portrait (per user
+          request — the tiled floor is part of the desktop look) and
+          on non-mobile. Only skipped on landscape *mobile* (phone in
+          landscape orientation) since that combination sees the most
+          floor at once and the grid pass costs the most there. */}
+      {(variant === "portrait" || !isMobile) && (
         <Grid
           position={[0, 0.005, 0]}
           cellSize={1}
