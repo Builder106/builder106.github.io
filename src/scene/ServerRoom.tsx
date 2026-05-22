@@ -19,6 +19,7 @@ import {
 } from "three";
 import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from "./anchors";
 import { resolveClick, type ClickTarget } from "./clickResolver";
+import { aisleScroll } from "./aisleScroll";
 import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
@@ -516,6 +517,15 @@ export function ServerRoom({
   const monitorShaderRef = useRef<(ShaderMaterial & { uniforms: SwarmUniforms }) | null>(null);
   const [hover, setHover] = useState<ClickTarget>(null);
   const [anchorMap, setAnchorMap] = useState<Map<string, SceneAnchor>>(new Map());
+
+  // Track aisle-scroll progress so rack labels can fade based on how
+  // close the camera is to each rack — not a fixed "front 3 racks
+  // only" rule, which was the previous behaviour and only ever showed
+  // the quant cluster. Subscribing here re-renders the label list on
+  // every scroll tick; React handles the 9 Html reconciliations
+  // cheaply.
+  const [scrollProgress, setScrollProgress] = useState(0);
+  useEffect(() => aisleScroll.subscribe(setScrollProgress), []);
 
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
 
@@ -1230,15 +1240,22 @@ export function ServerRoom({
         // toward the fog. Landscape always renders at full opacity.
         let labelOpacity = 1;
         if (isPortrait && id !== "terminal") {
-          const z = anchor.position.z;
-          // Sharp falloff so only the nearest ~3 rack pairs' labels
-          // are visible at any scroll position. Adjacent rack labels
-          // share world y + x and project to overlapping screen slots;
-          // hiding the back ones is the cleanest way to keep the
-          // visible ones from stacking into an unreadable column.
-          // Curve: z=+2 (rack 0) → 1.0; z=-2.6 (rack 1) → 0.62;
-          //        z=-5.2 (rack 2) → 0.24; z=-7.8 (rack 3) → 0 (null).
-          labelOpacity = Math.max(0.05, Math.min(1, (z + 5) / 7));
+          // Opacity tracks the camera's current Z, which moves as the
+          // user scrolls down the aisle. SCROLL_CAMERA_START.z = 8.5,
+          // SCROLL_CAMERA_END.z = -12; lerp by progress to get the
+          // camera's current position. Then fade rack labels by their
+          // distance *ahead of* the camera — racks just past the
+          // camera (ahead < -1 m) are hidden, racks 0-3 m ahead are
+          // full opacity, racks 3-10 m ahead fade linearly to zero,
+          // racks > 10 m are hidden. Net effect: only ~3 labels are
+          // visible at any scroll position and the cluster that's
+          // visible cycles quant → swe → analyst as the user scrolls.
+          const camZ = 8.5 + (-12 - 8.5) * scrollProgress;
+          const ahead = camZ - anchor.position.z;
+          if (ahead < -1) labelOpacity = 0;
+          else if (ahead < 3) labelOpacity = 1;
+          else if (ahead < 10) labelOpacity = (10 - ahead) / 7;
+          else labelOpacity = 0;
         }
         // Below ~0.2 opacity the rack label is too faded to read and
         // too tiny on screen to be a valid tap target. Drop it entirely.
