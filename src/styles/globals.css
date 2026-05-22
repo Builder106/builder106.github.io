@@ -37,32 +37,42 @@ html, body {
 }
 
 /* Portrait scrollytelling: window scroll drives the aisle camera
-   (AisleScrollRig in Scene.tsx). Enable vertical scroll on the page,
-   pin the canvas's wrapper to the viewport so the WebGL container
-   keeps its dimensions (R3F observes the wrapper for sizing — pinning
-   the canvas itself collapses the wrapper to 0×0 and the scene goes
-   dark). The scroll-spacer in App.tsx provides the scrollable distance. */
+   (AisleScrollRig in Scene.tsx). Only the *html* element is scrollable
+   here — making both html and body scrollable triggers an iOS Safari
+   quirk where position-fixed children scroll with the body during
+   momentum scrolling. body + #root pass content through to html with
+   overflow: visible so the spacer can extend the document height. */
 @media (max-aspect-ratio: 4/5) {
-  html, body, #root {
-    height: auto;
-    min-height: 100%;
+  html {
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-  }
-  html, body {
     /* none, not auto — local vertical scroll still works (drives the
        aisle camera) but Chrome's pull-to-refresh + iOS rubber-band
        bounce are suppressed at the top/bottom edges. */
     overscroll-behavior-y: none;
     touch-action: pan-y;
   }
+  body, #root {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+    overscroll-behavior-y: none;
+    touch-action: pan-y;
+  }
   .scene-canvas-wrapper {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
+    /* 100vh fallback for browsers that don't grok dvh; modern browsers
+       use dvh so the wrapper tracks the dynamic viewport (URL bar
+       collapse/expand on iOS Safari). transform: translateZ(0) forces
+       its own compositor layer so iOS doesn't repaint it every frame
+       while the page scrolls underneath. */
     width: 100vw;
+    height: 100vh;
     height: 100dvh;
     z-index: 0;
+    transform: translateZ(0);
   }
   .scene-canvas-wrapper canvas {
     touch-action: pan-y;
