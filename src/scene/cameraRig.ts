@@ -17,7 +17,7 @@ export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0);
 // pitch. We don't need the asymmetric X offset the single-row layout
 // required — the symmetric rack pairs naturally break the look-vector
 // occlusion that flattened the previous static-frame view.
-export const PORTRAIT_CAMERA_POSITION = new Vector3(0, 3.4, 5.5);
+export const PORTRAIT_CAMERA_POSITION = new Vector3(0, 3.4, 8.5);
 export const PORTRAIT_CAMERA_TARGET = new Vector3(0, 0.4, -8.0);
 
 // When flying to a wall-mounted anchor, sit this far back and up from the

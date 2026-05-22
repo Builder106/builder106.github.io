@@ -73,7 +73,12 @@ function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
 // entrance (the PORTRAIT_CAMERA_POSITION baseline); at progress 1 it
 // has walked roughly to the back of the rack column. The rig disables
 // itself while a panel is open so the click-fly rig can take over.
-const SCROLL_CAMERA_START = new Vector3(0, 3.4, 5.5);
+// Camera Z pulled back from the original 5.5 so the trading terminal
+// (anchored at z≈4.2, y≈1) is inside the vertical FOV at the entrance
+// frame. At z=5.5 the desk sat at ~49° below the look-vector — outside
+// the 35° vertical half-FOV. z=8.5 drops the lateral angle to ~19° so
+// the desk reads as a foreground element under the racks.
+const SCROLL_CAMERA_START = new Vector3(0, 3.4, 8.5);
 // End camera sits roughly between racks 5 and 6 of the aisle (rack
 // spacing 2.6m, indexed from z=1). Going further makes the next pair
 // pass behind the camera at >35° lateral angle — outside the narrow
