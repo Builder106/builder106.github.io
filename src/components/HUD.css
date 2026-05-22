@@ -81,12 +81,22 @@
   opacity: 0.5;
 }
 
-.hud__audio {
+/* Bottom-right cluster wraps audio + PING in a flex row. align-items:
+   center vertically centres both children no matter how their
+   individual heights compare. Replaces the two separately-positioned
+   absolute buttons that ended up vertically misaligned. */
+.hud__br-cluster {
   position: absolute;
   pointer-events: auto;
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  /* Sits just left of the PING button. Width ~36px + 8px gap. */
-  right: calc(116px + env(safe-area-inset-right, 0px));
+  right: calc(22px + env(safe-area-inset-right, 0px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hud__audio {
+  pointer-events: auto;
   width: 36px;
   height: 36px;
   display: inline-flex;
@@ -109,10 +119,7 @@
 }
 
 .hud__ping {
-  position: absolute;
   pointer-events: auto;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  right: calc(22px + env(safe-area-inset-right, 0px));
   display: flex;
   align-items: center;
   gap: 8px;

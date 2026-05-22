@@ -1,10 +1,7 @@
 .scroll-hint {
   /* Pinned to the viewport so it doesn't scroll with the page (the
-     spacer that drives AisleScrollRig sits below). Sits at the bottom
-     edge between the desk nameplate (which projects to ~95px from the
-     bottom at the entrance frame) and the PING button corner; the
-     "scroll" word is dropped in favour of just a chevron so the
-     bottom strip stays uncluttered next to the nameplate. */
+     spacer that drives AisleScrollRig sits below). Bottom-centre,
+     above the safe-area inset and clear of the bottom HUD row. */
   position: fixed;
   left: 50%;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
@@ -12,44 +9,38 @@
   z-index: 9;
 
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
 
   pointer-events: none;
   user-select: none;
 
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
   color: var(--neon-cyan);
-  text-shadow: 0 0 10px rgba(76, 242, 255, 0.45);
-
   transition: opacity 220ms ease;
 }
 
-.scroll-hint__label {
-  opacity: 0.85;
-}
-
-.scroll-hint__chevron {
+.scroll-hint__mouse {
   color: var(--neon-cyan);
-  filter: drop-shadow(0 0 6px rgba(76, 242, 255, 0.6));
-  animation: scroll-hint-bounce 1600ms ease-in-out infinite;
-  /* Row layout — translate the chevron horizontally rather than
-     vertically so the hint rests on a single baseline next to the
-     "scroll" label. */
+  filter: drop-shadow(0 0 6px rgba(76, 242, 255, 0.55));
 }
 
-@keyframes scroll-hint-bounce {
+/* Scroll-wheel dot: drifts down inside the mouse outline then resets,
+   suggesting a "wheel turning". transform-box: fill-box keeps the SVG
+   translate relative to the dot's own box rather than the SVG viewport. */
+.scroll-hint__mouse-dot {
+  animation: scroll-hint-wheel 1700ms ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes scroll-hint-wheel {
   0%, 100% {
     transform: translateY(0);
-    opacity: 0.65;
+    opacity: 1;
   }
   50% {
-    transform: translateY(4px);
-    opacity: 1;
+    transform: translateY(8px);
+    opacity: 0.35;
   }
 }
 
@@ -62,7 +53,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scroll-hint__chevron {
+  .scroll-hint__mouse-dot {
     animation: none;
   }
 }

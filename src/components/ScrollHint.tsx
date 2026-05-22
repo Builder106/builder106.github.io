@@ -26,19 +26,26 @@ export function ScrollHint() {
 
   return (
     <div className="scroll-hint" style={{ opacity }} aria-hidden>
-      <span className="scroll-hint__label">scroll</span>
       <svg
-        className="scroll-hint__chevron"
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
+        className="scroll-hint__mouse"
+        viewBox="0 0 24 40"
+        width="22"
+        height="36"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <path d="M6 9l6 6 6-6" />
+        <rect x="2" y="2" width="20" height="36" rx="10" ry="10" />
+        <circle
+          className="scroll-hint__mouse-dot"
+          cx="12"
+          cy="10"
+          r="1.8"
+          fill="currentColor"
+          stroke="none"
+        />
       </svg>
     </div>
   );
