@@ -229,9 +229,15 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
       <OrbitControls
         ref={controlsRef}
         target={orbitTarget.toArray()}
+        // Portrait viewport hands the camera entirely to AisleScrollRig
+        // (window.scrollY → camera position). Leaving OrbitControls'
+        // wheel/zoom enabled lets it swallow mouse-wheel events for
+        // dolly *before* they bubble up to the page, so the user wheels
+        // over the canvas and nothing scrolls. Disable rotate + zoom +
+        // pan so all wheel/touch input falls through to browser scroll.
         enablePan={variant !== "portrait"}
-        enableZoom
-        enableRotate
+        enableZoom={variant !== "portrait"}
+        enableRotate={variant !== "portrait"}
         enableDamping={false}
         // Idle drift speed. On desktop ~1°/s reads as "the camera's
         // alive" without distracting from exploration. On portrait the
