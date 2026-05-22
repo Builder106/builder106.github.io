@@ -1,4 +1,4 @@
-import { useGLTF, useCursor, useTexture, Html, MeshReflectorMaterial, Grid, Stars } from "@react-three/drei";
+import { useGLTF, useCursor, useTexture, Html, MeshReflectorMaterial, Grid, Sparkles, Stars } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -772,8 +772,12 @@ export function ServerRoom({
           and recedes into the fog. Length is along Z so each strip is
           a long tube parallel to the aisle. */}
       {variant === "portrait" && (
-        <group name="aisle-overhead">
-          {Array.from({ length: 10 }).map((_, i) => (
+        <group name="aisle-atmosphere">
+          {/* Overhead fluorescent strips. 16 total — the front 10
+              cover the rack column, the trailing 6 keep going into
+              the fog past the last rack pair so the corridor reads as
+              continuing rather than dead-ending. */}
+          {Array.from({ length: 16 }).map((_, i) => (
             <mesh
               key={`fluo-${i}`}
               position={[
@@ -790,6 +794,50 @@ export function ServerRoom({
               />
             </mesh>
           ))}
+
+          {/* Glowing centre-line strip embedded in the aisle floor.
+              Typical data-centre "walking lane" marker. Lays just
+              above the reflective floor so its reflection adds to
+              the depth read. */}
+          <mesh
+            position={[0, 0.005, -10]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <planeGeometry args={[0.18, 28]} />
+            <meshBasicMaterial
+              color="#4cf2ff"
+              toneMapped={false}
+              transparent
+              opacity={0.55}
+              fog
+            />
+          </mesh>
+
+          {/* Drifting dust in the aisle volume. Subtle cyan motes
+              catching the overhead lights. Speed is low so the
+              animation doesn't compete with the camera motion. */}
+          <Sparkles
+            count={70}
+            size={2.4}
+            speed={0.25}
+            noise={0.4}
+            scale={[5.5, 4, 30]}
+            position={[0, 1.8, -8]}
+            color="#a8eeff"
+            opacity={0.55}
+          />
+
+          {/* Backwall terminus at the end of the corridor — a dim
+              wall with a single cyan accent strip. Anchors the aisle
+              with a destination instead of fading into pure fog. */}
+          <mesh position={[0, 1.8, -22]}>
+            <planeGeometry args={[6, 3.6]} />
+            <meshBasicMaterial color="#0a1422" toneMapped={false} fog />
+          </mesh>
+          <mesh position={[0, 2.6, -21.99]}>
+            <planeGeometry args={[4.4, 0.06]} />
+            <meshBasicMaterial color="#4cf2ff" toneMapped={false} fog />
+          </mesh>
         </group>
       )}
 
