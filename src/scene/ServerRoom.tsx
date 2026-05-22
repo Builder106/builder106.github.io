@@ -1328,10 +1328,15 @@ export function ServerRoom({
         // Use the same rackZ already computed above for opacity, so
         // both opacity and visual position track the same world Z.
         const labelZ = isPortrait ? rackZ : anchor.position.z;
+        // Y-offset: 1.7 m on landscape (label hovers above the wall-
+        // mounted rack as a callout), 1.1 m on portrait (label sits
+        // just above the rack top so it reads as a nameplate for the
+        // rack pair, not as a balloon floating in mid-air over it).
+        const labelY = anchor.position.y + (isPortrait ? 1.1 : 1.7);
         return (
           <Html
             key={id}
-            position={[labelX, anchor.position.y + 1.7, labelZ]}
+            position={[labelX, labelY, labelZ]}
             center
             distanceFactor={labelDistance}
             style={{
