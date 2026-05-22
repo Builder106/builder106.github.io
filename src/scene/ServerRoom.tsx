@@ -1213,7 +1213,13 @@ export function ServerRoom({
         */}
       {!panelOpen && Array.from(anchorMap.entries()).map(([id, anchor]) => {
         const isPortrait = variant === "portrait";
-        const labelDistance = isPortrait ? 5 : 9;
+        // Labels render via drei <Html> with distanceFactor: scale =
+        // distanceFactor / distance-from-camera. Portrait labels share
+        // world y + x at every depth, so adjacent ones project to
+        // near-identical screen slots — the smaller we keep them, the
+        // less they pile up. 3.5 reads as legible at the front of the
+        // aisle without making 2 deep racks' labels collide.
+        const labelDistance = isPortrait ? 3.5 : 9;
         // Depth-based opacity for portrait aisle labels. drei <Html>
         // elements live in DOM, not WebGL, so they don't naturally
         // respect 3D occlusion — without this every rack's label would
@@ -1225,22 +1231,26 @@ export function ServerRoom({
         let labelOpacity = 1;
         if (isPortrait && id !== "terminal") {
           const z = anchor.position.z;
-          // Front-of-aisle z≈+2 → 1.0; back-of-aisle z≈-19 → 0.05.
-          labelOpacity = Math.max(0.05, Math.min(1, (z + 18) / 18));
+          // Sharp falloff so only the nearest ~3 rack pairs' labels
+          // are visible at any scroll position. Adjacent rack labels
+          // share world y + x and project to overlapping screen slots;
+          // hiding the back ones is the cleanest way to keep the
+          // visible ones from stacking into an unreadable column.
+          // Curve: z=+2 (rack 0) → 1.0; z=-2.6 (rack 1) → 0.62;
+          //        z=-5.2 (rack 2) → 0.24; z=-7.8 (rack 3) → 0 (null).
+          labelOpacity = Math.max(0.05, Math.min(1, (z + 5) / 7));
         }
         // Below ~0.2 opacity the rack label is too faded to read and
-        // too tiny on screen to be a valid tap target (Lighthouse's
-        // target-size audit fails at <24×24 CSS px). Setting
-        // pointerEvents: none isn't enough — the audit sees the
-        // <button> in the DOM regardless. Drop it entirely instead.
+        // too tiny on screen to be a valid tap target. Drop it entirely.
         if (labelOpacity < 0.2 && id !== "terminal") return null;
         if (id === "terminal") {
-          // The terminal anchor sits ~2.5 m from the portrait camera —
-          // far closer than the rack labels (~6 m+) — so reusing the
-          // same distanceFactor blows the label up to ~3× the rack
-          // labels. A dedicated factor of 2 keeps it roughly the same
-          // rendered size as the front rack labels.
-          const terminalDistance = isPortrait ? 2 : labelDistance;
+          // Terminal anchor is closer to the camera than the rack
+          // labels (~5 m vs ~7 m), so a smaller distanceFactor keeps
+          // its rendered size in line with the nearest rack label
+          // instead of dwarfing it. 1.4 puts the projected scale at
+          // ~0.28 of native — same ballpark as a rack at the front
+          // of the aisle.
+          const terminalDistance = isPortrait ? 1.4 : labelDistance;
           return (
             <Html
               key={id}
