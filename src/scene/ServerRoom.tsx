@@ -254,12 +254,26 @@ function isRackMesh(name: string, id: string): boolean {
 // authored "room" geometry get hidden — the racks now stand in a fogged
 // void rather than inside the four-walled landscape room, so anything
 // not in the whitelist would float in place of a missing wall.
+//
+// Cable_* meshes are the neon cyan/magenta data-cable runs that arc
+// across the ceiling, floor, and back/left walls of the landscape
+// composition. They're authored at the original landscape coordinates;
+// keeping them on portrait paints them as cables stretched *around*
+// the relocated aisle (above and behind the racks), which matches the
+// desktop wire feel.
+//
+// Keyboard_* is the desk keyboard. The desk moves forward to
+// AISLE_TERMINAL_Z on portrait — its keyboard children inside the
+// group come along automatically. Worth keeping visible so the desk
+// reads as a proper workstation instead of a bare slab.
 function isPortraitKeepMesh(name: string): boolean {
   if (
     name.startsWith("Rack_") ||
     name.startsWith("Screen_") ||
     name.startsWith("StatusLED_") ||
     name.startsWith("BackgroundTower_") ||
+    name.startsWith("Cable_") ||
+    name.startsWith("Keyboard_") ||
     name === "Monitor" ||
     name === "Desk" ||
     name === "Floor" ||
@@ -380,13 +394,17 @@ function applyAisleLayout(scene: Object3D): void {
   if (terminalAnchor) {
     terminalAnchor.getWorldPosition(tmpWorld);
     const termPivot = tmpWorld.clone();
-    // Pre-collect Monitor/Desk before reparenting — calling attach()
-    // splices the node out of its parent's children array, which would
-    // corrupt the traverse iteration if done inline.
+    // Pre-collect Monitor/Desk/Keyboard before reparenting — calling
+    // attach() splices the node out of its parent's children array,
+    // which would corrupt the traverse iteration if done inline.
     const termMeshes: Object3D[] = [];
     scene.traverse((node) => {
       if (!(node instanceof Mesh)) return;
-      if (node.name === "Monitor" || node.name === "Desk") {
+      if (
+        node.name === "Monitor" ||
+        node.name === "Desk" ||
+        node.name.startsWith("Keyboard_")
+      ) {
         termMeshes.push(node);
       }
     });
