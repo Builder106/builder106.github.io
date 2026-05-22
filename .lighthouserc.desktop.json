@@ -8,7 +8,8 @@
         "maxWaitForFcp": 60000,
         "maxWaitForLoad": 90000,
         "networkQuietThresholdMs": 8000,
-        "cpuQuietThresholdMs": 8000
+        "cpuQuietThresholdMs": 8000,
+        "chromeFlags": "--enable-unsafe-swiftshader --use-gl=angle --use-angle=swiftshader --ignore-gpu-blocklist"
       }
     },
     "assert": {
