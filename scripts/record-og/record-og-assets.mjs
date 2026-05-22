@@ -281,16 +281,22 @@ async function captureCard() {
 // --- Drive ------------------------------------------------------------------
 //
 // Filter variants via OG_VARIANT=landscape (or =portrait) for iteration.
+// OG_CARD_ONLY=1 skips the video recording entirely and just refreshes
+// the JPEG card — useful when the scene's static framing has changed
+// but the demo loops haven't.
+const cardOnly = process.env.OG_CARD_ONLY === "1";
 const variantFilter = process.env.OG_VARIANT;
 const variantsToRun = variantFilter
   ? VARIANTS.filter((v) => v.name === variantFilter)
   : VARIANTS;
-if (variantsToRun.length === 0) {
+if (!cardOnly && variantsToRun.length === 0) {
   throw new Error(`OG_VARIANT=${variantFilter} doesn't match any known variant`);
 }
 
-for (const variant of variantsToRun) {
-  await recordVariant(variant);
+if (!cardOnly) {
+  for (const variant of variantsToRun) {
+    await recordVariant(variant);
+  }
 }
 await captureCard();
 console.log("done");

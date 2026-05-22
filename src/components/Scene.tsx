@@ -9,14 +9,25 @@ import {
   DEFAULT_CAMERA_TARGET,
   PORTRAIT_CAMERA_POSITION,
   PORTRAIT_CAMERA_TARGET,
+  defaultCameraTarget,
+  projectCameraTarget,
+  terminalCameraTarget,
   type CameraTarget,
 } from "@/scene/cameraRig";
 import type { ClickTarget } from "@/scene/clickResolver";
 import type { SceneAnchor } from "@/scene/anchors";
 import { useSceneVariant, type SceneVariant } from "@/scene/sceneVariant";
 import { aisleScroll } from "@/scene/aisleScroll";
+import type { ActivePanel } from "@/scene/activePanel";
 import { CameraRig } from "./CameraRig";
 import { useIsMobile } from "./useIsMobile";
+
+// How long to keep lerping the camera toward the active anchor (or
+// default) after a panel-state transition. After this window expires
+// the rig stops fighting OrbitControls and the user can orbit / pan /
+// zoom freely. Roughly matches the ~700 ms convergence of the lerp
+// at SMOOTHING=0.0015.
+const TARGET_SETTLE_MS = 850;
 
 // Per-variant camera framing. Portrait reframes the procedural aisle
 // (racks repositioned in ServerRoom.applyAisleLayout) — camera sits just
@@ -226,11 +237,8 @@ function AisleScrollRig() {
 }
 
 interface SceneProps {
-  cameraTarget: CameraTarget | null;
-  freezeOrbit: boolean;
-  panelOpen: boolean;
+  active: ActivePanel;
   onSelect: (target: ClickTarget) => void;
-  onAnchorsReady: (anchors: Map<string, SceneAnchor>) => void;
 }
 
 // Idle window before the camera begins drifting (ms). Tuned so casual
@@ -241,12 +249,45 @@ interface SceneProps {
 const IDLE_DELAY_DESKTOP_MS = 12_000;
 const IDLE_DELAY_PORTRAIT_MS = 2_500;
 
-export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchorsReady }: SceneProps) {
+export function Scene({ active, onSelect }: SceneProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const isMobile = useIsMobile();
   const variant = useSceneVariant();
   const orbitTarget = variant === "portrait" ? PORTRAIT_CAMERA_TARGET : DEFAULT_CAMERA_TARGET;
   const idleDelayMs = variant === "portrait" ? IDLE_DELAY_PORTRAIT_MS : IDLE_DELAY_DESKTOP_MS;
+
+  // Anchors arrive from ServerRoom (the glb's named empties). Camera
+  // target resolution lives here so App.tsx never has to import the
+  // three.js-dependent cameraRig module — keeps Vector3 + the rest of
+  // three out of the initial bundle.
+  const [anchors, setAnchors] = useState<Map<string, SceneAnchor> | null>(null);
+
+  // Brief window after an active-panel change during which the
+  // camera lerps toward the new target. After it expires, the rig
+  // releases control to OrbitControls (landscape) or AisleScrollRig
+  // (portrait) so the user can drive freely.
+  const [transitioning, setTransitioning] = useState(true);
+  useEffect(() => {
+    setTransitioning(true);
+    const t = window.setTimeout(() => setTransitioning(false), TARGET_SETTLE_MS);
+    return () => window.clearTimeout(t);
+  }, [active]);
+
+  const cameraTarget: CameraTarget | null = useMemo(() => {
+    if (!anchors) return null;
+    if (active.kind === "none" && !transitioning) return null;
+    if (active.kind === "none") return defaultCameraTarget(variant);
+    if (active.kind === "contact") return defaultCameraTarget(variant);
+    if (active.kind === "terminal") {
+      const a = anchors.get("terminal");
+      return a ? terminalCameraTarget(a) : defaultCameraTarget(variant);
+    }
+    const a = anchors.get(active.projectId);
+    return a ? projectCameraTarget(a, variant) : defaultCameraTarget(variant);
+  }, [active, anchors, transitioning, variant]);
+
+  const panelOpen = active.kind !== "none";
+  const freezeOrbit = panelOpen;
 
   // Track whether the user is currently idle. Drift only kicks in after
   // IDLE_DELAY_MS without any orbit/pan/zoom, and only while no panel
@@ -312,7 +353,7 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
       <ResponsiveCamera variant={variant} />
       <Suspense fallback={null}>
         <ServerRoom
-          onAnchorsReady={onAnchorsReady}
+          onAnchorsReady={setAnchors}
           onSelect={onSelect}
           panelOpen={panelOpen}
           isMobile={isMobile}

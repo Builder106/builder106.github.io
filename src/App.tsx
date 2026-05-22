@@ -37,34 +37,14 @@ const ContactPing = lazy(() =>
 // in vite.config.ts — see src/utils/semanticHtml.ts. React doesn't
 // render it on the client; non-JS crawlers see the full content at
 // first byte.
-import {
-  defaultCameraTarget,
-  projectCameraTarget,
-  terminalCameraTarget,
-  type CameraTarget,
-} from "./scene/cameraRig";
-import type { SceneAnchor } from "./scene/anchors";
 import type { ClickTarget } from "./scene/clickResolver";
 import { useSceneVariant } from "./scene/sceneVariant";
 import { projects } from "./data/projects";
-
-type ActivePanel =
-  | { kind: "none" }
-  | { kind: "terminal" }
-  | { kind: "project"; projectId: string }
-  | { kind: "contact" };
-
-// How long to keep lerping the camera toward the active anchor (or
-// default) after a panel-state transition. After this window expires
-// the rig stops fighting OrbitControls and the user can orbit / pan /
-// zoom freely. Roughly matches the ~700ms convergence of the lerp at
-// SMOOTHING=0.0015.
-const TARGET_SETTLE_MS = 850;
+import type { ActivePanel } from "./scene/activePanel";
 
 export function App() {
   const [booted, setBooted] = useState(false);
   const [active, setActive] = useState<ActivePanel>({ kind: "none" });
-  const [anchors, setAnchors] = useState<Map<string, SceneAnchor> | null>(null);
   // Prefetch the heavy Scene chunk the moment App mounts. The
   // BootSequence runs for ~1–2 s, which is normally enough to fully
   // download three.js + drei + the scene module on a half-decent
@@ -79,20 +59,7 @@ export function App() {
   // browser policy, so first interaction is what really kicks it off.
   const [audioEnabled, setAudioEnabled] = useState(true);
   useAisleAudio(booted && audioEnabled);
-  // Drives the "fly back to home" target after a panel closes — portrait
-  // and landscape have different default vantages, so we route the
-  // variant into defaultCameraTarget() below.
   const variant = useSceneVariant();
-  // True only during the brief window after `active` changes; outside
-  // that window cameraTarget becomes null and OrbitControls owns the
-  // camera.
-  const [transitioning, setTransitioning] = useState(true);
-
-  useEffect(() => {
-    setTransitioning(true);
-    const t = setTimeout(() => setTransitioning(false), TARGET_SETTLE_MS);
-    return () => clearTimeout(t);
-  }, [active]);
 
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
 
@@ -110,22 +77,6 @@ export function App() {
     setActive({ kind: "project", projectId: target.projectId });
   }, []);
 
-  const cameraTarget: CameraTarget | null = useMemo(() => {
-    if (!anchors) return null;
-    // Once the post-transition window expires we stop steering the
-    // camera and let OrbitControls own it. Re-engages on the next
-    // active change.
-    if (active.kind === "none" && !transitioning) return null;
-    if (active.kind === "none") return defaultCameraTarget(variant);
-    if (active.kind === "contact") return defaultCameraTarget(variant);
-    if (active.kind === "terminal") {
-      const a = anchors.get("terminal");
-      return a ? terminalCameraTarget(a) : defaultCameraTarget(variant);
-    }
-    const a = anchors.get(active.projectId);
-    return a ? projectCameraTarget(a, variant) : defaultCameraTarget(variant);
-  }, [active, anchors, transitioning, variant]);
-
   const activeProject =
     active.kind === "project" ? projectsById.get(active.projectId) ?? null : null;
 
@@ -138,15 +89,13 @@ export function App() {
               prefetched by the BootSequence-paced effect above. If a
               very slow connection somehow leaves it un-cached, the user
               gets a brief black flash rather than an in-place spinner
-              — preferable to a spinner clashing with the boot aesthetic. */}
+              — preferable to a spinner clashing with the boot aesthetic.
+              Camera target resolution (anchors → CameraTarget) lives
+              inside Scene so App stays out of three.js's dependency
+              tree — keeps Vector3 + the rest of three in the lazy
+              Scene chunk rather than the initial bundle. */}
           <Suspense fallback={null}>
-            <Scene
-              cameraTarget={cameraTarget}
-              freezeOrbit={active.kind !== "none"}
-              panelOpen={active.kind !== "none"}
-              onSelect={handleSelect}
-              onAnchorsReady={setAnchors}
-            />
+            <Scene active={active} onSelect={handleSelect} />
           </Suspense>
           <HUD
             onPing={() => setActive({ kind: "contact" })}

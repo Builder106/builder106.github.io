@@ -57,12 +57,22 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     if: needs.deploy.outputs.url != ''
+    strategy:
+      fail-fast: false
+      # Run mobile + desktop presets in parallel. Each has its own
+      # config file with appropriate thresholds (desktop hardware is
+      # faster so its budgets are stricter). fail-fast: false so a
+      # regression on one preset doesn't suppress the other's report.
+      matrix:
+        profile: [mobile, desktop]
+    name: lighthouse (${{ matrix.profile }})
     steps:
       - uses: actions/checkout@v6
       - uses: treosh/lighthouse-ci-action@12.6.2
         with:
           urls: |
             ${{ needs.deploy.outputs.url }}
-          configPath: ./.lighthouserc.json
+          configPath: ./.lighthouserc.${{ matrix.profile == 'mobile' && 'json' || 'desktop.json' }}
           uploadArtifacts: true
           temporaryPublicStorage: true
+          artifactName: lighthouse-results-${{ matrix.profile }}
