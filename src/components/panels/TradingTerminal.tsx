@@ -7,29 +7,49 @@ interface TradingTerminalProps {
 }
 
 // "Bloomberg-style" data terminal. Bound to the central monitor in the scene.
-// Hosts the quant-cluster projects (IMC Prosperity, Capitol Alpha) plus a
-// stand-in "order book flow" visualization. The visualization is intentionally
-// a CSS-only stand-in until you wire a real particle system.
+// The opening hero is the actual OCaml LOB demo loop — that *is* the
+// trading terminal the panel is named after. The quant-cluster project
+// list sits underneath as a "explore further" surface.
+const OCAML_LOB = projects.find((p) => p.id === "ocaml-lob");
+
 export function TradingTerminal({ open, onClose }: TradingTerminalProps) {
   const quantProjects = projects.filter((p) => p.cluster === "quant");
 
   return (
     <PanelShell open={open} title="// trading_terminal" onClose={onClose}>
-      <section className="panel__section">
-        <div className="panel__section-label">order_book.flow</div>
-        <div className="panel__chart" aria-hidden>
-          {Array.from({ length: 24 }).map((_, i) => (
-            <span
-              key={i}
-              className="panel__bar"
-              style={{
-                height: `${20 + ((Math.sin(i * 0.7) + 1) / 2) * 70}%`,
-                animationDelay: `${i * 60}ms`,
-              }}
-            />
-          ))}
-        </div>
-      </section>
+      {OCAML_LOB?.demo && (
+        <section className="panel__section panel__section--media">
+          <div className="panel__section-label">order_book.flow</div>
+          <video
+            className="panel__hero panel__hero--video"
+            src={OCAML_LOB.demo}
+            poster={OCAML_LOB.image?.replace(/\.png$/, ".webp")}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label="OCaml LOB live order-book demo loop"
+          />
+          {OCAML_LOB.headline && (
+            <p className="panel__headline panel__headline--hero">
+              {OCAML_LOB.headline}
+            </p>
+          )}
+          {OCAML_LOB.links.live && (
+            <div className="panel__links panel__links--cta">
+              <a
+                href={OCAML_LOB.links.live}
+                target="_blank"
+                rel="noreferrer"
+                className="panel__cta-link"
+              >
+                open live terminal →
+              </a>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="panel__section">
         <div className="panel__section-label">projects.quant</div>

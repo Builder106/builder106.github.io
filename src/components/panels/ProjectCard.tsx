@@ -39,7 +39,15 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
       {project && (
         <>
           {(project.demo || project.image) && (
-            <section className="panel__section panel__section--media">
+            <section
+              className="panel__section panel__section--media"
+              style={{ position: "relative" }}
+            >
+              {/* Shimmer placeholder underneath the real media —
+                  prevents the brief blank flash between panel-open
+                  and first-frame-decoded. The video/img above paints
+                  on top once loaded. */}
+              <div className="panel__hero-skeleton" aria-hidden />
               {project.demo ? (
                 <video
                   className="panel__hero panel__hero--video"
@@ -55,6 +63,7 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
                   playsInline
                   preload="metadata"
                   aria-label={`${project.name} demo loop`}
+                  style={{ position: "relative", zIndex: 1 }}
                 />
               ) : (
                 <picture>
@@ -68,6 +77,7 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
                     loading="lazy"
                     decoding="async"
                     className="panel__hero"
+                    style={{ position: "relative", zIndex: 1 }}
                   />
                 </picture>
               )}

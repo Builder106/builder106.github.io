@@ -396,6 +396,70 @@
   text-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
 }
 
+/* Hero variant of the cyan-headline: sits below the demo video in
+   TradingTerminal as the panel's signature stat (e.g. "~18M orders/sec
+   · p99 < 1µs"). Slightly larger and padded to read as a marquee. */
+.panel__headline--hero {
+  font-size: 14px;
+  margin: 14px 22px 0;
+}
+
+/* CTA-shaped variant of the panel__links row: full-width pill style
+   that pops more than a plain text link. Used for "open live terminal"
+   in TradingTerminal. */
+.panel__links--cta {
+  padding: 4px 22px 14px;
+}
+
+.panel__cta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid rgba(76, 242, 255, 0.35);
+  border-radius: 3px;
+  background: rgba(76, 242, 255, 0.06);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--neon-cyan);
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.panel__cta-link:hover,
+.panel__cta-link:focus-visible {
+  background: rgba(76, 242, 255, 0.12);
+  border-color: rgba(76, 242, 255, 0.55);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Skeleton placeholder behind a video / image hero. Prevents the brief
+   blank flash between panel-open and media-load — particularly
+   noticeable on slow mobile connections where preload="metadata"
+   waits for first frame. Sits *behind* the actual hero (lower
+   z-index) so it disappears the moment real pixels paint. */
+.panel__hero-skeleton {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(76, 242, 255, 0.02) 0%,
+      rgba(76, 242, 255, 0.08) 50%,
+      rgba(76, 242, 255, 0.02) 100%
+    );
+  background-size: 200% 100%;
+  animation: panel-skeleton-shimmer 1600ms linear infinite;
+  pointer-events: none;
+}
+
+@keyframes panel-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 @media (max-width: 720px) {
   .panel__section--media {
     margin: -14px -16px 2px;
@@ -405,6 +469,13 @@
   }
   .panel__hero--video {
     max-height: 180px;
+  }
+  .panel__headline--hero {
+    margin: 12px 16px 0;
+    font-size: 13px;
+  }
+  .panel__links--cta {
+    padding: 2px 16px 12px;
   }
 }
 
