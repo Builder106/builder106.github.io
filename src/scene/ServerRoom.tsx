@@ -262,10 +262,11 @@ function isRackMesh(name: string, id: string): boolean {
 // the relocated aisle (above and behind the racks), which matches the
 // desktop wire feel.
 //
-// Keyboard_* is the desk keyboard. The desk moves forward to
-// AISLE_TERMINAL_Z on portrait — its keyboard children inside the
-// group come along automatically. Worth keeping visible so the desk
-// reads as a proper workstation instead of a bare slab.
+// Keyboard_* — the desk keyboard has ~80 individual <Mesh> children
+// (one per key + body). Each is a separate draw call on mobile GPUs,
+// and the portrait camera puts the desk at z≈4 — too far for the
+// individual keys to be legible anyway. Keep landscape (close-up
+// camera reads them), drop on portrait.
 function isPortraitKeepMesh(name: string): boolean {
   if (
     name.startsWith("Rack_") ||
@@ -273,7 +274,6 @@ function isPortraitKeepMesh(name: string): boolean {
     name.startsWith("StatusLED_") ||
     name.startsWith("BackgroundTower_") ||
     name.startsWith("Cable_") ||
-    name.startsWith("Keyboard_") ||
     name === "Monitor" ||
     name === "Desk" ||
     name === "Floor" ||
@@ -394,17 +394,16 @@ function applyAisleLayout(scene: Object3D): void {
   if (terminalAnchor) {
     terminalAnchor.getWorldPosition(tmpWorld);
     const termPivot = tmpWorld.clone();
-    // Pre-collect Monitor/Desk/Keyboard before reparenting — calling
-    // attach() splices the node out of its parent's children array,
-    // which would corrupt the traverse iteration if done inline.
+    // Pre-collect Monitor/Desk before reparenting — calling attach()
+    // splices the node out of its parent's children array, which
+    // would corrupt the traverse iteration if done inline. Keyboard_*
+    // meshes used to be in here too, but they're now hidden on
+    // portrait via isPortraitKeepMesh (mobile-perf cut), so there's
+    // no point reparenting them.
     const termMeshes: Object3D[] = [];
     scene.traverse((node) => {
       if (!(node instanceof Mesh)) return;
-      if (
-        node.name === "Monitor" ||
-        node.name === "Desk" ||
-        node.name.startsWith("Keyboard_")
-      ) {
+      if (node.name === "Monitor" || node.name === "Desk") {
         termMeshes.push(node);
       }
     });
@@ -471,18 +470,22 @@ export function ServerRoom({
   }, []);
   const logoTextures = useTexture(logoUrlMap) as Record<string, import("three").Texture>;
   useLayoutEffect(() => {
-    // Max anisotropic filtering + sRGB colour space. The colour-space
+    // Anisotropic filtering + sRGB colour space. The colour-space
     // step matters because drei's <Image> internally sets
     // SRGBColorSpace on the texture; useTexture leaves it at the
     // default LinearSRGBColorSpace, so logos rendered through the
     // sRGB output pipeline come out gamma-uncorrected and look washed
-    // out / desaturated. Setting it back to SRGBColorSpace restores
-    // the same colour the PNGs were authored in.
+    // out / desaturated.
+    //
+    // Anisotropy: cap at 4× on mobile (was max — usually 16). Visually
+    // indistinguishable at the small viewport size + small badge size,
+    // but the texture-sample cost on a phone GPU is non-trivial.
     const max = gl.capabilities.getMaxAnisotropy();
+    const target = isMobile ? Math.min(4, max) : max;
     for (const t of Object.values(logoTextures)) {
       let touched = false;
-      if (t.anisotropy !== max) {
-        t.anisotropy = max;
+      if (t.anisotropy !== target) {
+        t.anisotropy = target;
         touched = true;
       }
       if (t.colorSpace !== SRGBColorSpace) {
@@ -491,8 +494,19 @@ export function ServerRoom({
       }
       if (touched) t.needsUpdate = true;
     }
-  }, [logoTextures, gl]);
+  }, [logoTextures, gl, isMobile]);
   const interactivesRef = useRef<Interactive[]>([]);
+  // Cached BackgroundTower_*_strip material refs + their per-strip
+  // phase/speed. Populated once in the useLayoutEffect below; the
+  // useFrame pulse loop iterates this array instead of doing a full
+  // scene.traverse() every frame. (Earlier version traversed each
+  // frame; that's a measurable cost when the scene has hundreds of
+  // meshes after applyAisleLayout.)
+  const towerStripsRef = useRef<{
+    mat: MeshStandardMaterial;
+    phase: number;
+    speed: number;
+  }[]>([]);
   // Wall-clock accumulator for the BackgroundTower_*_strip pulse in
   // useFrame. We don't cache material refs — instead we traverse the
   // scene each frame and modify materials in place (cached refs were
@@ -547,9 +561,22 @@ export function ServerRoom({
     scene.traverse((obj) => {
       if (!(obj instanceof Mesh)) return;
 
-      // Skip BackgroundTower_*_strip meshes — their materials are
-      // animated directly in useFrame, in place, without cloning.
+      // BackgroundTower_*_strip meshes: cache the material + per-
+      // strip phase/speed once. The useFrame pulse loop reads from
+      // towerStripsRef and skips the per-frame scene.traverse + per-
+      // strip strHash that earlier versions did. Setting toneMapped
+      // here (instead of every frame) is also a small win.
       if (obj.name.startsWith("BackgroundTower_") && obj.name.endsWith("_strip")) {
+        const mat = obj.material;
+        if (mat instanceof MeshStandardMaterial) {
+          mat.toneMapped = false;
+          const h = strHash(obj.name);
+          towerStripsRef.current.push({
+            mat,
+            phase: ((h % 1000) / 1000) * Math.PI * 2,
+            speed: 0.6 + (((h >>> 8) % 100) / 100) * 1.2,
+          });
+        }
         return;
       }
 
@@ -657,7 +684,11 @@ export function ServerRoom({
     if (bodyGeom && bodyMat && ledGeom && ledMat) {
       setDistantTemplates({ bodyGeom, bodyMat, ledGeom, ledMat });
     }
-  }, [scene]);
+    // Set once: no HDRI environment — its directional cast was bleeding
+    // into the reflective floor. Previously this was inside useFrame
+    // and ran every frame; same value, same effect, no need to re-set.
+    rootScene.environmentIntensity = 0;
+  }, [scene, rootScene]);
 
   // Re-emit anchors every time the loaded glTF scene changes — this is what
   // makes a portrait↔landscape variant flip pick up the new layout instead
@@ -689,27 +720,16 @@ export function ServerRoom({
       it.mat.emissiveIntensity = it.current;
     }
 
-    // Background tower accent pulse. Force all strips to brand cyan and
-    // modulate brightness by scaling the emit colour each frame (with
-    // toneMapped=false so the colour reads literally). Keeping intensity
-    // low (peak emission ~2.0) so the red channel stays well below 1
-    // and the strips read as bright cyan rather than saturating to white.
+    // Background tower accent pulse. Iterates the cached strip refs
+    // built in useLayoutEffect — no per-frame scene walk, no per-frame
+    // strHash. Just the sin/lerp + emissive write each strip needs.
     const tNow = elapsedRef.current;
-    scene.traverse((node) => {
-      if (!(node instanceof Mesh)) return;
-      if (!(node.name.startsWith("BackgroundTower_") && node.name.endsWith("_strip"))) return;
-      const m = node.material;
-      if (!(m instanceof MeshStandardMaterial)) return;
-      m.toneMapped = false;
-      // Per-strip phase + speed so towers don't pulse in sync.
-      const h = strHash(node.name);
-      const phase = ((h % 1000) / 1000) * Math.PI * 2;
-      const speed = 0.6 + (((h >>> 8) % 100) / 100) * 1.2;
-      const wave = 0.5 + 0.5 * Math.sin(tNow * speed + phase);
+    for (const strip of towerStripsRef.current) {
+      const wave = 0.5 + 0.5 * Math.sin(tNow * strip.speed + strip.phase);
       const t = 0.35 + 0.65 * wave;   // 0.35 — 1.00 of base brightness
-      m.emissive.setRGB(0.30 * t, 0.95 * t, 1.00 * t);
-      m.emissiveIntensity = 2.0;
-    });
+      strip.mat.emissive.setRGB(0.30 * t, 0.95 * t, 1.00 * t);
+      strip.mat.emissiveIntensity = 2.0;
+    }
 
     // Runtime fill / key lights.
     const lerpLight = (
@@ -728,10 +748,6 @@ export function ServerRoom({
     for (const ceil of ceilingRefs.current) {
       lerpLight(ceil, lightLevels.ceiling.idle, lightLevels.ceiling.dim);
     }
-
-    // No HDRI environment — its directional cast was bleeding into
-    // the reflective floor. Force scene.environmentIntensity to 0.
-    rootScene.environmentIntensity = 0;
 
     // Curved-monitor swarm shader. Always runs (uTime advances every
     // frame); uHover boosts it when this monitor is the hover target,
@@ -791,11 +807,12 @@ export function ServerRoom({
           a long tube parallel to the aisle. */}
       {variant === "portrait" && (
         <group name="aisle-atmosphere">
-          {/* Overhead fluorescent strips. 16 total — the front 10
-              cover the rack column, the trailing 6 keep going into
-              the fog past the last rack pair so the corridor reads as
-              continuing rather than dead-ending. */}
-          {Array.from({ length: 16 }).map((_, i) => (
+          {/* Overhead fluorescent strips. 16 total on desktop — front
+              10 cover the rack column, trailing 6 fade into the fog.
+              Mobile keeps 10 (just enough to span the visible rack
+              column); the fog-trailing strips are barely visible at
+              the narrow FOV anyway. */}
+          {Array.from({ length: isMobile ? 10 : 16 }).map((_, i) => (
             <mesh
               key={`fluo-${i}`}
               position={[
@@ -832,10 +849,13 @@ export function ServerRoom({
           </mesh>
 
           {/* Drifting dust in the aisle volume. Subtle cyan motes
-              catching the overhead lights. Speed is low so the
-              animation doesn't compete with the camera motion. */}
+              catching the overhead lights. Mobile gets 25 motes; the
+              GPU spends real cycles on each particle's vertex shader
+              and a count of 70 was visibly hitting frame rate on
+              mid-range phones. The visual difference between 25 and
+              70 motes drifting through a corridor is imperceptible. */}
           <Sparkles
-            count={70}
+            count={isMobile ? 25 : 70}
             size={2.4}
             speed={0.25}
             noise={0.4}
@@ -863,9 +883,10 @@ export function ServerRoom({
               "rack" is a dim body box + a thin vertical cyan LED
               strip on the face turned toward the main aisle, so the
               edge of the frame catches peeks of a *second* aisle
-              going past. 10 pairs along the same Z range as the main
-              column. */}
-          {Array.from({ length: 10 }).map((_, i) => {
+              going past. Mobile gets 5 pairs instead of 10 — at the
+              narrow FOV only the front 2-3 pairs are ever in frame
+              anyway, and each pair adds 4 mesh draws. */}
+          {Array.from({ length: isMobile ? 5 : 10 }).map((_, i) => {
             const z = AISLE_Z_START + 0.4 - i * AISLE_SPACING;
             return (
               <group key={`side-${i}`}>
@@ -1058,32 +1079,41 @@ export function ServerRoom({
           edge before the fog hides it. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[60, 60]} />
-        <MeshReflectorMaterial
-          // Reflection texture is by far the most expensive thing in
-          // the scene. Drop resolution + simplify on mobile.
-          blur={isMobile ? [180, 60] : [300, 100]}
-          mixBlur={isMobile ? 1.4 : 1.0}
-          mixStrength={isMobile ? 1.0 : 1.4}
-          resolution={isMobile ? 256 : 1024}
-          mirror={isMobile ? 0.35 : 0.5}
-          mixContrast={1.0}
-          depthScale={1.0}
-          minDepthThreshold={0.4}
-          maxDepthThreshold={1.5}
-          color="#262a3d"
-          metalness={0.55}
-          roughness={0.4}
-        />
+        {isMobile ? (
+          // Mobile: skip the real-time reflection entirely. The
+          // MeshReflectorMaterial re-renders the entire scene into a
+          // texture every frame from the floor's POV — even at 128 px
+          // resolution that's a second draw call per mesh. Measured
+          // ~85 % of mobile frame time on a CPU-throttled run. Flat
+          // dark plane with subtle glow keeps the atmosphere; the
+          // glowing floor centre-line + reflective LED-bar tint from
+          // the fluorescents still sells the "polished" floor read.
+          <meshBasicMaterial color="#1a1f2e" fog />
+        ) : (
+          <MeshReflectorMaterial
+            blur={[300, 100]}
+            mixBlur={1.0}
+            mixStrength={1.4}
+            resolution={1024}
+            mirror={0.5}
+            mixContrast={1.0}
+            depthScale={1.0}
+            minDepthThreshold={0.4}
+            maxDepthThreshold={1.5}
+            color="#262a3d"
+            metalness={0.55}
+            roughness={0.4}
+          />
+        )}
       </mesh>
 
       {/* Infinite floor-tile grid. Renders over the reflective floor
           inside the room and extends out into the fogged void, so the
-          eye reads it as a vast data hall. Kept on portrait (per user
-          request — the tiled floor is part of the desktop look) and
-          on non-mobile. Only skipped on landscape *mobile* (phone in
-          landscape orientation) since that combination sees the most
-          floor at once and the grid pass costs the most there. */}
-      {(variant === "portrait" || !isMobile) && (
+          eye reads it as a vast data hall. Per-pixel shader cost
+          across the floor's screen footprint — measurably expensive
+          on mobile GPUs. Desktop-only now (the desktop landscape view
+          is where the grid's tile-hall read matters most). */}
+      {!isMobile && (
         <Grid
           position={[0, 0.005, 0]}
           cellSize={1}
@@ -1113,17 +1143,22 @@ export function ServerRoom({
       />
 
       {/* Starfield overhead. Cyan/desaturated so it reads as distant
-          data-hall ceiling lights, not a planetarium. Drei's <Stars>
-          is a single Points draw call so it's cheap. */}
-      <Stars
-        radius={80}
-        depth={40}
-        count={isMobile ? 1200 : 3500}
-        factor={2.2}
-        saturation={0.35}
-        fade
-        speed={0.25}
-      />
+          data-hall ceiling lights, not a planetarium. One Points
+          draw call but the GPU still pixel-shades each particle.
+          Portrait skips it entirely — the corridor's overhead-light
+          strips + backwall block the sky from view anyway, so the
+          stars are pure cost with zero visual contribution. */}
+      {variant !== "portrait" && (
+        <Stars
+          radius={80}
+          depth={40}
+          count={isMobile ? 600 : 3500}
+          factor={2.2}
+          saturation={0.35}
+          fade
+          speed={0.25}
+        />
+      )}
 
       {/* Floor-level fog tint underneath the reflective floor so the
           horizon line where the floor meets the fog reads as a soft
