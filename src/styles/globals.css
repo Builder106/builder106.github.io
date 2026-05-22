@@ -50,7 +50,10 @@ html, body {
     overflow-x: hidden;
   }
   html, body {
-    overscroll-behavior-y: auto;
+    /* none, not auto — local vertical scroll still works (drives the
+       aisle camera) but Chrome's pull-to-refresh + iOS rubber-band
+       bounce are suppressed at the top/bottom edges. */
+    overscroll-behavior-y: none;
     touch-action: pan-y;
   }
   .scene-canvas-wrapper {
