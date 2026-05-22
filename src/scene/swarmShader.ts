@@ -46,6 +46,15 @@ const fragmentShader = /* glsl */ `
     return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
   }
 
+  // 5-octave FBM on desktop; 2-octave on mobile. The fine-detail
+  // octaves don't read as separate features at the monitor's screen
+  // size — the per-pixel cost (5 vs 2 vnoise calls) does. Defined
+  // via the MOBILE_QUALITY preprocessor flag set in createSwarmMaterial.
+  #ifdef MOBILE_QUALITY
+  float fbm(vec2 p) {
+    return 0.5 * vnoise(p) + 0.25 * vnoise(p * 2.1);
+  }
+  #else
   float fbm(vec2 p) {
     float v = 0.0;
     float a = 0.5;
@@ -56,6 +65,7 @@ const fragmentShader = /* glsl */ `
     }
     return v;
   }
+  #endif
 
   // 2D Worley / cellular noise. Returns the distance to the nearest
   // jittered cell point in a unit grid, plus the cell's hash for
@@ -150,10 +160,17 @@ export interface SwarmUniforms {
   uBaseColor: { value: Color };
 }
 
-export function createSwarmMaterial(): ShaderMaterial & { uniforms: SwarmUniforms } {
+export function createSwarmMaterial(
+  isMobile: boolean = false,
+): ShaderMaterial & { uniforms: SwarmUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,
     fragmentShader,
+    // Compile-time switch: MOBILE_QUALITY picks the 2-octave FBM
+    // variant in the fragment shader (vs 5 octaves). On a phone GPU
+    // the monitor's screen-area × shader cost was a meaningful slice
+    // of total frame time.
+    defines: isMobile ? { MOBILE_QUALITY: "" } : {},
     uniforms: {
       uTime: { value: 0 },
       uHover: { value: 0 },

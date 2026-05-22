@@ -342,7 +342,11 @@ export function Scene({ active, onSelect }: SceneProps) {
     <Canvas
       // Cap DPR so we don't shade 9x more pixels on a phone. Big perf
       // win on high-DPI screens where 1.5x and 2x already look great.
-      dpr={isMobile ? [1, 1.25] : [1, 1.75]}
+      // DPR cap. Mobile gets 1.0 (was 1.25) — the 1.56× pixel-count
+      // saving from dropping 1.25 → 1.0 is the single biggest GPU
+      // lever for a fillrate-bound WebGL scene on a phone. Slightly
+      // softer rendering, dramatically smoother frames.
+      dpr={isMobile ? 1 : [1, 1.75]}
       // No mesh in this scene actually casts shadows — disable so the
       // shadow-map render pass + texture allocation are skipped.
       shadows={false}

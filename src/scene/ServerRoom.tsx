@@ -619,7 +619,7 @@ export function ServerRoom({
       // M_Monitor material entirely. From here on it's hover-driven
       // through uniforms, not emissionIntensity.
       if (obj.name === "Monitor") {
-        const swarmMat = createSwarmMaterial();
+        const swarmMat = createSwarmMaterial(isMobile);
         obj.material = swarmMat;
         monitorShaderRef.current = swarmMat;
         return;
