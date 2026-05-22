@@ -87,43 +87,48 @@ const SCROLL_CAMERA_END = new Vector3(0, 1.8, -12.0);
 const SCROLL_TARGET_START = new Vector3(0, 0.4, -8.0);
 const SCROLL_TARGET_END = new Vector3(0, 0.6, -22.0);
 
+// Frame-rate-independent smoothing toward the scroll target. At 60 fps
+// with SMOOTHING=0.001 the camera reaches ~95 % of the target distance
+// in ~100 ms, which feels "attached" to the scroll without snapping on
+// mobile's discrete 80–120 px scroll ticks.
+const SCROLL_SMOOTHING = 0.001;
+
 function AisleScrollRig() {
   const { camera } = useThree();
-  const progressRef = useRef(0);
+  // Smoothed camera + look-at vectors, updated each frame with a lerp
+  // toward the scroll-derived target. Reading window.scrollY directly
+  // inside useFrame (rather than via a scroll-event listener writing to
+  // a ref) keeps the rig in sync with whatever value the browser has
+  // *right now*, avoiding the one-frame lag where useFrame runs before
+  // a scroll event has fired.
+  const smoothPos = useRef(new Vector3().copy(SCROLL_CAMERA_START));
+  const smoothLook = useRef(new Vector3().copy(SCROLL_TARGET_START));
+  const targetPos = useRef(new Vector3());
+  const targetLook = useRef(new Vector3());
 
-  useEffect(() => {
-    const update = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      progressRef.current = max > 0
-        ? Math.max(0, Math.min(1, window.scrollY / max))
-        : 0;
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, []);
+  useFrame((_, delta) => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const t = max > 0
+      ? Math.max(0, Math.min(1, window.scrollY / max))
+      : 0;
 
-  useFrame(() => {
-    const t = progressRef.current;
-    camera.position.set(
+    targetPos.current.set(
       MathUtils.lerp(SCROLL_CAMERA_START.x, SCROLL_CAMERA_END.x, t),
       MathUtils.lerp(SCROLL_CAMERA_START.y, SCROLL_CAMERA_END.y, t),
       MathUtils.lerp(SCROLL_CAMERA_START.z, SCROLL_CAMERA_END.z, t),
     );
-    // Direct lookAt instead of routing through OrbitControls.target —
-    // OrbitControls isn't rendered on portrait (its pointerdown handler
-    // calls setPointerCapture on the canvas *before* checking any
-    // enable flags, which kills the browser's default touch-pan-y
-    // scroll), so the rig owns camera orientation outright.
-    camera.lookAt(
+    targetLook.current.set(
       MathUtils.lerp(SCROLL_TARGET_START.x, SCROLL_TARGET_END.x, t),
       MathUtils.lerp(SCROLL_TARGET_START.y, SCROLL_TARGET_END.y, t),
       MathUtils.lerp(SCROLL_TARGET_START.z, SCROLL_TARGET_END.z, t),
     );
+
+    const k = 1 - Math.pow(SCROLL_SMOOTHING, delta);
+    smoothPos.current.lerp(targetPos.current, k);
+    smoothLook.current.lerp(targetLook.current, k);
+
+    camera.position.copy(smoothPos.current);
+    camera.lookAt(smoothLook.current);
   });
 
   return null;
