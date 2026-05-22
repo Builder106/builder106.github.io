@@ -87,11 +87,7 @@ const SCROLL_CAMERA_END = new Vector3(0, 1.8, -12.0);
 const SCROLL_TARGET_START = new Vector3(0, 0.4, -8.0);
 const SCROLL_TARGET_END = new Vector3(0, 0.6, -22.0);
 
-function AisleScrollRig({
-  controlsRef,
-}: {
-  controlsRef: React.RefObject<OrbitControlsImpl | null>;
-}) {
+function AisleScrollRig() {
   const { camera } = useThree();
   const progressRef = useRef(0);
 
@@ -118,15 +114,16 @@ function AisleScrollRig({
       MathUtils.lerp(SCROLL_CAMERA_START.y, SCROLL_CAMERA_END.y, t),
       MathUtils.lerp(SCROLL_CAMERA_START.z, SCROLL_CAMERA_END.z, t),
     );
-    const ctrl = controlsRef.current;
-    if (ctrl) {
-      ctrl.target.set(
-        MathUtils.lerp(SCROLL_TARGET_START.x, SCROLL_TARGET_END.x, t),
-        MathUtils.lerp(SCROLL_TARGET_START.y, SCROLL_TARGET_END.y, t),
-        MathUtils.lerp(SCROLL_TARGET_START.z, SCROLL_TARGET_END.z, t),
-      );
-      ctrl.update();
-    }
+    // Direct lookAt instead of routing through OrbitControls.target —
+    // OrbitControls isn't rendered on portrait (its pointerdown handler
+    // calls setPointerCapture on the canvas *before* checking any
+    // enable flags, which kills the browser's default touch-pan-y
+    // scroll), so the rig owns camera orientation outright.
+    camera.lookAt(
+      MathUtils.lerp(SCROLL_TARGET_START.x, SCROLL_TARGET_END.x, t),
+      MathUtils.lerp(SCROLL_TARGET_START.y, SCROLL_TARGET_END.y, t),
+      MathUtils.lerp(SCROLL_TARGET_START.z, SCROLL_TARGET_END.z, t),
+    );
   });
 
   return null;
@@ -226,66 +223,37 @@ export function Scene({ cameraTarget, freezeOrbit, panelOpen, onSelect, onAnchor
           variant={variant}
         />
       </Suspense>
-      <OrbitControls
-        ref={controlsRef}
-        target={orbitTarget.toArray()}
-        // Portrait viewport hands the camera entirely to AisleScrollRig
-        // (window.scrollY → camera position). Leaving OrbitControls'
-        // wheel/zoom enabled lets it swallow mouse-wheel events for
-        // dolly *before* they bubble up to the page, so the user wheels
-        // over the canvas and nothing scrolls. Disable rotate + zoom +
-        // pan so all wheel/touch input falls through to browser scroll.
-        enablePan={variant !== "portrait"}
-        enableZoom={variant !== "portrait"}
-        enableRotate={variant !== "portrait"}
-        enableDamping={false}
-        // Idle drift speed. On desktop ~1°/s reads as "the camera's
-        // alive" without distracting from exploration. On portrait the
-        // orbit pivot sits inside the aisle, so a full-speed rotate
-        // would sweep the camera through the racks — drift very slowly
-        // and let the azimuth clamp below stop the orbit before it goes
-        // behind the aisle.
-        autoRotate={autoRotate}
-        autoRotateSpeed={variant === "portrait" ? 0.08 : 0.18}
-        minDistance={variant === "portrait" ? 5 : 2.5}
-        maxDistance={variant === "portrait" ? 18 : 28}
-        // Portrait: orbit pivot is inside the aisle (target z=-6).
-        // Restrict azimuth to a narrow ±25° cone so the user can rock
-        // the camera left/right for parallax without ending up behind
-        // the racks looking forward. Polar is clamped above to keep the
-        // first rack from filling the top edge, and below to keep the
-        // camera off the floor.
-        minAzimuthAngle={variant === "portrait" ? -Math.PI * 0.14 : -Infinity}
-        maxAzimuthAngle={variant === "portrait" ?  Math.PI * 0.14 :  Infinity}
-        minPolarAngle={variant === "portrait" ? Math.PI * 0.38 : 0}
-        maxPolarAngle={variant === "portrait" ? Math.PI * 0.52 : Math.PI / 2.05}
-        screenSpacePanning
-        // Touch gesture mapping. Desktop: 1 finger = rotate, 2 fingers
-        // = pan + pinch-zoom. Portrait: single-finger gestures are
-        // *unset* so vertical swipes fall through to the page-level
-        // scroll handler (AisleScrollRig reads window.scrollY and drives
-        // the camera down the aisle). Two-finger pinch still dollies
-        // for power users.
-        touches={
-          variant === "portrait"
-            ? ({ TWO: 2 } as { ONE?: number; TWO?: number })
-            : { ONE: 0, TWO: 2 }
-        }
-        // Mouse mapping: left = orbit, middle = pan, right = pan.
-        mouseButtons={{
-          LEFT: 0 /* THREE.MOUSE.ROTATE */,
-          MIDDLE: 1 /* THREE.MOUSE.DOLLY */,
-          RIGHT: 2 /* THREE.MOUSE.PAN */,
-        }}
-      />
+      {/* Portrait viewport doesn't render OrbitControls at all — its
+          pointerdown handler calls setPointerCapture on the canvas
+          before any enable flag check, which kills the browser's
+          touch-pan-y scroll and the wheel-bubble path that
+          AisleScrollRig depends on. CameraRig has a lookAt fallback
+          when controlsRef.current is null, so click-fly still works
+          for project panels. */}
+      {variant !== "portrait" && (
+        <OrbitControls
+          ref={controlsRef}
+          target={orbitTarget.toArray()}
+          enablePan
+          enableZoom
+          enableRotate
+          enableDamping={false}
+          autoRotate={autoRotate}
+          autoRotateSpeed={0.18}
+          minDistance={2.5}
+          maxDistance={28}
+          maxPolarAngle={Math.PI / 2.05}
+          screenSpacePanning
+          touches={{ ONE: 0, TWO: 2 }}
+          mouseButtons={{ LEFT: 0, MIDDLE: 1, RIGHT: 2 }}
+        />
+      )}
       <CameraRig
         target={cameraTarget}
         controlsRef={controlsRef}
         freeze={freezeOrbit}
       />
-      {variant === "portrait" && !panelOpen && (
-        <AisleScrollRig controlsRef={controlsRef} />
-      )}
+      {variant === "portrait" && !panelOpen && <AisleScrollRig />}
     </Canvas>
     </div>
   );
