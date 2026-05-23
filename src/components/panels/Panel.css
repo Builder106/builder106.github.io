@@ -371,16 +371,17 @@
   display: block;
   width: 100%;
   height: auto;
-  /* All bundled demo recordings ship at 720×450 (8:5). Setting the
-     same ratio on the container so the video renders at its native
+  /* All bundled demo recordings ship at 1440×900 (8:5). Pinning the
+     same ratio on the element so the video renders at its native
      proportions instead of being center-cropped — the previous rule
      used max-height: 240 + object-fit: cover, which kept a ~3:1
      strip in the middle of every demo and lost the bottom two-thirds
      (where the actual interesting UI usually lives). object-fit:
-     contain handles the one outlier (qforge.webm at 691×490, ~4:3)
-     by letterboxing 5–10 px on each side rather than cropping it.
-     Cap at 80vh to keep an unusually tall fallback image from
-     scrolling the whole panel body. */
+     contain handles any future outliers by letterboxing rather than
+     cropping. 1440 is exactly 2× the .panel default width (720 CSS
+     px), so the video is sharp on retina without upscaling. Cap at
+     80vh to keep an unusually tall fallback image from scrolling
+     the whole panel body. */
   aspect-ratio: 8 / 5;
   object-fit: contain;
   object-position: center;
