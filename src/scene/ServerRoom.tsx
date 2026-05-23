@@ -576,15 +576,19 @@ export function ServerRoom({
   // Portrait = 9 slots, one per rack in AISLE_ORDER. Landscape = 3
   // slots, one per cluster. The terminal counts as quant (slot 0)
   // in landscape so the desk lights up with the first wave step.
+  // Keys here MUST match the `hoverKey` format set by hoverKeyForMesh,
+  // which is `project:<id>` for racks and `"terminal"` for the desk
+  // monitor. Storing raw ids was the bug that kept every rack pinned
+  // to the dim target — the lookup missed and waveIntensity stayed 0.
   const slotIndexByKey = useMemo(() => {
     const m = new Map<string, number>();
     if (variant === "portrait") {
-      AISLE_ORDER.forEach((id, i) => m.set(id, i));
+      AISLE_ORDER.forEach((id, i) => m.set(`project:${id}`, i));
     } else {
       const order = ["quant", "swe", "analyst"] as const;
       for (const p of projects) {
         const idx = order.indexOf(p.cluster as typeof order[number]);
-        if (idx >= 0) m.set(p.id, idx);
+        if (idx >= 0) m.set(`project:${p.id}`, idx);
       }
       m.set("terminal", 0);
     }
