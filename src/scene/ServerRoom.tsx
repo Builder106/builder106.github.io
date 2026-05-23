@@ -535,6 +535,59 @@ export function ServerRoom({
   const [scrollProgress, setScrollProgress] = useState(0);
   useEffect(() => aisleScroll.subscribe(setScrollProgress), []);
 
+  // Idle-attractor wave. After IDLE_BEFORE_WAVE_MS of no interaction
+  // (no pointerdown / touch / wheel / keyboard / scroll / panel
+  // change), a soft emissive pulse travels rack-to-rack along the
+  // aisle — sells the "this is a living surface, not a screenshot"
+  // read without screaming for attention. Resets on any real input.
+  // Skipped while a panel is open or while the user is actively
+  // hovering a rack.
+  const IDLE_BEFORE_WAVE_MS = 15_000;
+  const WAVE_RACK_DELAY_S = 0.35;
+  const WAVE_PULSE_DUR_S = 1.2;
+  const WAVE_BOOST = 0.55;
+  const WAVE_TOTAL_S =
+    AISLE_ORDER.length * WAVE_RACK_DELAY_S + WAVE_PULSE_DUR_S + 0.4;
+  const lastInteractionRef = useRef<number>(performance.now());
+  const waveStartRef = useRef<number | null>(null);
+  // Pre-compute index per rack id so the wave loop avoids an O(n)
+  // AISLE_ORDER.indexOf inside the per-material per-frame inner loop.
+  const rackIndexByKey = useMemo(() => {
+    const m = new Map<string, number>();
+    AISLE_ORDER.forEach((id, i) => m.set(id, i));
+    return m;
+  }, []);
+
+  // Universal "user did something" listener. Captures pointer/touch/
+  // key/wheel at the document level, plus aisleScroll progress
+  // changes (touch-swipe-aisle on portrait). Any of these resets the
+  // idle timer and cancels an in-flight wave.
+  useEffect(() => {
+    const onInteract = () => {
+      lastInteractionRef.current = performance.now();
+      waveStartRef.current = null;
+    };
+    document.addEventListener("pointerdown", onInteract);
+    document.addEventListener("touchstart", onInteract, { passive: true });
+    document.addEventListener("keydown", onInteract);
+    document.addEventListener("wheel", onInteract, { passive: true });
+    const unsubScroll = aisleScroll.subscribe(onInteract);
+    return () => {
+      document.removeEventListener("pointerdown", onInteract);
+      document.removeEventListener("touchstart", onInteract);
+      document.removeEventListener("keydown", onInteract);
+      document.removeEventListener("wheel", onInteract);
+      unsubScroll();
+    };
+  }, []);
+
+  // Panel open / close also counts as activity — we don't want the
+  // wave to start mid-panel-read or fire the instant a panel closes.
+  useEffect(() => {
+    lastInteractionRef.current = performance.now();
+    waveStartRef.current = null;
+  }, [panelOpen]);
+
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
 
   // Mobile-adjusted light intensities. We compensate for the dropped
@@ -728,14 +781,59 @@ export function ServerRoom({
     const activeKey = hoverKeyForState(hover);
     elapsedRef.current += delta;
 
-    // Per-emissive-material targets (rack screens).
+    // Idle-attractor wave. Trigger when nothing's happened for
+    // IDLE_BEFORE_WAVE_MS, no panel is open, and the user isn't
+    // hovering anything. Inflight wave clears when total duration
+    // elapses; lastInteractionRef resets so the next idle window
+    // starts counting from "now."
+    const now = performance.now();
+    const idleEnoughForWave =
+      !panelOpen &&
+      !isHovering &&
+      waveStartRef.current === null &&
+      now - lastInteractionRef.current > IDLE_BEFORE_WAVE_MS;
+    if (idleEnoughForWave) {
+      waveStartRef.current = now;
+    }
+    let waveElapsedS = 0;
+    let waveActive = false;
+    if (waveStartRef.current !== null) {
+      waveElapsedS = (now - waveStartRef.current) / 1000;
+      if (waveElapsedS > WAVE_TOTAL_S || panelOpen || isHovering) {
+        // Done (or interrupted). Reset the idle clock so the cycle
+        // doesn't immediately re-trigger.
+        waveStartRef.current = null;
+        lastInteractionRef.current = now;
+      } else {
+        waveActive = true;
+      }
+    }
+
+    // Per-emissive-material targets (rack screens). Hover-state lerp
+    // first, then layer the idle wave on top so the wave reads as an
+    // ambient highlight rather than fighting the hover/dim logic.
     for (const it of interactivesRef.current) {
       let target: number;
       if (it.hoverKey === activeKey) target = it.hover;
       else if (isHovering) target = it.dim;
       else target = it.base;
       it.current += (target - it.current) * k;
-      it.mat.emissiveIntensity = it.current;
+
+      let waveBoost = 0;
+      if (waveActive && it.hoverKey != null) {
+        const idx = rackIndexByKey.get(it.hoverKey);
+        if (idx !== undefined) {
+          const rackElapsed = waveElapsedS - idx * WAVE_RACK_DELAY_S;
+          if (rackElapsed >= 0 && rackElapsed < WAVE_PULSE_DUR_S) {
+            // Smooth sin ramp 0 → 1 → 0 across the pulse window.
+            waveBoost =
+              Math.sin((rackElapsed / WAVE_PULSE_DUR_S) * Math.PI) *
+              WAVE_BOOST *
+              it.base;
+          }
+        }
+      }
+      it.mat.emissiveIntensity = it.current + waveBoost;
     }
 
     // Background tower accent pulse. Iterates the cached strip refs
