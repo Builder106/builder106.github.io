@@ -488,112 +488,356 @@
   }
 }
 
-/* ---------- ContactPing ---------- */
+/* ---------- ContactPing ----------
+ *
+ * Stylised as a terminal "uplink". Layout flow inside the body:
+ *
+ *   identity strip → status pills → contact method cards →
+ *   elsewhere chips → primary/secondary CTAs
+ *
+ * The whole panel uses the cyan accent + terminal-green for the
+ * "online" signal — green = the link is alive, cyan = the rest of
+ * the chrome. No cluster tinting (the contact panel has no cluster).
+ */
 
-.contact__status,
-.contact__list {
-  list-style: none;
+/* Identity strip — green pulsing status dot, name, role. Mirrors the
+   identity treatment on ProjectCard. */
+.contact-identity {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 0;
+  margin: -4px 0 -4px;
+}
+
+.contact-identity__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--terminal-green);
+  padding: 4px 10px;
+  align-self: flex-start;
+  border-radius: 999px;
+  background: rgba(92, 255, 157, 0.08);
+  border: 1px solid rgba(92, 255, 157, 0.3);
 }
 
-.contact__status li,
-.contact__list li {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-}
-
-.contact__status-dot {
+.contact-identity__dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--terminal-green);
   box-shadow: 0 0 8px var(--terminal-green);
-  display: inline-block;
-  margin-right: 6px;
+  animation: contact-dot-pulse 1.8s ease-in-out infinite;
 }
 
-/* Phase 3 of the panel entrance: when the contact panel opens, this dot
- * does a single brighter pulse at ~700ms to punctuate the scan-line
- * completion. After that it stays at its normal glow. */
-.panel--open .contact__status-dot {
-  animation: contact-status-punctuate 520ms ease-out 720ms 1 both;
+@keyframes contact-dot-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%      { opacity: 0.55; transform: scale(0.7); }
 }
 
-@keyframes contact-status-punctuate {
-  0%   { transform: scale(1);   box-shadow: 0 0 8px var(--terminal-green); }
-  35%  { transform: scale(1.6); box-shadow: 0 0 16px var(--terminal-green), 0 0 36px var(--terminal-green); }
-  100% { transform: scale(1);   box-shadow: 0 0 8px var(--terminal-green); }
-}
-
-.contact__status-key,
-.contact__key {
-  flex: 0 0 64px;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-}
-
-.contact__list li a {
+.contact-identity__name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
   color: var(--text-primary);
-  border-bottom: 1px dotted rgba(76, 242, 255, 0.2);
+  margin: 0;
+  letter-spacing: 0.005em;
 }
 
-.contact__list li a:hover {
+.contact-identity__role {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* Three compact pills carrying at-a-glance context. Mirrors the
+   console's pill row visually but plays a different role (status,
+   not toggles). */
+.contact-pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 0;
+}
+
+.contact-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(76, 242, 255, 0.05) 0%,
+    rgba(76, 242, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(76, 242, 255, 0.14);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgba(76, 242, 255, 0.08);
+}
+
+.contact-pill__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.contact-pill__value {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.contact-pill__value--live {
+  font-family: var(--font-mono);
   color: var(--neon-cyan);
-  border-bottom-color: var(--neon-cyan);
-  text-decoration: none;
+  text-shadow: 0 0 8px rgba(76, 242, 255, 0.3);
+  font-variant-numeric: tabular-nums;
 }
 
-.contact__copy {
-  margin-left: auto;
+.contact-pill__unit {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 3px;
+  font-weight: 400;
+  text-shadow: none;
+}
+
+.contact-pill__sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Contact-method cards. Each method is a row with a keyed label
+   (email / phone), the address (clickable), and a copy button.
+   Hovering the row tints the value cyan; clicking it fires the
+   underlying mailto / tel; the copy button is a separate hit target. */
+.contact-methods {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.contact-method {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: rgba(8, 10, 18, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 2px solid rgba(76, 242, 255, 0.35);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.contact-method:hover,
+.contact-method:focus-within {
+  background: rgba(76, 242, 255, 0.06);
+  border-color: rgba(76, 242, 255, 0.22);
+  border-left-color: var(--neon-cyan);
+}
+
+.contact-method__key {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.contact-method__value {
+  color: var(--text-primary);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  word-break: break-all;
+  transition: color 140ms ease, text-shadow 140ms ease;
+}
+
+.contact-method__value:hover,
+.contact-method__value:focus-visible {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(76, 242, 255, 0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+.contact-method__copy {
+  font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  border: 1px solid rgba(107, 113, 136, 0.3);
+  background: rgba(76, 242, 255, 0.04);
+  border: 1px solid rgba(76, 242, 255, 0.22);
+  color: var(--neon-cyan);
   border-radius: 3px;
-  padding: 3px 8px;
-  transition: color 150ms ease, border-color 150ms ease;
-  font-family: var(--font-mono);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
 }
 
-.contact__copy:hover {
-  color: var(--neon-cyan);
-  border-color: var(--neon-cyan);
-}
-
-.contact__cta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
-  border: 1px solid rgba(76, 242, 255, 0.3);
-  background: rgba(76, 242, 255, 0.05);
-  border-radius: 4px;
-  color: var(--neon-cyan);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  letter-spacing: 0.06em;
-  transition: background 150ms ease, border-color 150ms ease;
-}
-
-.contact__cta:hover {
+.contact-method__copy:hover,
+.contact-method__copy:focus-visible {
   background: rgba(76, 242, 255, 0.12);
-  border-color: rgba(76, 242, 255, 0.6);
+  border-color: rgba(76, 242, 255, 0.5);
+  outline: none;
+}
+
+/* Elsewhere chips — outbound social links. Smaller and lower
+   visual weight than the direct methods so email + phone stay the
+   primary read. */
+.contact-elsewhere {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contact-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(76, 242, 255, 0.05);
+  border: 1px solid rgba(76, 242, 255, 0.18);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--neon-cyan);
   text-decoration: none;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
-.contact__cta-prompt {
+.contact-chip:hover,
+.contact-chip:focus-visible {
+  background: rgba(76, 242, 255, 0.12);
+  border-color: rgba(76, 242, 255, 0.5);
+  text-decoration: none;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.contact-chip__arrow {
+  transition: transform 140ms ease;
+}
+
+.contact-chip:hover .contact-chip__arrow,
+.contact-chip:focus-visible .contact-chip__arrow {
+  transform: translateX(3px);
+}
+
+/* CTAs at the bottom. Same primary/secondary pattern as ProjectCard's
+   CTAs but the primary uses terminal-green (matching the uplink
+   "alive" colour) instead of a cluster tint. */
+.contact-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.contact-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  border-radius: 3px;
+  border: 1px solid;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease,
+              box-shadow 150ms ease, transform 150ms ease;
+}
+
+.contact-cta--primary {
+  background: rgba(92, 255, 157, 0.12);
+  border-color: rgba(92, 255, 157, 0.45);
   color: var(--terminal-green);
+  text-shadow: 0 0 6px rgba(92, 255, 157, 0.4);
+  box-shadow:
+    0 0 20px rgba(92, 255, 157, 0.12),
+    inset 0 1px 0 rgba(92, 255, 157, 0.2);
 }
 
-.contact__cta-arrow {
+.contact-cta--primary:hover,
+.contact-cta--primary:focus-visible {
+  background: rgba(92, 255, 157, 0.22);
+  border-color: rgba(92, 255, 157, 0.7);
+  box-shadow:
+    0 0 28px rgba(92, 255, 157, 0.25),
+    inset 0 1px 0 rgba(92, 255, 157, 0.3);
+  text-decoration: none;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.contact-cta--secondary {
+  background: rgba(76, 242, 255, 0.04);
+  border-color: rgba(76, 242, 255, 0.22);
+  color: var(--neon-cyan);
+}
+
+.contact-cta--secondary:hover,
+.contact-cta--secondary:focus-visible {
+  background: rgba(76, 242, 255, 0.10);
+  border-color: rgba(76, 242, 255, 0.5);
+  text-decoration: none;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.contact-cta__prompt {
+  color: var(--terminal-green);
+  text-shadow: 0 0 6px rgba(92, 255, 157, 0.5);
+}
+
+.contact-cta__arrow {
+  transition: transform 150ms ease;
   margin-left: auto;
+}
+
+.contact-cta:hover .contact-cta__arrow,
+.contact-cta:focus-visible .contact-cta__arrow {
+  transform: translateX(3px);
+}
+
+@media (max-width: 720px) {
+  .contact-identity__name {
+    font-size: 18px;
+  }
+  .contact-pill__value {
+    font-size: 13px;
+  }
+  .contact-method {
+    grid-template-columns: 56px 1fr auto;
+    gap: 10px;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+  .contact-cta {
+    padding: 9px 14px;
+    font-size: 11px;
+  }
 }
 
 /* ---------- Project card (ProjectCard panel) ----------
