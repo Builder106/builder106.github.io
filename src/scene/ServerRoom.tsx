@@ -1243,18 +1243,38 @@ export function ServerRoom({
         // rack-label and terminal-label opacity. Hoisted here so both
         // branches below can use it without recomputing.
         const camZ = 8.5 + (-16 - 8.5) * scrollProgress;
-        // Shared portrait label-opacity rule. Distance-from-camera in
-        // metres, ahead-of-camera positive. Fade in as the camera
-        // approaches (so distanceFactor's 1/distance scaling never
-        // gets to balloon the label when ahead → 0), peak readability
-        // at 2-4 m ahead, fade out beyond. Hidden < 0.5 m ahead
-        // because by then the camera is on top of / past the label,
-        // and the close-pass scale-up looks like a bug.
+        // Portrait label-opacity rule. ahead = cameraZ − rackBodyZ;
+        // positive when the rack is in front of the camera, negative
+        // when the camera has scrolled past it.
+        //
+        // Critical constraint: the rack pair sits at x = ±1.5. The
+        // portrait horizontal half-FOV is ~18°, so a rack body's
+        // lateral angle atan(1.5 / ahead) only fits inside the frame
+        // when ahead > 1.5 / tan(18°) ≈ 4.6 m. When the camera is
+        // closer than that, the rack bodies swing off the sides of
+        // the screen, but a label at x = 0 stays anchored in the
+        // centre — which is what produced the user-reported "label
+        // hovering above the wrong rack" effect: OCaml LOB's body was
+        // off-screen lateral while its label was still visible, and
+        // the rack pair the user *did* see was qforge or EconOS one
+        // step further down the aisle.
+        //
+        // So: only show a label when its rack body would itself be
+        // on-screen (ahead > 4.6). Fade-in / peak / fade-out within
+        // that visible window.
+        //
+        //   ahead < 4.6      → 0  (rack body off-screen lateral; no
+        //                         label, since the user can't see the
+        //                         thing it's labelling)
+        //   ahead in [4.6, 7] → fade in 0 → 1
+        //   ahead in [7, 12]  → peak
+        //   ahead in [12, 16] → fade out 1 → 0
+        //   ahead > 16        → 0  (too far)
         const portraitOpacityForAhead = (ahead: number): number => {
-          if (ahead < 0.5) return 0;
-          if (ahead < 2) return (ahead - 0.5) / 1.5;
-          if (ahead < 4) return 1;
-          if (ahead < 10) return (10 - ahead) / 6;
+          if (ahead < 4.6) return 0;
+          if (ahead < 7) return (ahead - 4.6) / 2.4;
+          if (ahead < 12) return 1;
+          if (ahead < 16) return (16 - ahead) / 4;
           return 0;
         };
         // Both opacity and label render-position reference the *rack
