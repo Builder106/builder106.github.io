@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import "./HUD.css";
 
 interface HUDProps {
@@ -11,11 +12,39 @@ interface HUDProps {
   hasExplored: boolean;
 }
 
+// Diagnostic detail dispatched on `ov-idle-tick` by ServerRoom.
+interface IdleTickDetail {
+  idleMs: number;
+  waveActive: boolean;
+  panelOpen: boolean;
+}
+
 // Heads-up display: persistent corner UI that frames the 3D scene.
 // Top-left: identity / "OV" mark. Top-right: nav. Bottom-left:
 // interaction hint (variant per pointer type — see HUD.css). Bottom-
 // right: audio mute + "ping" button (contact entry point).
 export function HUD({ onPing, audioEnabled, onToggleAudio, hasExplored }: HUDProps) {
+  // Temporary diagnostic indicator for the idle-wave debugging. Pulls
+  // the once-per-second tick ServerRoom dispatches and renders a tiny
+  // readout in the bottom of the screen so we can SEE whether the
+  // timer is ticking up to 15 s or being reset by something. Will be
+  // removed once the wave is confirmed working.
+  const [idleTick, setIdleTick] = useState<IdleTickDetail | null>(null);
+  const [waveCount, setWaveCount] = useState(0);
+  useEffect(() => {
+    const onTick = (e: Event) => {
+      const detail = (e as CustomEvent<IdleTickDetail>).detail;
+      if (detail) setIdleTick(detail);
+    };
+    const onFire = () => setWaveCount((n) => n + 1);
+    window.addEventListener("ov-idle-tick", onTick);
+    window.addEventListener("ov-wave-fired", onFire);
+    return () => {
+      window.removeEventListener("ov-idle-tick", onTick);
+      window.removeEventListener("ov-wave-fired", onFire);
+    };
+  }, []);
+
   return (
     <div className={`hud ${hasExplored ? "hud--explored" : ""}`} aria-hidden={false}>
       <div className="hud__corner hud__corner--tl">
@@ -85,6 +114,20 @@ export function HUD({ onPing, audioEnabled, onToggleAudio, hasExplored }: HUDPro
           ping
         </button>
       </div>
+
+      {/* TEMPORARY: idle / wave diagnostic. Shows current idle gap,
+          whether the wave is active, and how many waves have fired
+          since page load. Lets us debug "wave never fires" on real
+          devices without DevTools. */}
+      {idleTick && (
+        <div className="hud__wave-debug">
+          idle {(idleTick.idleMs / 1000).toFixed(1)}s
+          {" · "}
+          waves {waveCount}
+          {idleTick.waveActive && " · active"}
+          {idleTick.panelOpen && " · panel"}
+        </div>
+      )}
     </div>
   );
 }

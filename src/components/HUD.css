@@ -103,6 +103,27 @@
   margin-right: 4px;
 }
 
+/* TEMPORARY diagnostic readout for the idle-wave debugging. Positioned
+   bottom-centre so it doesn't clash with the existing corner clusters;
+   tiny mono text on a translucent backdrop. Remove once the wave is
+   confirmed firing reliably. */
+.hud__wave-debug {
+  position: fixed;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: rgba(76, 242, 255, 0.85);
+  background: rgba(8, 10, 18, 0.75);
+  border: 1px solid rgba(76, 242, 255, 0.25);
+  border-radius: 3px;
+  padding: 2px 8px;
+  z-index: 100;
+}
+
 .hud__hint-sep {
   margin: 0 8px;
   opacity: 0.5;

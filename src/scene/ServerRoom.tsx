@@ -568,6 +568,9 @@ export function ServerRoom({
   const WAVE_BRIGHT_MULTIPLIER = 1.7;
   const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
+  // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
+  // useFrame each time it reaches 60.
+  const waveTickCounterRef = useRef<number>(0);
 
   // Variant-aware "which time slot does this rack fire in?" map.
   // Portrait = 9 slots, one per rack in AISLE_ORDER. Landscape = 3
@@ -598,21 +601,34 @@ export function ServerRoom({
   // key/wheel at the document level, plus aisleScroll progress
   // changes (touch-swipe-aisle on portrait). Any of these resets the
   // idle timer and cancels an in-flight wave.
+  //
+  // Diagnostic: each handler logs which source fired so we can spot
+  // a runaway reset (e.g. a synth event firing every frame) when the
+  // wave never elapses despite no apparent user input.
   useEffect(() => {
-    const onInteract = () => {
+    const reset = (source: string) => {
       lastInteractionRef.current = performance.now();
       waveStartRef.current = null;
+      if (typeof console !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.log("[wave] reset by", source);
+      }
     };
-    document.addEventListener("pointerdown", onInteract);
-    document.addEventListener("touchstart", onInteract, { passive: true });
-    document.addEventListener("keydown", onInteract);
-    document.addEventListener("wheel", onInteract, { passive: true });
-    const unsubScroll = aisleScroll.subscribe(onInteract);
+    const onPointer = () => reset("pointerdown");
+    const onTouch = () => reset("touchstart");
+    const onKey = () => reset("keydown");
+    const onWheel = () => reset("wheel");
+    const onScrollProgress = () => reset("aisleScroll");
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("touchstart", onTouch, { passive: true });
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("wheel", onWheel, { passive: true });
+    const unsubScroll = aisleScroll.subscribe(onScrollProgress);
     return () => {
-      document.removeEventListener("pointerdown", onInteract);
-      document.removeEventListener("touchstart", onInteract);
-      document.removeEventListener("keydown", onInteract);
-      document.removeEventListener("wheel", onInteract);
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("touchstart", onTouch);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("wheel", onWheel);
       unsubScroll();
     };
   }, []);
@@ -622,6 +638,10 @@ export function ServerRoom({
   useEffect(() => {
     lastInteractionRef.current = performance.now();
     waveStartRef.current = null;
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log("[wave] reset by panelOpen change →", panelOpen);
+    }
   }, [panelOpen]);
 
   // Force-fire hook for the hidden `wave` console command. Lets you
@@ -853,6 +873,36 @@ export function ServerRoom({
       now - lastInteractionRef.current > IDLE_BEFORE_WAVE_MS;
     if (idleEnoughForWave) {
       waveStartRef.current = now;
+      // Diagnostic: print to the browser console whenever the wave
+      // actually fires from the idle gate, plus to the on-page event
+      // bus so the idle-debug HUD (HUD.tsx wave indicator) shows the
+      // fire event. Lets us tell apart "idle timer never elapsed" vs
+      // "wave fired but rendered invisibly".
+      if (typeof console !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.log("[wave] idle gate elapsed → firing wave", {
+          idleMs: Math.round(now - lastInteractionRef.current),
+          variant,
+        });
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("ov-wave-fired"));
+      }
+    }
+    // Diagnostic: every 60 frames (~1 s) emit an "idle tick" with
+    // the current gap so the HUD indicator can display it.
+    waveTickCounterRef.current += 1;
+    if (waveTickCounterRef.current >= 60 && typeof window !== "undefined") {
+      waveTickCounterRef.current = 0;
+      window.dispatchEvent(
+        new CustomEvent("ov-idle-tick", {
+          detail: {
+            idleMs: Math.round(now - lastInteractionRef.current),
+            waveActive: waveStartRef.current !== null,
+            panelOpen,
+          },
+        }),
+      );
     }
     let waveElapsedS = 0;
     let waveActive = false;
