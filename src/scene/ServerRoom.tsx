@@ -624,6 +624,22 @@ export function ServerRoom({
     waveStartRef.current = null;
   }, [panelOpen]);
 
+  // Force-fire hook for the hidden `wave` console command. Lets you
+  // verify the visual effect without sitting through the 15 s idle
+  // window — useful for both QA and debugging when the timer-based
+  // path mysteriously doesn't kick in.
+  useEffect(() => {
+    const onForce = () => {
+      waveStartRef.current = performance.now();
+      // Push lastInteractionRef forward so the next idle window
+      // starts counting from when the wave finishes, not from the
+      // moment of the forced fire.
+      lastInteractionRef.current = performance.now();
+    };
+    window.addEventListener("ov-force-wave", onForce);
+    return () => window.removeEventListener("ov-force-wave", onForce);
+  }, []);
+
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
 
   // Mobile-adjusted light intensities. We compensate for the dropped
@@ -818,14 +834,21 @@ export function ServerRoom({
     elapsedRef.current += delta;
 
     // Idle-attractor wave. Trigger when nothing's happened for
-    // IDLE_BEFORE_WAVE_MS, no panel is open, and the user isn't
-    // hovering anything. Inflight wave clears when total duration
-    // elapses; lastInteractionRef resets so the next idle window
-    // starts counting from "now."
+    // IDLE_BEFORE_WAVE_MS and no panel is open. Inflight wave clears
+    // when the total duration elapses; lastInteractionRef resets so
+    // the next idle window starts counting from "now."
+    //
+    // We intentionally do NOT block on `isHovering`. On mobile the
+    // mesh pointerover state can stick (no real "hover off" gesture
+    // on touch), and on desktop a cursor resting over a rack still
+    // counts as hover — blocking on those was preventing the wave
+    // from ever firing in practice. Real input (pointerdown, touch,
+    // wheel, keydown, aisle-scroll, panel toggle) still resets the
+    // idle timer via the document listeners + aisleScroll subscribe
+    // higher up.
     const now = performance.now();
     const idleEnoughForWave =
       !panelOpen &&
-      !isHovering &&
       waveStartRef.current === null &&
       now - lastInteractionRef.current > IDLE_BEFORE_WAVE_MS;
     if (idleEnoughForWave) {
@@ -835,8 +858,8 @@ export function ServerRoom({
     let waveActive = false;
     if (waveStartRef.current !== null) {
       waveElapsedS = (now - waveStartRef.current) / 1000;
-      if (waveElapsedS > WAVE_TOTAL_S || panelOpen || isHovering) {
-        // Done (or interrupted). Reset the idle clock so the cycle
+      if (waveElapsedS > WAVE_TOTAL_S || panelOpen) {
+        // Done (or panel opened). Reset the idle clock so the cycle
         // doesn't immediately re-trigger.
         waveStartRef.current = null;
         lastInteractionRef.current = now;

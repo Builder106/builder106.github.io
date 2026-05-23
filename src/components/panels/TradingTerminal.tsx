@@ -131,6 +131,7 @@ const SECRET_KEYS = [
   "exit",
   "42",
   "matrix",
+  "wave",
   "konami",
   "xyzzy",
   "iddqd",
@@ -178,6 +179,7 @@ const SECRET_TO_ALIASES: Record<string, string[]> = {
   exit:    ["exit", "quit", "q", "bye"],
   "42":    ["42"],
   matrix:  ["matrix"],
+  wave:    ["wave"],
   konami:  ["konami"],
   xyzzy:   ["xyzzy"],
   iddqd:   ["iddqd"],
@@ -585,6 +587,21 @@ export function TradingTerminal({
             { kind: "ok", text: matrixLine() },
             { kind: "ok", text: matrixLine() },
             { kind: "system", text: "wake up, neo." },
+          ];
+
+        case "wave":
+          markSecret("wave");
+          // ServerRoom listens for "ov-force-wave" on window and
+          // triggers the idle-attractor spotlight wave without
+          // waiting for the 15 s idle gate. Lets you confirm the
+          // wave actually fires + visually lands without sitting
+          // through the timer.
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("ov-force-wave"));
+          }
+          return [
+            { kind: "ok", text: "→ idle wave triggered" },
+            { kind: "system", text: "close this panel to see the rack spotlight." },
           ];
 
         case "konami":
