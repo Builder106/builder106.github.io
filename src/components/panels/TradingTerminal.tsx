@@ -339,8 +339,20 @@ export function TradingTerminal({
   // because the input is below the dashboard + repo list; without
   // it the browser scroll-into-views the input and the aisle map
   // ends up clipped above the panel body's scroll region.
+  //
+  // Skipped on touch-primary devices (phones / tablets) so the soft
+  // keyboard doesn't pop the instant the panel opens — the user
+  // might just want to *read* the dashboard. They can still focus
+  // by tapping the input row. Desktop keeps the auto-focus because
+  // "type immediately" is the expected flow there.
   useEffect(() => {
-    if (open) inputRef.current?.focus({ preventScroll: true });
+    if (!open) return;
+    const isTouchPrimary =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(pointer: coarse)").matches;
+    if (!isTouchPrimary) {
+      inputRef.current?.focus({ preventScroll: true });
+    }
   }, [open]);
 
   // Auto-scroll the log to the latest entry whenever it grows.
