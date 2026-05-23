@@ -686,6 +686,33 @@
   100% { transform: translateY(100%); }
 }
 
+/* One-shot widget flash. Applied to the aisle map or a pill when a
+   typed command modifies that widget, so the prompt and dashboard
+   feel visually coupled — type `scroll 0.5` and the aisle map lights
+   up; type `mute` and the audio pill lights up. The animation runs
+   for ~600 ms and removes the class via JS timeout. */
+@keyframes console-widget-flash {
+  0% {
+    border-color: rgba(76, 242, 255, 0.6);
+    box-shadow:
+      0 0 0 1px rgba(76, 242, 255, 0.4),
+      0 0 28px rgba(76, 242, 255, 0.35),
+      inset 0 1px 0 rgba(76, 242, 255, 0.4);
+  }
+  100% {
+    border-color: rgba(76, 242, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(76, 242, 255, 0.08);
+  }
+}
+
+.aisle-map--flash {
+  animation: console-widget-flash 600ms ease-out;
+}
+
+.console-pill--flash {
+  animation: console-widget-flash 600ms ease-out;
+}
+
 /* Aisle map ----------------------------------------------------- */
 
 .aisle-map-section {

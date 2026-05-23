@@ -141,6 +141,63 @@ const SECRET_KEYS = [
   "credits",
 ] as const;
 
+// Visible-command names tab-completion suggests on the first token.
+// Secret commands are kept *out* of this list so Tab can't be used to
+// brute-force discover hidden commands; once a secret has been
+// triggered we add its aliases (see SECRET_TO_ALIASES) so the user
+// can tab-complete back to it on future sessions.
+const VISIBLE_COMMANDS = [
+  "help",
+  "clear",
+  "about",
+  "open",
+  "goto",
+  "home",
+  "end",
+  "scroll",
+  "mute",
+  "unmute",
+  "secrets",
+];
+
+const SECRET_TO_ALIASES: Record<string, string[]> = {
+  whoami:  ["whoami"],
+  ls:      ["ls", "dir"],
+  pwd:     ["pwd"],
+  date:    ["date"],
+  uptime:  ["uptime"],
+  history: ["history"],
+  uname:   ["uname"],
+  sudo:    ["sudo"],
+  rm:      ["rm"],
+  editor:  ["vim", "vi", "emacs", "nano", "ed"],
+  coffee:  ["coffee"],
+  tea:     ["tea"],
+  make:    ["make"],
+  greet:   ["hello", "hi", "hey", "yo"],
+  exit:    ["exit", "quit", "q", "bye"],
+  "42":    ["42"],
+  matrix:  ["matrix"],
+  konami:  ["konami"],
+  xyzzy:   ["xyzzy"],
+  iddqd:   ["iddqd"],
+  ascii:   ["ascii", "logo"],
+  cowsay:  ["cowsay"],
+  fortune: ["fortune"],
+  stats:   ["stats"],
+  credits: ["credits"],
+};
+
+// Second-token completion targets when the first token is `open` or
+// `goto`. Mixes the project ids (the obvious case) with the four
+// special keywords those commands also accept.
+const GOTO_TARGETS = [
+  "contact",
+  "entrance",
+  "end",
+  "terminal",
+];
+
 const SECRETS_STORAGE_KEY = "ov_console_secrets_v1";
 
 function loadDiscoveredSecrets(): Set<string> {
@@ -242,6 +299,41 @@ export function TradingTerminal({
     saveDiscoveredSecrets(discoveredSecrets.current);
   }, []);
 
+  // Heartbeat that increments every 30 s while the panel is open. We
+  // don't read its value anywhere — its only job is to trigger a
+  // re-render so relativeTime() calls (build "Xm ago", repo "Xd ago")
+  // recompute against the new Date.now(). Cheap, runs only while
+  // visible.
+  const [, setHeartbeat] = useState(0);
+  useEffect(() => {
+    if (!open) return;
+    const id = window.setInterval(() => setHeartbeat((t) => t + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, [open]);
+
+  // Which widget should flash this frame. A typed command sets it to
+  // "aisleMap" or "audio", a 600 ms timeout clears it. The chosen
+  // widget renders with the --flash class which runs a one-shot CSS
+  // glow animation, giving the prompt visible coupling to the
+  // dashboard.
+  const [flashedWidget, setFlashedWidget] = useState<"aisleMap" | "audio" | null>(null);
+  const flashTimeoutRef = useRef<number | null>(null);
+  const flashWidget = useCallback((key: "aisleMap" | "audio") => {
+    setFlashedWidget(key);
+    if (flashTimeoutRef.current !== null) {
+      window.clearTimeout(flashTimeoutRef.current);
+    }
+    flashTimeoutRef.current = window.setTimeout(() => {
+      setFlashedWidget(null);
+      flashTimeoutRef.current = null;
+    }, 600);
+  }, []);
+  useEffect(() => {
+    return () => {
+      if (flashTimeoutRef.current !== null) window.clearTimeout(flashTimeoutRef.current);
+    };
+  }, []);
+
   // Auto-focus the prompt when the panel opens — the user almost
   // certainly wants to start typing. `preventScroll: true` matters
   // because the input is below the dashboard + repo list; without
@@ -268,14 +360,10 @@ export function TradingTerminal({
         case "help":
           return [
             { kind: "output", text: "commands:" },
-            { kind: "output", text: "  open <id>      open a project panel by id" },
-            { kind: "output", text: "  goto <target>  contact | entrance | end | <project-id>" },
-            { kind: "output", text: "  home / end     scroll to entrance / far end of aisle" },
-            { kind: "output", text: "  scroll <0..1>  jump to a scroll position" },
-            { kind: "output", text: "  mute / unmute  toggle ambient audio" },
-            { kind: "output", text: "  about          short bio" },
-            { kind: "output", text: "  clear          wipe this log" },
-            { kind: "output", text: "  help           show this list" },
+            { kind: "output", text: "  nav    open <id> | goto <target> | home | end | scroll <0..1>" },
+            { kind: "output", text: "  audio  mute | unmute" },
+            { kind: "output", text: "  meta   about | help | clear | secrets" },
+            { kind: "system", text: "(tab completes commands + project ids. more commands hidden.)" },
           ];
         case "clear":
           return [{ kind: "system", text: "__clear__" }];
@@ -297,10 +385,12 @@ export function TradingTerminal({
           }
           if (arg === "entrance" || arg === "home" || arg === "start") {
             aisleScroll.set(0);
+            flashWidget("aisleMap");
             return [{ kind: "ok", text: "→ scrolling to corridor entrance" }];
           }
           if (arg === "end" || arg === "back") {
             aisleScroll.set(1);
+            flashWidget("aisleMap");
             return [{ kind: "ok", text: "→ scrolling to far end of aisle" }];
           }
           const match = projects.find((p) => p.id === arg);
@@ -312,24 +402,29 @@ export function TradingTerminal({
         }
         case "home":
           aisleScroll.set(0);
+          flashWidget("aisleMap");
           return [{ kind: "ok", text: "→ corridor entrance" }];
         case "end":
           aisleScroll.set(1);
+          flashWidget("aisleMap");
           return [{ kind: "ok", text: "→ far end of aisle" }];
         case "scroll": {
           const n = Number.parseFloat(arg ?? "");
           if (Number.isNaN(n)) return [{ kind: "error", text: "usage: scroll <0..1>" }];
           const clamped = Math.max(0, Math.min(1, n));
           aisleScroll.set(clamped);
+          flashWidget("aisleMap");
           return [{ kind: "ok", text: `→ scrolled to ${(clamped * 100).toFixed(0)}%` }];
         }
         case "mute":
           if (!audioEnabled) return [{ kind: "system", text: "audio is already muted." }];
           onToggleAudio();
+          flashWidget("audio");
           return [{ kind: "ok", text: "→ audio muted" }];
         case "unmute":
           if (audioEnabled) return [{ kind: "system", text: "audio is already on." }];
           onToggleAudio();
+          flashWidget("audio");
           return [{ kind: "ok", text: "→ audio unmuted" }];
 
         // ─── Hidden commands (Easter eggs) ─────────────────────────
@@ -577,7 +672,7 @@ export function TradingTerminal({
           return [{ kind: "error", text: `unknown command '${c}'. type 'help'.` }];
       }
     },
-    [audioEnabled, onClose, onNavigate, onToggleAudio, markSecret],
+    [audioEnabled, onClose, onNavigate, onToggleAudio, markSecret, flashWidget],
   );
 
   const handleSubmit = (e: FormEvent) => {
@@ -595,18 +690,94 @@ export function TradingTerminal({
     setLog((prev) => [...prev, { kind: "input", text: value }, ...outputs]);
   };
 
+  // Tab-cycle state. When the user hits Tab and the input has multiple
+  // matching completions, we lock in the candidate list + which one
+  // we're showing; further Tabs cycle through. *Any* non-Tab keypress
+  // invalidates the cycle so a fresh prefix recomputes from scratch.
+  const tabCycle = useRef<{ candidates: string[]; index: number } | null>(null);
+
+  // Build the live completion set: visible commands always, plus the
+  // alias-set for any secret command the user has discovered before.
+  const completionCommands = useCallback((): string[] => {
+    const discovered: string[] = [];
+    for (const key of discoveredSecrets.current) {
+      const aliases = SECRET_TO_ALIASES[key];
+      if (aliases) discovered.push(...aliases);
+    }
+    return [...new Set([...VISIBLE_COMMANDS, ...discovered])].sort();
+  }, []);
+
+  const handleTab = useCallback(() => {
+    const value = input;
+    const parts = value.split(/\s+/);
+    const lastPart = (parts[parts.length - 1] ?? "").toLowerCase();
+    const prefix = parts.slice(0, -1).join(" ");
+    const firstWord = parts[0]?.toLowerCase() ?? "";
+
+    // Choose the completion namespace based on cursor position.
+    let pool: string[];
+    if (parts.length === 1) {
+      // First token — match against commands.
+      pool = completionCommands();
+    } else if (firstWord === "open" || firstWord === "goto") {
+      // Second token of nav commands — project ids + special targets.
+      pool = [...AISLE_ORDER, ...GOTO_TARGETS].sort();
+    } else {
+      return;
+    }
+
+    const candidates = pool.filter((c) => c.startsWith(lastPart));
+    if (candidates.length === 0) {
+      tabCycle.current = null;
+      return;
+    }
+
+    // If we already have a cycle going AND the current input is the
+    // last candidate we typed in, advance to the next one.
+    if (
+      tabCycle.current &&
+      tabCycle.current.candidates.length === candidates.length &&
+      tabCycle.current.candidates.every((c, i) => c === candidates[i])
+    ) {
+      const next = (tabCycle.current.index + 1) % candidates.length;
+      tabCycle.current.index = next;
+      const completion = candidates[next];
+      setInput(prefix ? `${prefix} ${completion}` : completion);
+      return;
+    }
+
+    // Fresh completion. Show first candidate; if there's only one and
+    // it matches exactly already, no-op.
+    tabCycle.current = { candidates, index: 0 };
+    const completion = candidates[0];
+    setInput(prefix ? `${prefix} ${completion}` : completion);
+  }, [completionCommands, input]);
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      handleTab();
+      return;
+    }
     if (e.key === "ArrowUp") {
       e.preventDefault();
+      tabCycle.current = null;
       const next = Math.min(historyCursor.current + 1, inputHistory.current.length - 1);
       historyCursor.current = next;
       if (next >= 0) setInput(inputHistory.current[next] ?? "");
-    } else if (e.key === "ArrowDown") {
+      return;
+    }
+    if (e.key === "ArrowDown") {
       e.preventDefault();
+      tabCycle.current = null;
       const next = Math.max(historyCursor.current - 1, -1);
       historyCursor.current = next;
       setInput(next === -1 ? "" : inputHistory.current[next] ?? "");
+      return;
     }
+    // Any other key invalidates the tab cycle so the next Tab
+    // recomputes against the edited prefix.
+    tabCycle.current = null;
   };
 
   // Derive repo activity rows: project → repoStats joined on the
@@ -676,7 +847,10 @@ export function TradingTerminal({
       variantClass="panel--console"
     >
       <section className="panel__section aisle-map-section">
-        <div className="aisle-map" aria-label={`Aisle position: ${Math.round(progress * 100)}%`}>
+        <div
+          className={`aisle-map ${flashedWidget === "aisleMap" ? "aisle-map--flash" : ""}`}
+          aria-label={`Aisle position: ${Math.round(progress * 100)}%`}
+        >
           <header className="aisle-map__header">
             <span className="aisle-map__title">aisle_map</span>
             <span className="aisle-map__progress" aria-live="polite">
@@ -762,7 +936,11 @@ export function TradingTerminal({
             <div className="console-pill__meta">{relativeTime(BUILD_TIMESTAMP)}</div>
           </div>
 
-          <div className="console-pill console-pill--audio">
+          <div
+            className={`console-pill console-pill--audio ${
+              flashedWidget === "audio" ? "console-pill--flash" : ""
+            }`}
+          >
             <div className="console-pill__header">
               <span className="console-pill__title">audio</span>
               <span
