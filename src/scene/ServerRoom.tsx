@@ -931,15 +931,34 @@ export function ServerRoom({
       }
     }
 
-    // TEMP DIAGNOSTIC: when the wave is active, slam every interactive
-    // screen to a known-high emissive intensity directly (no lerp, no
-    // per-slot math). If we still see no visual change with this in
-    // place, the bug is in the material → mesh binding, not in the
-    // wave math. If everything goes blindingly bright together but the
-    // sweep is invisible, the bug is in slotIndexByKey / per-slot.
+    // TEMP DIAGNOSTIC: when the wave is active, traverse the actual
+    // rendered scene and slam every M_Screen material to a known-high
+    // emissive intensity. Decouples from interactivesRef entirely — if
+    // this still produces no visible change, the wave-active block
+    // isn't being reached at all. Also dumps the names we observe on
+    // the very first wave frame so we can see what Three.js actually
+    // exposes (vs. what the glb JSON says).
     if (waveActive) {
+      let touched = 0;
+      const sample: string[] = [];
+      scene.traverse((obj) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const m = (obj as any).material;
+        if (m && m.isMeshStandardMaterial && m.name === "M_Screen") {
+          m.emissive.setRGB(1, 1, 1);
+          m.emissiveIntensity = 12.0;
+          touched++;
+          if (sample.length < 12) sample.push(obj.name);
+        }
+      });
+      // Log only on the first frame of each wave so we don't spam.
+      if (waveElapsedS < 0.05 && typeof console !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.log("[wave] brute-force traversal touched", touched, "M_Screen meshes:", sample);
+      }
+      // Also still write through interactivesRef so we can compare.
       for (const it of interactivesRef.current) {
-        it.mat.emissiveIntensity = 8.0;
+        it.mat.emissiveIntensity = 12.0;
       }
     } else {
       // Per-emissive-material targets (rack screens). The wave takes
