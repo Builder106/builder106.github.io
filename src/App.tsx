@@ -65,6 +65,31 @@ export function App() {
 
   const close = useCallback(() => setActive({ kind: "none" }), []);
 
+  // First-time-interaction signal for the HUD's "tap a rack" hint.
+  // Persisted to localStorage so returning visitors don't see the
+  // hint again on repeat sessions. Flips on the first real selection
+  // (project / terminal / contact panel opens).
+  const HAS_EXPLORED_KEY = "ov_has_explored_v1";
+  const [hasExplored, setHasExplored] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return window.localStorage.getItem(HAS_EXPLORED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const markExplored = useCallback(() => {
+    setHasExplored((prev) => {
+      if (prev) return prev;
+      try {
+        window.localStorage.setItem(HAS_EXPLORED_KEY, "1");
+      } catch {
+        /* quota / private-mode failures are non-fatal */
+      }
+      return true;
+    });
+  }, []);
+
   // Suppress null-selects (Canvas onPointerMissed) that fire in the
   // same micro-window as a fresh non-null select. The label-button
   // path and Canvas's pointerup-missed path both feed handleSelect,
@@ -81,12 +106,13 @@ export function App() {
       setActive({ kind: "none" });
       return;
     }
+    markExplored();
     if (target.kind === "terminal") {
       setActive({ kind: "terminal" });
       return;
     }
     setActive({ kind: "project", projectId: target.projectId });
-  }, []);
+  }, [markExplored]);
 
   const activeProject =
     active.kind === "project" ? projectsById.get(active.projectId) ?? null : null;
@@ -109,9 +135,13 @@ export function App() {
             <Scene active={active} onSelect={handleSelect} />
           </Suspense>
           <HUD
-            onPing={() => setActive({ kind: "contact" })}
+            onPing={() => {
+              markExplored();
+              setActive({ kind: "contact" });
+            }}
             audioEnabled={audioEnabled}
             onToggleAudio={() => setAudioEnabled((v) => !v)}
+            hasExplored={hasExplored}
           />
           {variant === "portrait" && active.kind === "none" && <ScrollHint />}
           <Suspense fallback={null}>

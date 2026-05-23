@@ -65,6 +65,33 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  /* Fade the whole hint area on a slight delay once the user has
+     interacted with anything — they've clearly figured it out, the
+     hint just adds visual noise from there on out. */
+  transition: opacity 350ms ease-out 220ms;
+}
+
+.hud--explored .hud__corner--bl {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Two hint variants live side by side in the DOM; show the one that
+   matches the user's primary pointer type. Fine pointer (mouse) sees
+   "drag to orbit · click a node"; coarse pointer (touch) sees the
+   tap-focused copy that calls out the interactivity affordance racks
+   don't otherwise telegraph on a phone. */
+.hud__hint {
+  display: none;
+  align-items: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hud__hint--fine { display: inline-flex; }
+}
+
+@media (pointer: coarse), (hover: none) {
+  .hud__hint--coarse { display: inline-flex; }
 }
 
 .hud__hint-key {
@@ -173,10 +200,17 @@
   .hud__nav {
     gap: 12px;
   }
-  /* Drag-to-orbit hint is desktop-specific; touch users discover by
-     trying. Hide on small screens to free up bottom-left. */
+  /* The coarse-pointer variant of the bottom-left hint is now the
+     "tap a rack" affordance — kept visible on mobile (was hidden
+     entirely before) because phones have no equivalent of the
+     desktop hover/cursor cue that says "this is clickable". Sized
+     down so it doesn't crowd the bottom-right ping cluster. */
   .hud__corner--bl {
-    display: none;
+    padding: 10px 12px;
+    font-size: 9px;
+  }
+  .hud__hint-key {
+    padding: 1px 5px;
   }
   .hud__ping {
     bottom: 12px;

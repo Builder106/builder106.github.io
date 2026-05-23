@@ -4,14 +4,20 @@ interface HUDProps {
   onPing: () => void;
   audioEnabled: boolean;
   onToggleAudio: () => void;
+  // Whether the user has interacted with any rack / terminal / ping
+  // target yet. Once true, the bottom-left "tap a rack" hint fades
+  // — they've figured it out. Persisted to localStorage in App so
+  // returning visitors don't see the hint on repeat sessions.
+  hasExplored: boolean;
 }
 
 // Heads-up display: persistent corner UI that frames the 3D scene.
-// Top-left: identity / "OV" mark. Top-right: nav. Bottom-left: hint.
-// Bottom-right: audio mute + "ping" button (contact entry point).
-export function HUD({ onPing, audioEnabled, onToggleAudio }: HUDProps) {
+// Top-left: identity / "OV" mark. Top-right: nav. Bottom-left:
+// interaction hint (variant per pointer type — see HUD.css). Bottom-
+// right: audio mute + "ping" button (contact entry point).
+export function HUD({ onPing, audioEnabled, onToggleAudio, hasExplored }: HUDProps) {
   return (
-    <div className="hud" aria-hidden={false}>
+    <div className={`hud ${hasExplored ? "hud--explored" : ""}`} aria-hidden={false}>
       <div className="hud__corner hud__corner--tl">
         <div className="hud__mark">&lt;OV /&gt;</div>
         <div className="hud__sub">Olayinka David Vaughan</div>
@@ -29,12 +35,24 @@ export function HUD({ onPing, audioEnabled, onToggleAudio }: HUDProps) {
         </a>
       </nav>
 
+      {/* Bottom-left interaction hint. Two variants are rendered side
+          by side but only one is visible at a time — fine-pointer
+          (mouse) sees the orbit + click line, coarse-pointer (touch)
+          sees the "tap a rack" line. CSS picks via (hover: hover)
+          and (pointer: coarse). Fades to invisible once hasExplored
+          flips, since the user clearly figured it out. */}
       <div className="hud__corner hud__corner--bl">
-        <span className="hud__hint-key">drag</span>
-        <span> to orbit</span>
-        <span className="hud__hint-sep">·</span>
-        <span className="hud__hint-key">click</span>
-        <span> a node</span>
+        <span className="hud__hint hud__hint--fine">
+          <span className="hud__hint-key">drag</span>
+          <span> to orbit</span>
+          <span className="hud__hint-sep">·</span>
+          <span className="hud__hint-key">click</span>
+          <span> a node</span>
+        </span>
+        <span className="hud__hint hud__hint--coarse">
+          <span className="hud__hint-key">tap</span>
+          <span> any rack to explore</span>
+        </span>
       </div>
 
       {/* Bottom-right cluster. Flex parent guarantees both children's
