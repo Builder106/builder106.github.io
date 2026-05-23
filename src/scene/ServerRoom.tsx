@@ -895,63 +895,6 @@ export function ServerRoom({
             <meshBasicMaterial color="#4cf2ff" toneMapped={false} fog />
           </mesh>
 
-          {/* Side ambience: parallel background rack columns at
-              x=±3.2 — slightly outside the main aisle pair, visible
-              at the lateral edges of the narrow portrait FOV. Each
-              "rack" is a dim body box + a thin vertical cyan LED
-              strip on the face turned toward the main aisle, so the
-              edge of the frame catches peeks of a *second* aisle
-              going past. Mobile gets 5 pairs instead of 10 — at the
-              narrow FOV only the front 2-3 pairs are ever in frame
-              anyway, and each pair adds 4 mesh draws. */}
-          {Array.from({ length: isMobile ? 5 : 10 }).map((_, i) => {
-            const z = AISLE_Z_START + 0.4 - i * AISLE_SPACING;
-            // The dark box at x=±3.25 is 0.5 m wide, so its corridor-
-            // facing front face sits at x=±3.0. Originally the cyan
-            // LED plane was *also* at x=±3.0 — coplanar with the box
-            // face — which flickers as Z-fighting on mobile GPUs (the
-            // depth buffer there is typically lower precision and
-            // can't decide which surface is in front frame to frame).
-            // Push the plane 0.01 m further into the aisle so it's
-            // unambiguously in front of the box. Desktop never saw the
-            // flicker because of its higher-precision depth buffer.
-            const LED_OFFSET = 0.01;
-            return (
-              <group key={`side-${i}`}>
-                {/* left-side parallel rack */}
-                <mesh position={[-3.25, 1.0, z]}>
-                  <boxGeometry args={[0.5, 1.95, 1.25]} />
-                  <meshBasicMaterial color="#0a1422" toneMapped={false} fog />
-                </mesh>
-                <mesh position={[-3.0 + LED_OFFSET, 1.0, z]} rotation={[0, Math.PI / 2, 0]}>
-                  <planeGeometry args={[0.9, 1.4]} />
-                  <meshBasicMaterial
-                    color="#4cf2ff"
-                    toneMapped={false}
-                    transparent
-                    opacity={0.35}
-                    fog
-                  />
-                </mesh>
-                {/* mirrored right-side parallel rack */}
-                <mesh position={[3.25, 1.0, z]}>
-                  <boxGeometry args={[0.5, 1.95, 1.25]} />
-                  <meshBasicMaterial color="#0a1422" toneMapped={false} fog />
-                </mesh>
-                <mesh position={[3.0 - LED_OFFSET, 1.0, z]} rotation={[0, -Math.PI / 2, 0]}>
-                  <planeGeometry args={[0.9, 1.4]} />
-                  <meshBasicMaterial
-                    color="#4cf2ff"
-                    toneMapped={false}
-                    transparent
-                    opacity={0.35}
-                    fog
-                  />
-                </mesh>
-              </group>
-            );
-          })}
-
         </group>
       )}
 
