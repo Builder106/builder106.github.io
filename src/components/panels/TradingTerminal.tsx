@@ -85,16 +85,27 @@ function relativeTime(iso: string): string {
   return `${Math.floor(mo / 12)}y ago`;
 }
 
-type LogEntry = { kind: "input" | "output" | "system"; text: string };
-
-const INITIAL_LOG: LogEntry[] = [
-  { kind: "system", text: "control console online." },
-  { kind: "system", text: "type 'help' for command list." },
-];
+type LogEntry = {
+  kind: "input" | "output" | "system" | "error" | "ok" | "banner";
+  text: string;
+};
 
 const SHORT_SHA = __BUILD_SHA__;
 const BUILD_MESSAGE = __BUILD_MESSAGE__;
 const BUILD_TIMESTAMP = __BUILD_TIMESTAMP__;
+
+// Initial console contents. A tiny ASCII glyph mark on the first line
+// signals "this isn't just a chat box" the moment the panel opens; the
+// build / boot lines below give the user something to *read* before
+// they start typing instead of a near-empty void with one hint line.
+const INITIAL_LOG: LogEntry[] = [
+  { kind: "banner", text: " ╭─◇ control_console ◇─╮" },
+  { kind: "banner", text: " │  ov @ portfolio    │" },
+  { kind: "banner", text: " ╰────────────────────╯" },
+  { kind: "system", text: `boot: build ${SHORT_SHA}` },
+  { kind: "system", text: "audio synth + aisleScroll attached." },
+  { kind: "system", text: "ready. type 'help' for commands." },
+];
 
 export function TradingTerminal({
   open,
@@ -169,52 +180,52 @@ export function TradingTerminal({
           ];
         case "open":
         case "goto": {
-          if (!arg) return [{ kind: "output", text: "usage: open <project-id> | contact | entrance | end" }];
+          if (!arg) return [{ kind: "error", text: "usage: open <project-id> | contact | entrance | end" }];
           if (arg === "contact" || arg === "ping") {
             onNavigate({ kind: "contact" });
-            return [{ kind: "output", text: "→ opening contact panel" }];
+            return [{ kind: "ok", text: "→ opening contact panel" }];
           }
           if (arg === "terminal" || arg === "console") {
-            return [{ kind: "output", text: "already in the control console." }];
+            return [{ kind: "system", text: "already in the control console." }];
           }
           if (arg === "entrance" || arg === "home" || arg === "start") {
             aisleScroll.set(0);
-            return [{ kind: "output", text: "→ scrolling to corridor entrance" }];
+            return [{ kind: "ok", text: "→ scrolling to corridor entrance" }];
           }
           if (arg === "end" || arg === "back") {
             aisleScroll.set(1);
-            return [{ kind: "output", text: "→ scrolling to far end of aisle" }];
+            return [{ kind: "ok", text: "→ scrolling to far end of aisle" }];
           }
           const match = projects.find((p) => p.id === arg);
           if (match) {
             onNavigate({ kind: "project", projectId: match.id });
-            return [{ kind: "output", text: `→ opening ${match.name}` }];
+            return [{ kind: "ok", text: `→ opening ${match.name}` }];
           }
-          return [{ kind: "output", text: `unknown target '${arg}'. try: ${AISLE_ORDER.join(", ")}` }];
+          return [{ kind: "error", text: `unknown target '${arg}'. try: ${AISLE_ORDER.join(", ")}` }];
         }
         case "home":
           aisleScroll.set(0);
-          return [{ kind: "output", text: "→ corridor entrance" }];
+          return [{ kind: "ok", text: "→ corridor entrance" }];
         case "end":
           aisleScroll.set(1);
-          return [{ kind: "output", text: "→ far end of aisle" }];
+          return [{ kind: "ok", text: "→ far end of aisle" }];
         case "scroll": {
           const n = Number.parseFloat(arg ?? "");
-          if (Number.isNaN(n)) return [{ kind: "output", text: "usage: scroll <0..1>" }];
+          if (Number.isNaN(n)) return [{ kind: "error", text: "usage: scroll <0..1>" }];
           const clamped = Math.max(0, Math.min(1, n));
           aisleScroll.set(clamped);
-          return [{ kind: "output", text: `→ scrolled to ${(clamped * 100).toFixed(0)}%` }];
+          return [{ kind: "ok", text: `→ scrolled to ${(clamped * 100).toFixed(0)}%` }];
         }
         case "mute":
-          if (!audioEnabled) return [{ kind: "output", text: "audio is already muted." }];
+          if (!audioEnabled) return [{ kind: "system", text: "audio is already muted." }];
           onToggleAudio();
-          return [{ kind: "output", text: "→ audio muted" }];
+          return [{ kind: "ok", text: "→ audio muted" }];
         case "unmute":
-          if (audioEnabled) return [{ kind: "output", text: "audio is already on." }];
+          if (audioEnabled) return [{ kind: "system", text: "audio is already on." }];
           onToggleAudio();
-          return [{ kind: "output", text: "→ audio unmuted" }];
+          return [{ kind: "ok", text: "→ audio unmuted" }];
         default:
-          return [{ kind: "output", text: `unknown command '${c}'. type 'help'.` }];
+          return [{ kind: "error", text: `unknown command '${c}'. type 'help'.` }];
       }
     },
     [audioEnabled, onNavigate, onToggleAudio],
@@ -267,25 +278,61 @@ export function TradingTerminal({
       .slice(0, 6);
   }, []);
 
+  // Prefix glyph per entry kind so a glance at the column tells you
+  // what each line is without reading the text. Kept aligned (two
+  // chars wide) so multi-line outputs stay visually columnar.
+  const prefixFor = (kind: LogEntry["kind"]): string => {
+    switch (kind) {
+      case "input": return "›";
+      case "ok": return "✓";
+      case "error": return "✗";
+      case "system": return "·";
+      case "banner": return " ";
+      default: return " ";
+    }
+  };
+
   return (
     <PanelShell open={open} title="// control_console" onClose={onClose}>
       <section className="panel__section">
         <div className="panel__section-label">system.status</div>
         <div className="console-dashboard">
           <div className="console-widget">
-            <div className="console-widget__title">build</div>
-            <div className="console-widget__value">{SHORT_SHA}</div>
+            <div className="console-widget__header">
+              <span className="console-widget__title">build</span>
+              <span className="console-widget__dot console-widget__dot--ok" aria-hidden />
+            </div>
+            <div className="console-widget__value console-widget__value--mono">{SHORT_SHA}</div>
             <div className="console-widget__sub" title={BUILD_MESSAGE}>
-              {BUILD_MESSAGE.length > 40
-                ? `${BUILD_MESSAGE.slice(0, 38)}…`
+              {BUILD_MESSAGE.length > 42
+                ? `${BUILD_MESSAGE.slice(0, 40)}…`
                 : BUILD_MESSAGE}
             </div>
-            <div className="console-widget__sub">{relativeTime(BUILD_TIMESTAMP)}</div>
+            <div className="console-widget__sub console-widget__sub--dim">
+              {relativeTime(BUILD_TIMESTAMP)}
+            </div>
           </div>
 
           <div className="console-widget">
-            <div className="console-widget__title">telemetry</div>
-            <div className="console-widget__value">{(progress * 100).toFixed(0)}%</div>
+            <div className="console-widget__header">
+              <span className="console-widget__title">telemetry</span>
+              <span className="console-widget__dot console-widget__dot--live" aria-hidden />
+            </div>
+            <div className="console-widget__value console-widget__value--mono">
+              {(progress * 100).toFixed(0)}<span className="console-widget__unit">%</span>
+            </div>
+            <div
+              className="console-widget__bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress * 100)}
+            >
+              <div
+                className="console-widget__bar-fill"
+                style={{ width: `${(progress * 100).toFixed(1)}%` }}
+              />
+            </div>
             <div className="console-widget__sub">
               {activeRack
                 ? `${activeRack.name} · ${activeRack.cluster}`
@@ -294,7 +341,13 @@ export function TradingTerminal({
           </div>
 
           <div className="console-widget">
-            <div className="console-widget__title">audio</div>
+            <div className="console-widget__header">
+              <span className="console-widget__title">audio</span>
+              <span
+                className={`console-widget__dot ${audioEnabled ? "console-widget__dot--ok" : "console-widget__dot--muted"}`}
+                aria-hidden
+              />
+            </div>
             <div className="console-widget__value">{audioEnabled ? "on" : "muted"}</div>
             <button
               type="button"
@@ -306,14 +359,25 @@ export function TradingTerminal({
           </div>
 
           <div className="console-widget console-widget--span">
-            <div className="console-widget__title">repo activity</div>
+            <div className="console-widget__header">
+              <span className="console-widget__title">repo activity</span>
+              <span className="console-widget__title-meta">{repoRows.length} repos</span>
+            </div>
             <ul className="console-widget__list">
               {repoRows.map(({ project, stats }) => (
-                <li key={project.id} className="console-widget__row">
-                  <span className="console-widget__row-name">{project.name}</span>
-                  <span className="console-widget__row-meta">
-                    {stats.lang ?? "—"} · {relativeTime(stats.pushed_at)}
-                  </span>
+                <li key={project.id}>
+                  <button
+                    type="button"
+                    className="console-widget__row console-widget__row--button"
+                    onClick={() => onNavigate({ kind: "project", projectId: project.id })}
+                  >
+                    <span className="console-widget__row-name">{project.name}</span>
+                    <span className="console-widget__row-meta">
+                      <span className="console-widget__row-lang">{stats.lang ?? "—"}</span>
+                      <span className="console-widget__row-dot" aria-hidden>·</span>
+                      <span className="console-widget__row-time">{relativeTime(stats.pushed_at)}</span>
+                    </span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -329,12 +393,22 @@ export function TradingTerminal({
               key={i}
               className={`console-log__entry console-log__entry--${entry.kind}`}
             >
-              {entry.text}
+              {entry.kind !== "banner" && (
+                <span className="console-log__prefix" aria-hidden>{prefixFor(entry.kind)}</span>
+              )}
+              <span className="console-log__text">{entry.text}</span>
             </div>
           ))}
         </div>
         <form className="console-input-row" onSubmit={handleSubmit}>
-          <span className="console-prompt-prefix">ov@portfolio:~$</span>
+          <span className="console-prompt-prefix">
+            <span className="console-prompt-prefix__user">ov</span>
+            <span className="console-prompt-prefix__at">@</span>
+            <span className="console-prompt-prefix__host">portfolio</span>
+            <span className="console-prompt-prefix__sep">:</span>
+            <span className="console-prompt-prefix__cwd">~</span>
+            <span className="console-prompt-prefix__sigil">$</span>
+          </span>
           <input
             ref={inputRef}
             type="text"
@@ -346,7 +420,9 @@ export function TradingTerminal({
             autoCapitalize="off"
             autoComplete="off"
             spellCheck={false}
+            aria-label="console command"
           />
+          <span className="console-caret" aria-hidden />
         </form>
       </section>
     </PanelShell>

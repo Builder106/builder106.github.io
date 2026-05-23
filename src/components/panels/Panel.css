@@ -594,12 +594,16 @@
  *   1. Dashboard grid: 4 widgets (build, telemetry, audio, repo
  *      activity). auto-fit wrap so narrow viewports stack to one
  *      column without explicit breakpoints. The repo-activity tile
- *      spans the full row on wide layouts via --span.
+ *      spans the full row on wide layouts via --span. Each widget
+ *      header has a status dot (.console-widget__dot--{ok,live,muted})
+ *      that pulses or pins depending on what the widget reports.
  *
- *   2. Console: scrolling log + single-line prompt. The log is a
- *      fixed-height scroll surface; the prompt sits beneath it as a
- *      bordered input row that lights up on focus. Commands feed
- *      back into the log via runCommand() in TradingTerminal.tsx.
+ *   2. Console: scrolling log + single-line prompt. Entries carry a
+ *      one-char prefix glyph (', '✓', '✗', '·') so a scan of the
+ *      gutter tells you what each row is without reading the text.
+ *      The prompt prefix is split into user / host / cwd spans so
+ *      each can be coloured like a real shell PS1, and a CSS-only
+ *      blinking caret pulses at the end of the input row.
  */
 
 .console-dashboard {
@@ -609,17 +613,34 @@
 }
 
 .console-widget {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 10px 12px;
-  background: rgba(76, 242, 255, 0.04);
-  border: 1px solid rgba(76, 242, 255, 0.12);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(76, 242, 255, 0.06) 0%,
+      rgba(76, 242, 255, 0.02) 100%
+    );
+  border: 1px solid rgba(76, 242, 255, 0.14);
   border-radius: 3px;
+  /* Subtle bevel-style top highlight so each widget reads as its own
+     "panel slice" rather than a flat patch. */
+  box-shadow: inset 0 1px 0 rgba(76, 242, 255, 0.08);
 }
 
 .console-widget--span {
   grid-column: 1 / -1;
+}
+
+.console-widget__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .console-widget__title {
@@ -627,16 +648,83 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 4px;
+}
+
+.console-widget__title-meta {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Status dot, top-right of each widget header. Modifiers:
+   --ok   = healthy / nominal (cyan, soft glow)
+   --live = changing in real-time (cyan, gentle pulse)
+   --muted = nominally off (dim grey) */
+.console-widget__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px rgba(76, 242, 255, 0.45);
+  flex-shrink: 0;
+}
+
+.console-widget__dot--muted {
+  background: var(--text-muted);
+  box-shadow: none;
+}
+
+.console-widget__dot--live {
+  animation: console-dot-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes console-dot-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%      { opacity: 0.45; transform: scale(0.8); }
 }
 
 .console-widget__value {
-  font-family: var(--font-mono);
-  font-size: 16px;
+  font-family: var(--font-display);
+  font-size: 18px;
   font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.console-widget__value--mono {
+  font-family: var(--font-mono);
   color: var(--neon-cyan);
-  text-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
-  letter-spacing: 0.02em;
+  text-shadow: 0 0 8px rgba(76, 242, 255, 0.3);
+}
+
+.console-widget__unit {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 2px;
+  font-weight: 400;
+  text-shadow: none;
+}
+
+.console-widget__bar {
+  height: 4px;
+  background: rgba(76, 242, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 6px 0 4px;
+}
+
+.console-widget__bar-fill {
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(76, 242, 255, 0.6),
+    var(--neon-cyan)
+  );
+  box-shadow: 0 0 6px rgba(76, 242, 255, 0.5);
+  transition: width 220ms ease-out;
+  border-radius: 2px;
 }
 
 .console-widget__sub {
@@ -645,6 +733,10 @@
   color: var(--text-muted);
   line-height: 1.4;
   word-break: break-word;
+}
+
+.console-widget__sub--dim {
+  opacity: 0.65;
 }
 
 .console-widget__toggle {
@@ -674,7 +766,7 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 2px;
   margin: 0;
   padding: 0;
 }
@@ -686,16 +778,60 @@
   gap: 12px;
   font-family: var(--font-mono);
   font-size: 11px;
+  padding: 4px 8px;
+  margin: 0 -8px;
+  border-radius: 3px;
+}
+
+/* Repo-activity rows render as buttons so the user can hop straight to
+   a project panel by clicking. Reset native button styling to look
+   like the original list rows, then add a hover affordance. */
+.console-widget__row--button {
+  width: calc(100% + 16px);
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.console-widget__row--button:hover,
+.console-widget__row--button:focus-visible {
+  background: rgba(76, 242, 255, 0.08);
+  outline: none;
+}
+
+.console-widget__row--button:hover .console-widget__row-name,
+.console-widget__row--button:focus-visible .console-widget__row-name {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 6px rgba(76, 242, 255, 0.35);
 }
 
 .console-widget__row-name {
   color: var(--text-primary);
+  transition: color 120ms ease;
 }
 
 .console-widget__row-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
   color: var(--text-muted);
   font-size: 10px;
-  text-align: right;
+}
+
+.console-widget__row-lang {
+  color: rgba(220, 226, 240, 0.7);
+}
+
+.console-widget__row-dot {
+  opacity: 0.5;
+}
+
+.console-widget__row-time {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Console log + prompt ----------------------------------------- */
@@ -709,33 +845,86 @@
 .console-log {
   font-family: var(--font-mono);
   font-size: 12px;
-  line-height: 1.5;
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(76, 242, 255, 0.12);
+  line-height: 1.55;
+  background:
+    /* Two stacked layers: a near-black base + a faint scan-line
+       gradient that gives the log surface a CRT readout texture. */
+    repeating-linear-gradient(
+      to bottom,
+      rgba(76, 242, 255, 0.03) 0px,
+      rgba(76, 242, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(76, 242, 255, 0.14);
   border-radius: 3px;
   padding: 10px 12px;
-  height: 180px;
+  height: 168px;
   overflow-y: auto;
   color: var(--text-primary);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(76, 242, 255, 0.25) transparent;
+}
+
+.console-log::-webkit-scrollbar {
+  width: 6px;
+}
+
+.console-log::-webkit-scrollbar-thumb {
+  background: rgba(76, 242, 255, 0.25);
+  border-radius: 3px;
 }
 
 .console-log__entry {
+  display: flex;
+  gap: 8px;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.console-log__prefix {
+  flex-shrink: 0;
+  width: 8px;
+  text-align: center;
+  user-select: none;
+  opacity: 0.75;
+}
+
+.console-log__text {
+  flex: 1;
+  min-width: 0;
 }
 
 .console-log__entry--input {
   color: var(--terminal-green);
 }
 
-.console-log__entry--input::before {
-  content: "> ";
+.console-log__entry--input .console-log__prefix {
   color: var(--neon-cyan);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .console-log__entry--output {
-  color: rgba(220, 226, 240, 0.85);
+  color: rgba(220, 226, 240, 0.88);
+}
+
+.console-log__entry--ok {
+  color: var(--terminal-green);
+}
+
+.console-log__entry--ok .console-log__prefix {
+  color: var(--terminal-green);
+  text-shadow: 0 0 6px rgba(92, 255, 157, 0.4);
+}
+
+.console-log__entry--error {
+  color: #ffb6a8;
+}
+
+.console-log__entry--error .console-log__prefix {
+  color: #ff7a66;
+  text-shadow: 0 0 6px rgba(255, 122, 102, 0.4);
 }
 
 .console-log__entry--system {
@@ -743,11 +932,30 @@
   font-style: italic;
 }
 
+.console-log__entry--banner {
+  color: var(--neon-cyan);
+  font-style: normal;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(76, 242, 255, 0.3);
+}
+
+.console-log__entry--banner .console-log__text {
+  white-space: pre;
+}
+
 .console-input-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.45);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(76, 242, 255, 0.03) 0px,
+      rgba(76, 242, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(76, 242, 255, 0.18);
   border-radius: 3px;
   padding: 8px 12px;
@@ -756,16 +964,25 @@
 
 .console-input-row:focus-within {
   border-color: rgba(76, 242, 255, 0.6);
-  box-shadow: 0 0 14px rgba(76, 242, 255, 0.18);
+  box-shadow: 0 0 14px rgba(76, 242, 255, 0.2);
 }
 
+/* Shell-style PS1: each span gets its own colour so the prompt reads
+   as a real terminal prefix instead of a single cyan string. */
 .console-prompt-prefix {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--neon-cyan);
   white-space: nowrap;
   user-select: none;
+  flex-shrink: 0;
 }
+
+.console-prompt-prefix__user   { color: var(--terminal-green); font-weight: 500; }
+.console-prompt-prefix__at     { color: var(--text-muted); }
+.console-prompt-prefix__host   { color: var(--terminal-green); }
+.console-prompt-prefix__sep    { color: var(--text-muted); }
+.console-prompt-prefix__cwd    { color: var(--neon-cyan); }
+.console-prompt-prefix__sigil  { color: var(--neon-cyan); margin-left: 4px; }
 
 .console-input {
   flex: 1;
@@ -781,17 +998,44 @@
 
 .console-input::placeholder {
   color: var(--text-muted);
-  opacity: 0.55;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* Blinking block caret sits at the end of the input row. Pure visual
+   affordance — the real caret is the <input>'s native one (which
+   collapses to a thin line). This block flickers next to it as a
+   "console is live" cue. */
+.console-caret {
+  width: 8px;
+  height: 14px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px rgba(76, 242, 255, 0.5);
+  border-radius: 1px;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.console-input-row:focus-within .console-caret {
+  animation: console-caret-blink 1s steps(2, end) infinite;
+}
+
+@keyframes console-caret-blink {
+  0%, 50% { opacity: 0.9; }
+  51%, 100% { opacity: 0; }
 }
 
 @media (max-width: 720px) {
   /* Tighter log on phones so the dashboard above stays visible
      without forcing the user to scroll past it to reach the prompt. */
   .console-log {
-    height: 140px;
+    height: 132px;
     font-size: 11px;
   }
   .console-widget__value {
-    font-size: 14px;
+    font-size: 16px;
+  }
+  .console-prompt-prefix {
+    font-size: 10px;
   }
 }
