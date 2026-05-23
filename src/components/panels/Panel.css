@@ -606,6 +606,27 @@
  *      blinking caret pulses at the end of the input row.
  */
 
+/* Wider + taller variant for the control_console panel. The default
+   .panel sizing (720 × 80vh) was designed around a project card with
+   a single hero image + text — the console has a 4-tile dashboard
+   *plus* a 6-row repo list *plus* a multi-line log, and the log
+   tended to be the part that got squeezed off the bottom of the
+   viewport. Bump width to 1080 (still capped at 88vw on mid-width
+   desktops) and max-height to 88vh so all three sections fit on a
+   typical 900 px–1080 px desktop without inner scroll. Mobile keeps
+   the default 95vw / 85vh — only one widget per row anyway. */
+.panel--console {
+  width: min(1080px, 88vw);
+  max-height: 88vh;
+}
+
+@media (max-width: 720px) {
+  .panel--console {
+    width: 95vw;
+    max-height: 90vh;
+  }
+}
+
 .console-dashboard {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

@@ -6,13 +6,17 @@ interface PanelShellProps {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  // Extra class applied to the outer .panel root. Used by callers
+  // that need a wider/taller variant — e.g. TradingTerminal asks for
+  // `.panel--console` so the dashboard + log have room to breathe.
+  variantClass?: string;
 }
 
 // Shared chrome for every dialog panel (TradingTerminal, ProjectCard,
 // ContactPing). Gives each one the same Mac-style traffic-light header,
 // reticle-corner brackets, scan-line reveal, and close button so the
 // entrance animation is consistent across the site.
-export function PanelShell({ open, title, onClose, children }: PanelShellProps) {
+export function PanelShell({ open, title, onClose, children, variantClass }: PanelShellProps) {
   // Set the `inert` DOM property on the root when closed. inert removes
   // every descendant from focus + the accessibility tree, which fixes
   // the Lighthouse "aria-hidden=true with focusable descendents" audit
@@ -25,7 +29,12 @@ export function PanelShell({ open, title, onClose, children }: PanelShellProps) 
   }, [open]);
 
   return (
-    <div ref={rootRef} className={`panel ${open ? "panel--open" : ""}`} role="dialog" aria-hidden={!open}>
+    <div
+      ref={rootRef}
+      className={`panel ${open ? "panel--open" : ""} ${variantClass ?? ""}`.trim()}
+      role="dialog"
+      aria-hidden={!open}
+    >
       {/* Brackets sit on the outer wrapper so they aren't clipped by the
           inner box's overflow:hidden + rounded corners. */}
       <span className="panel__bracket panel__bracket--tl" aria-hidden />

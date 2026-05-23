@@ -293,7 +293,12 @@ export function TradingTerminal({
   };
 
   return (
-    <PanelShell open={open} title="// control_console" onClose={onClose}>
+    <PanelShell
+      open={open}
+      title="// control_console"
+      onClose={onClose}
+      variantClass="panel--console"
+    >
       <section className="panel__section">
         <div className="panel__section-label">system.status</div>
         <div className="console-dashboard">
