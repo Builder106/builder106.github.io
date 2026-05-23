@@ -78,14 +78,21 @@ function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
   );
 }
 
-// Scroll-driven aisle camera for portrait. Reads window.scrollY (the
-// page is made scrollable by the .aisle-scroll-spacer + portrait media
-// query in globals.css) and lerps the camera + orbit target along the
-// -Z aisle every frame. At progress 0 the camera sits at the corridor
-// entrance (the PORTRAIT_CAMERA_POSITION baseline); at progress 1 it
-// has walked roughly to the back of the rack column. The rig disables
-// itself while a panel is open so the click-fly rig can take over.
-// Camera Z pulled back from the original 5.5 so the trading terminal
+// Scroll-driven aisle camera for portrait. Lerps a camera position +
+// look-target along the −Z aisle every frame.
+//
+// Entrance frame (progress 0) is unchanged: chest-overhead camera with
+// the look-target near the desk surface so the curved monitor + first
+// rack pair share the lower 2/3 of the frame.
+//
+// End frame (progress 1) drops the camera to head-height and raises
+// the look-target to mid-rack height (~1.5 m). The straight horizontal
+// pitch makes the camera read as "walking" through the aisle and fills
+// more of the vertical FOV with rack bodies — earlier the target stayed
+// near floor-level all the way through and the resulting downward look
+// left a wedge of empty black sky over every mid-aisle rack pair.
+//
+// Camera z pulled back from the original 5.5 so the trading terminal
 // (anchored at z≈4.2, y≈1) is inside the vertical FOV at the entrance
 // frame. At z=5.5 the desk sat at ~49° below the look-vector — outside
 // the 35° vertical half-FOV. z=8.5 drops the lateral angle to ~19° so
@@ -99,9 +106,9 @@ const SCROLL_CAMERA_START = new Vector3(0, 3.4, 8.5);
 // frame. Net result: the user can scroll through the entire 9-rack
 // column instead of being capped after rack 5; each analyst label
 // gets its turn as the dominant on-screen label.
-const SCROLL_CAMERA_END = new Vector3(0, 1.8, -16.0);
+const SCROLL_CAMERA_END = new Vector3(0, 1.6, -16.0);
 const SCROLL_TARGET_START = new Vector3(0, 0.4, -8.0);
-const SCROLL_TARGET_END = new Vector3(0, 0.6, -22.0);
+const SCROLL_TARGET_END = new Vector3(0, 1.5, -22.0);
 
 // Frame-rate-independent smoothing toward the scroll target. At 60 fps
 // with SMOOTHING=0.001 the camera reaches ~95 % of the target distance
@@ -218,14 +225,24 @@ function AisleScrollRig() {
     }
 
     const t = aisleScroll.progress;
+    // Camera-y / target-y use an eased schedule so the camera reaches
+    // its corridor-walking pitch (head-height, look forward) well before
+    // the user is halfway down the aisle. Linear lerp left the camera
+    // pitched ~-8° downward through the middle of the scroll, which put
+    // every mid-aisle rack pair in the bottom third of the frame with a
+    // featureless black sky filling the top half. easeOutQuad finishes
+    // most of the y-descent in the first 30 % of scroll. Z continues to
+    // lerp linearly because it's literal forward motion and the user
+    // expects each scroll-tick to advance them a consistent distance.
+    const tEase = 1 - (1 - t) * (1 - t);
     targetPos.current.set(
       MathUtils.lerp(SCROLL_CAMERA_START.x, SCROLL_CAMERA_END.x, t),
-      MathUtils.lerp(SCROLL_CAMERA_START.y, SCROLL_CAMERA_END.y, t),
+      MathUtils.lerp(SCROLL_CAMERA_START.y, SCROLL_CAMERA_END.y, tEase),
       MathUtils.lerp(SCROLL_CAMERA_START.z, SCROLL_CAMERA_END.z, t),
     );
     targetLook.current.set(
       MathUtils.lerp(SCROLL_TARGET_START.x, SCROLL_TARGET_END.x, t),
-      MathUtils.lerp(SCROLL_TARGET_START.y, SCROLL_TARGET_END.y, t),
+      MathUtils.lerp(SCROLL_TARGET_START.y, SCROLL_TARGET_END.y, tEase),
       MathUtils.lerp(SCROLL_TARGET_START.z, SCROLL_TARGET_END.z, t),
     );
 

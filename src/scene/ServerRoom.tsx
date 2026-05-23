@@ -238,7 +238,15 @@ const AISLE_ORDER = [
 const AISLE_SPACING = 2.6;
 const AISLE_Z_START = 1.0;
 const AISLE_TERMINAL_Z = 4.2;
-const AISLE_HALF_WIDTH = 1.5;
+// 1.2 m half-width (2.4 m aisle) keeps the rack bodies inside the
+// narrow ~18° portrait horizontal half-FOV until the camera is within
+// ~3.7 m of them, instead of dropping off at ~4.6 m with the original
+// 1.5 m half-width. Closer cut-off lets the opacity rule peak labels
+// while the rack is still 4–5 m ahead — when the rack body fills a
+// meaningful chunk of the frame — instead of pushing peak readability
+// out to the 7–12 m range where the labelled rack reads as "the one
+// far down the aisle" rather than "the one I'm walking past."
+const AISLE_HALF_WIDTH = 1.2;
 
 // Per-rack-id sets of mesh-name predicates: anything matching gets moved
 // into the rack's transform group when we re-lay-out for portrait.
@@ -1247,34 +1255,33 @@ export function ServerRoom({
         // positive when the rack is in front of the camera, negative
         // when the camera has scrolled past it.
         //
-        // Critical constraint: the rack pair sits at x = ±1.5. The
-        // portrait horizontal half-FOV is ~18°, so a rack body's
-        // lateral angle atan(1.5 / ahead) only fits inside the frame
-        // when ahead > 1.5 / tan(18°) ≈ 4.6 m. When the camera is
-        // closer than that, the rack bodies swing off the sides of
+        // Critical constraint: the rack pair sits at x = ±AISLE_HALF_WIDTH
+        // (1.2 m). The portrait horizontal half-FOV is ~18°, so a rack
+        // body's lateral angle atan(1.2 / ahead) only fits inside the
+        // frame when ahead > 1.2 / tan(18°) ≈ 3.7 m. When the camera
+        // is closer than that, the rack bodies swing off the sides of
         // the screen, but a label at x = 0 stays anchored in the
-        // centre — which is what produced the user-reported "label
-        // hovering above the wrong rack" effect: OCaml LOB's body was
-        // off-screen lateral while its label was still visible, and
-        // the rack pair the user *did* see was qforge or EconOS one
-        // step further down the aisle.
+        // centre — which produced the original "label hovering above
+        // the wrong rack" effect: OCaml LOB's body was off-screen
+        // lateral while its label was still visible.
         //
         // So: only show a label when its rack body would itself be
-        // on-screen (ahead > 4.6). Fade-in / peak / fade-out within
-        // that visible window.
+        // on-screen (ahead > 3.7). Peak readability falls inside that
+        // visible window at 4–7 m ahead, which is close enough that
+        // the rack pair fills a meaningful chunk of the frame and the
+        // label reads as "the rack I'm walking past" rather than
+        // "the rack far down the aisle."
         //
-        //   ahead < 4.6      → 0  (rack body off-screen lateral; no
-        //                         label, since the user can't see the
-        //                         thing it's labelling)
-        //   ahead in [4.6, 7] → fade in 0 → 1
-        //   ahead in [7, 12]  → peak
-        //   ahead in [12, 16] → fade out 1 → 0
-        //   ahead > 16        → 0  (too far)
+        //   ahead < 3.7      → 0  (rack body off-screen lateral)
+        //   ahead in [3.7, 5] → fade in 0 → 1
+        //   ahead in [5, 9]   → peak
+        //   ahead in [9, 14]  → fade out 1 → 0
+        //   ahead > 14        → 0  (too far)
         const portraitOpacityForAhead = (ahead: number): number => {
-          if (ahead < 4.6) return 0;
-          if (ahead < 7) return (ahead - 4.6) / 2.4;
-          if (ahead < 12) return 1;
-          if (ahead < 16) return (16 - ahead) / 4;
+          if (ahead < 3.7) return 0;
+          if (ahead < 5) return (ahead - 3.7) / 1.3;
+          if (ahead < 9) return 1;
+          if (ahead < 14) return (14 - ahead) / 5;
           return 0;
         };
         // Both opacity and label render-position reference the *rack
