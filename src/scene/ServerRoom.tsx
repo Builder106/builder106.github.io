@@ -549,8 +549,16 @@ export function ServerRoom({
   // is already suppressed during the wave, so the two never need to
   // compose.
   const IDLE_BEFORE_WAVE_MS = 15_000;
-  const WAVE_RACK_DELAY_S = 0.35;
   const WAVE_PULSE_DUR_S = 1.2;
+  // Per-slot delay differs by variant:
+  //   portrait  → 9 individual racks, 0.35 s apart (rack-by-rack)
+  //   landscape → 3 cluster groups, 0.70 s apart (3 racks at once)
+  // Landscape uses cluster groups because the racks aren't on a line
+  // in 3D — they're on three walls. A rack-by-rack sweep would bounce
+  // around the room; a cluster sweep tells the "three categories of
+  // work" story spatially, since each cluster owns its own wall.
+  const WAVE_RACK_DELAY_S = 0.35;
+  const WAVE_CLUSTER_DELAY_S = 0.7;
   // Multipliers off each material's `it.base` brightness:
   //   non-pulsing rack during wave      = base × 0.30  (deep dim)
   //   pulsing rack at peak of its sin   = base × 1.70  (above hover)
@@ -558,17 +566,33 @@ export function ServerRoom({
   // spotlight read as motion rather than a faint pulse.
   const WAVE_DIM_MULTIPLIER = 0.3;
   const WAVE_BRIGHT_MULTIPLIER = 1.7;
-  const WAVE_TOTAL_S =
-    AISLE_ORDER.length * WAVE_RACK_DELAY_S + WAVE_PULSE_DUR_S + 0.4;
   const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
-  // Pre-compute index per rack id so the wave loop avoids an O(n)
-  // AISLE_ORDER.indexOf inside the per-material per-frame inner loop.
-  const rackIndexByKey = useMemo(() => {
+
+  // Variant-aware "which time slot does this rack fire in?" map.
+  // Portrait = 9 slots, one per rack in AISLE_ORDER. Landscape = 3
+  // slots, one per cluster. The terminal counts as quant (slot 0)
+  // in landscape so the desk lights up with the first wave step.
+  const slotIndexByKey = useMemo(() => {
     const m = new Map<string, number>();
-    AISLE_ORDER.forEach((id, i) => m.set(id, i));
+    if (variant === "portrait") {
+      AISLE_ORDER.forEach((id, i) => m.set(id, i));
+    } else {
+      const order = ["quant", "swe", "analyst"] as const;
+      for (const p of projects) {
+        const idx = order.indexOf(p.cluster as typeof order[number]);
+        if (idx >= 0) m.set(p.id, idx);
+      }
+      m.set("terminal", 0);
+    }
     return m;
-  }, []);
+  }, [variant]);
+
+  const waveSlotDelayS =
+    variant === "portrait" ? WAVE_RACK_DELAY_S : WAVE_CLUSTER_DELAY_S;
+  const waveSlotCount = variant === "portrait" ? AISLE_ORDER.length : 3;
+  const WAVE_TOTAL_S =
+    waveSlotCount * waveSlotDelayS + WAVE_PULSE_DUR_S + 0.4;
 
   // Universal "user did something" listener. Captures pointer/touch/
   // key/wheel at the document level, plus aisleScroll progress
@@ -829,13 +853,15 @@ export function ServerRoom({
     for (const it of interactivesRef.current) {
       let target: number;
       if (waveActive && it.hoverKey != null) {
-        // Per-rack sin pulse, 0 outside its window, 1 at peak.
+        // Per-slot sin pulse, 0 outside its window, 1 at peak.
+        // Slot = rack index on portrait, cluster index on landscape
+        // (so all 3 racks in a cluster fire together on desktop).
         let waveIntensity = 0;
-        const idx = rackIndexByKey.get(it.hoverKey);
+        const idx = slotIndexByKey.get(it.hoverKey);
         if (idx !== undefined) {
-          const rackElapsed = waveElapsedS - idx * WAVE_RACK_DELAY_S;
-          if (rackElapsed >= 0 && rackElapsed < WAVE_PULSE_DUR_S) {
-            waveIntensity = Math.sin((rackElapsed / WAVE_PULSE_DUR_S) * Math.PI);
+          const slotElapsed = waveElapsedS - idx * waveSlotDelayS;
+          if (slotElapsed >= 0 && slotElapsed < WAVE_PULSE_DUR_S) {
+            waveIntensity = Math.sin((slotElapsed / WAVE_PULSE_DUR_S) * Math.PI);
           }
         }
         // Spotlight: everything else dims to ~30% of base, the rack
