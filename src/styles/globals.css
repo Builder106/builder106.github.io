@@ -179,20 +179,27 @@ button {
 }
 
 @media (max-width: 720px) {
-  /* Bumped from 10/8px because drei's <Html> with distanceFactor scales
-     these via CSS transform, which composites the label as a GPU layer
-     and bakes in the rasterisation. Rendering at a higher native size
-     (then letting the transform scale down) keeps the text crisp. */
+  /* Two reasons the mobile rack labels are aggressively larger than
+     desktop:
+       1. drei's <Html> with distanceFactor scales these via CSS
+          transform — bumping the native size means a bigger rendered
+          size after scale, and rendering at higher native px keeps
+          the text crisp after the GPU bakes in the rasterisation.
+       2. The portrait camera is closer to the racks than the
+          landscape orbit, so the labels project to a bigger screen
+          slot anyway — they need the extra weight to read as
+          "label of THIS rack" and not floating screen text. */
   .rack-label {
-    padding: 5px 10px;
-    gap: 2px;
+    padding: 8px 14px;
+    gap: 3px;
   }
   .rack-label__name {
-    font-size: 14px;
+    font-size: 22px;
+    letter-spacing: 0.02em;
   }
   .rack-label__cluster {
-    font-size: 11px;
-    letter-spacing: 0.12em;
+    font-size: 14px;
+    letter-spacing: 0.14em;
   }
 }
 
