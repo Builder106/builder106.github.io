@@ -105,7 +105,99 @@ const INITIAL_LOG: LogEntry[] = [
   { kind: "system", text: `boot: build ${SHORT_SHA}` },
   { kind: "system", text: "audio synth + aisleScroll attached." },
   { kind: "system", text: "ready. type 'help' for commands." },
+  // Subtle nudge that secrets exist. Doesn't list any of them.
+  { kind: "system", text: "(some commands are not in 'help'. try old-school unix.)" },
 ];
+
+// Keys of every hidden command — used by the `secrets` meta-command to
+// report progress, and gates persistence (localStorage entries for keys
+// not in this list get pruned on load so removed-in-newer-builds entries
+// don't permanently count toward your total).
+const SECRET_KEYS = [
+  "whoami",
+  "ls",
+  "date",
+  "uptime",
+  "history",
+  "pwd",
+  "uname",
+  "sudo",
+  "rm",
+  "editor",
+  "coffee",
+  "tea",
+  "make",
+  "greet",
+  "exit",
+  "42",
+  "matrix",
+  "konami",
+  "xyzzy",
+  "iddqd",
+  "ascii",
+  "cowsay",
+  "fortune",
+  "stats",
+  "credits",
+] as const;
+
+const SECRETS_STORAGE_KEY = "ov_console_secrets_v1";
+
+function loadDiscoveredSecrets(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(SECRETS_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((k): k is string => typeof k === "string" && SECRET_KEYS.includes(k as typeof SECRET_KEYS[number])));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDiscoveredSecrets(secrets: Set<string>): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SECRETS_STORAGE_KEY, JSON.stringify([...secrets]));
+  } catch {
+    // Quota / private-mode failures are non-fatal — secrets just don't persist.
+  }
+}
+
+// Random fortune lines for the `fortune` command.
+const FORTUNES = [
+  "the cake is a lie.",
+  "write tests. then write the code. or just guess.",
+  "if at first you don't succeed, blame the cache.",
+  "premature abstraction is the root of all evil.",
+  "the best code is no code at all.",
+  "you cannot grep dead trees.",
+  "RTFM — read the friendly manual.",
+  "weeks of coding can save you hours of planning.",
+  "real artists ship.",
+  "there are two hard problems in computer science: cache invalidation, naming things, and off-by-one errors.",
+];
+
+// Big "OV" block letters for the `ascii` command.
+const ASCII_BANNER = [
+  " ██████╗ ██╗   ██╗",
+  "██╔═══██╗██║   ██║",
+  "██║   ██║██║   ██║",
+  "██║   ██║╚██╗ ██╔╝",
+  "╚██████╔╝ ╚████╔╝ ",
+  " ╚═════╝   ╚═══╝  ",
+];
+
+// Six rows of pseudo-random katakana / hex for the `matrix` rain effect.
+const MATRIX_CHARS = "アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF";
+function matrixLine(width = 36): string {
+  let s = "";
+  for (let i = 0; i < width; i++) {
+    s += MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)];
+  }
+  return s;
+}
 
 export function TradingTerminal({
   open,
@@ -137,6 +229,18 @@ export function TradingTerminal({
   const historyCursor = useRef<number>(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
+
+  // Discovered secrets ride along in a ref so triggering one doesn't
+  // re-render the whole panel. Persists across sessions via
+  // localStorage; the `secrets` meta-command reads .size to report
+  // progress.
+  const discoveredSecrets = useRef<Set<string>>(loadDiscoveredSecrets());
+  const markSecret = useCallback((key: string) => {
+    if (!SECRET_KEYS.includes(key as typeof SECRET_KEYS[number])) return;
+    if (discoveredSecrets.current.has(key)) return;
+    discoveredSecrets.current.add(key);
+    saveDiscoveredSecrets(discoveredSecrets.current);
+  }, []);
 
   // Auto-focus the prompt when the panel opens — the user almost
   // certainly wants to start typing. `preventScroll: true` matters
@@ -227,11 +331,253 @@ export function TradingTerminal({
           if (audioEnabled) return [{ kind: "system", text: "audio is already on." }];
           onToggleAudio();
           return [{ kind: "ok", text: "→ audio unmuted" }];
+
+        // ─── Hidden commands (Easter eggs) ─────────────────────────
+        // Intentionally not listed in `help`. The welcome banner hints
+        // that they exist with "try old-school unix". Triggering one
+        // marks it as discovered for the `secrets` meta-command, which
+        // persists progress across sessions via localStorage.
+
+        case "whoami":
+          markSecret("whoami");
+          return [{ kind: "output", text: "ov · software engineer · level 1 · github.com/Builder106" }];
+
+        case "ls":
+        case "dir":
+          markSecret("ls");
+          return [
+            { kind: "output", text: "projects/" },
+            { kind: "output", text: "  " + AISLE_ORDER.slice(0, 3).join("   ") + "    [quant]" },
+            { kind: "output", text: "  " + AISLE_ORDER.slice(3, 6).join("   ") + "  [swe]" },
+            { kind: "output", text: "  " + AISLE_ORDER.slice(6).join("   ") + "  [analyst]" },
+            { kind: "output", text: "" },
+            { kind: "output", text: "use 'open <id>' to view." },
+          ];
+
+        case "pwd":
+          markSecret("pwd");
+          return [{ kind: "output", text: "/portfolio/control_console" }];
+
+        case "date":
+          markSecret("date");
+          return [{ kind: "output", text: new Date().toString() }];
+
+        case "uptime": {
+          markSecret("uptime");
+          const buildAt = new Date(BUILD_TIMESTAMP).getTime();
+          const elapsedMs = Math.max(0, Date.now() - buildAt);
+          const d = Math.floor(elapsedMs / 86_400_000);
+          const h = Math.floor(elapsedMs / 3_600_000) % 24;
+          const m = Math.floor(elapsedMs / 60_000) % 60;
+          return [{
+            kind: "output",
+            text: `up ${d}d ${h}h ${m}m, 1 user, load avg: 0.42, 0.45, 0.39`,
+          }];
+        }
+
+        case "history":
+          markSecret("history");
+          if (inputHistory.current.length === 0) {
+            return [{ kind: "system", text: "no history yet." }];
+          }
+          return inputHistory.current
+            .slice()
+            .reverse()
+            .map((cmd, i) => ({
+              kind: "output" as const,
+              text: `  ${(i + 1).toString().padStart(3)}  ${cmd}`,
+            }));
+
+        case "uname": {
+          markSecret("uname");
+          if (arg === "-a") {
+            return [{
+              kind: "output",
+              text: `Portfolio 1.0.0 ${SHORT_SHA} #1 SMP WebGL2 r3f+vite ${new Date().getFullYear()} x86_64`,
+            }];
+          }
+          return [{ kind: "output", text: "Portfolio" }];
+        }
+
+        case "sudo": {
+          markSecret("sudo");
+          if (args.join(" ").toLowerCase() === "make me a sandwich") {
+            return [{ kind: "ok", text: "okay." }];
+          }
+          return [{
+            kind: "error",
+            text: "sudo: olayinka is not in the sudoers file. this incident will be reported.",
+          }];
+        }
+
+        case "rm": {
+          markSecret("rm");
+          if (trimmed.toLowerCase().includes("-rf") || trimmed.includes("/")) {
+            return [{ kind: "error", text: "rm: refusing to operate recursively. (this isn't your machine, friend.)" }];
+          }
+          return [{ kind: "error", text: `rm: cannot remove '${args.join(" ") || "."}': read-only portfolio.` }];
+        }
+
+        case "vim":
+        case "vi":
+        case "emacs":
+        case "nano":
+        case "ed":
+          markSecret("editor");
+          return [
+            { kind: "error", text: `${c}: there's no escape from here.` },
+            { kind: "system", text: "(press :wq — wait, that's just a vim joke.)" },
+          ];
+
+        case "coffee":
+          markSecret("coffee");
+          return [{ kind: "error", text: "418 i'm a teapot. (rfc 2324, march 1998.)" }];
+
+        case "tea":
+          markSecret("tea");
+          return [{ kind: "ok", text: "brewing... actually no, this is a portfolio." }];
+
+        case "make": {
+          markSecret("make");
+          if (trimmed.toLowerCase() === "make me a sandwich") {
+            return [{ kind: "error", text: "make: *** No rule to make target 'sandwich'. Stop." }];
+          }
+          return [{ kind: "error", text: `make: *** No rule to make target '${args[0] ?? ""}'. Stop.` }];
+        }
+
+        case "hello":
+        case "hi":
+        case "hey":
+        case "yo":
+          markSecret("greet");
+          return [{ kind: "output", text: "hi, traveler. type 'help' to explore. or keep poking around." }];
+
+        case "exit":
+        case "quit":
+        case "q":
+        case "bye":
+          markSecret("exit");
+          onClose();
+          return [{ kind: "ok", text: "→ goodbye" }];
+
+        case "42":
+        case "fortytwo":
+          markSecret("42");
+          return [
+            { kind: "ok", text: "the answer to life, the universe, and everything." },
+            { kind: "system", text: "now what was the question?" },
+          ];
+
+        case "matrix":
+          markSecret("matrix");
+          return [
+            { kind: "ok", text: matrixLine() },
+            { kind: "ok", text: matrixLine() },
+            { kind: "ok", text: matrixLine() },
+            { kind: "ok", text: matrixLine() },
+            { kind: "ok", text: matrixLine() },
+            { kind: "ok", text: matrixLine() },
+            { kind: "system", text: "wake up, neo." },
+          ];
+
+        case "konami":
+          markSecret("konami");
+          return [
+            { kind: "banner", text: "  ↑ ↑ ↓ ↓ ← → ← → B A  " },
+            { kind: "ok", text: "konami code recognized. +30 lives." },
+            { kind: "system", text: "(it's cosmetic.)" },
+          ];
+
+        case "xyzzy":
+          markSecret("xyzzy");
+          return [{ kind: "system", text: "nothing happens." }];
+
+        case "iddqd":
+          markSecret("iddqd");
+          return [
+            { kind: "ok", text: "degreelessness mode on." },
+            { kind: "system", text: "god mode is purely decorative here." },
+          ];
+
+        case "ascii":
+        case "logo":
+          markSecret("ascii");
+          return ASCII_BANNER.map((line) => ({ kind: "banner" as const, text: line }));
+
+        case "cowsay": {
+          markSecret("cowsay");
+          const text = args.join(" ") || "moo";
+          const len = text.length;
+          const top = " " + "_".repeat(len + 2);
+          const bot = " " + "-".repeat(len + 2);
+          return [
+            { kind: "banner", text: top },
+            { kind: "banner", text: `< ${text} >` },
+            { kind: "banner", text: bot },
+            { kind: "banner", text: "        \\   ^__^" },
+            { kind: "banner", text: "         \\  (oo)\\_______" },
+            { kind: "banner", text: "            (__)\\       )\\/\\" },
+            { kind: "banner", text: "                ||----w |" },
+            { kind: "banner", text: "                ||     ||" },
+          ];
+        }
+
+        case "fortune": {
+          markSecret("fortune");
+          const pick = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
+          return [{ kind: "output", text: pick }];
+        }
+
+        case "stats":
+          markSecret("stats");
+          return [
+            { kind: "output", text: `projects deployed: ${projects.length}` },
+            { kind: "output", text: "cluster split:     3 quant · 3 swe · 3 analyst" },
+            { kind: "output", text: `build:             ${SHORT_SHA} · ${relativeTime(BUILD_TIMESTAMP)}` },
+            { kind: "output", text: "frame budget:      16.6 ms (60 fps target)" },
+            { kind: "output", text: "node_modules/:     yes" },
+            { kind: "output", text: "coffee consumed:   NaN ml" },
+          ];
+
+        case "credits":
+          markSecret("credits");
+          return [
+            { kind: "output", text: "built with:" },
+            { kind: "output", text: "  react-three-fiber + drei  (3D scene)" },
+            { kind: "output", text: "  three.js                  (WebGL)" },
+            { kind: "output", text: "  vite + react              (build / ui)" },
+            { kind: "output", text: "  blender                   (rack model)" },
+            { kind: "output", text: "  webaudio api              (ambient hum + cooling LFO)" },
+            { kind: "output", text: "source: github.com/Builder106/builder106.github.io" },
+          ];
+
+        case "secrets": {
+          // Meta-command — never marks itself as found. Reports how
+          // many hidden commands the user has triggered overall.
+          const total = SECRET_KEYS.length;
+          const found = discoveredSecrets.current.size;
+          const pct = Math.round((found / total) * 100);
+          const out: LogEntry[] = [
+            { kind: "output", text: `secrets discovered: ${found}/${total} (${pct}%)` },
+          ];
+          if (found === total) {
+            out.push({ kind: "ok", text: "you've found them all. legend." });
+          } else if (found >= Math.ceil(total / 2)) {
+            out.push({ kind: "system", text: "halfway there. keep poking." });
+          } else if (found > 0) {
+            out.push({ kind: "system", text: "keep exploring. there are more." });
+          } else {
+            out.push({ kind: "system", text: "none yet. try old-school unix commands?" });
+          }
+          return out;
+        }
+
+        // ─── Fallback ──────────────────────────────────────────────
         default:
           return [{ kind: "error", text: `unknown command '${c}'. type 'help'.` }];
       }
     },
-    [audioEnabled, onNavigate, onToggleAudio],
+    [audioEnabled, onClose, onNavigate, onToggleAudio, markSecret],
   );
 
   const handleSubmit = (e: FormEvent) => {
