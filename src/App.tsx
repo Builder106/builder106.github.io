@@ -122,7 +122,7 @@ export function App() {
               audioEnabled={audioEnabled}
               onToggleAudio={() => setAudioEnabled((v) => !v)}
             />
-            <ProjectCard project={activeProject} onClose={close} />
+            <ProjectCard project={activeProject} onClose={close} onNavigate={setActive} />
             <ContactPing open={active.kind === "contact"} onClose={close} />
           </Suspense>
         </>

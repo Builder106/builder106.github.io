@@ -1,11 +1,30 @@
-import { CLUSTER_DISPLAY, type Project } from "@/data/projects";
+import { useMemo } from "react";
+import { CLUSTER_DISPLAY, projects, type Project } from "@/data/projects";
 import { repoStats } from "@/data/repoStats.generated";
+import type { ActivePanel } from "@/scene/activePanel";
 import { PanelShell } from "./PanelShell";
 
 interface ProjectCardProps {
   project: Project | null;
   onClose: () => void;
+  onNavigate: (target: ActivePanel) => void;
 }
+
+// Aisle ordering (front of corridor → back). Duplicated rather than
+// imported from ServerRoom because that module pulls three.js; this
+// panel must stay in its own lazy chunk so the initial bundle doesn't
+// drag in WebGL.
+const AISLE_ORDER = [
+  "ocaml-lob",
+  "qforge",
+  "econos",
+  "staija",
+  "studysprint",
+  "micromatch",
+  "capitol-alpha",
+  "datafest-2026",
+  "linuxbenchhub",
+] as const;
 
 // Resolve a repo URL → "<owner>/<name>" slug, the same key the
 // build-time stats script uses.
@@ -26,7 +45,7 @@ function relativeTime(iso: string): string {
   return `${Math.round(days / 365)}y ago`;
 }
 
-export function ProjectCard({ project, onClose }: ProjectCardProps) {
+export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) {
   // The shell is rendered even when project is null so the close
   // animation can play out cleanly when the panel is dismissed.
   const open = project !== null;
@@ -34,8 +53,32 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
   const slug = project ? repoSlug(project.links.repo) : null;
   const stats = slug ? repoStats[slug] : null;
 
+  // Aisle neighbours for the prev/next footer. Wraps around so the
+  // user can keep paging through projects without ever closing the
+  // panel — bottom of the analyst stack rolls back to the front of
+  // the quant stack.
+  const { prevProject, nextProject } = useMemo(() => {
+    if (!project) return { prevProject: null, nextProject: null };
+    const idx = AISLE_ORDER.indexOf(project.id as typeof AISLE_ORDER[number]);
+    if (idx === -1) return { prevProject: null, nextProject: null };
+    const total = AISLE_ORDER.length;
+    const prevId = AISLE_ORDER[(idx - 1 + total) % total];
+    const nextId = AISLE_ORDER[(idx + 1) % total];
+    return {
+      prevProject: projects.find((p) => p.id === prevId) ?? null,
+      nextProject: projects.find((p) => p.id === nextId) ?? null,
+    };
+  }, [project]);
+
+  // Cluster modifier flows --cluster-color through every component on
+  // the panel via Panel.css. Falls back to a non-cluster variant if
+  // project is null (during the close animation).
+  const variantClass = project
+    ? `panel--project panel--project--${project.cluster}`
+    : "panel--project";
+
   return (
-    <PanelShell open={open} title={title} onClose={onClose}>
+    <PanelShell open={open} title={title} onClose={onClose} variantClass={variantClass}>
       {project && (
         <>
           {(project.demo || project.image) && (
@@ -84,22 +127,37 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
             </section>
           )}
 
-          <section className="panel__section">
-            <div className="panel__section-label">project / {CLUSTER_DISPLAY[project.cluster]}</div>
-            <h3 className="panel__list-name" style={{ fontSize: 18, marginBottom: 6 }}>
-              {project.name}
-            </h3>
-            {project.headline && (
-              <p className="panel__headline">{project.headline}</p>
+          {/* Identity strip: cluster lozenge + project name + repo slug.
+              The lozenge is filled with the cluster colour so each card
+              telegraphs its cluster at first glance instead of relying
+              on a small uppercase label. */}
+          <section className="panel__section project-card__identity">
+            <span className="project-card__cluster">
+              {CLUSTER_DISPLAY[project.cluster]}
+            </span>
+            <h3 className="project-card__name">{project.name}</h3>
+            {slug && (
+              <span className="project-card__slug" title={slug}>
+                {slug}
+              </span>
             )}
-            <p className="panel__list-blurb" style={{ fontSize: 14 }}>{project.blurb}</p>
           </section>
+
+          {/* Money-shot headline. Bigger and cluster-tinted so it lands
+              as the card's signature stat rather than a regular line of
+              copy. Falls back to the blurb being the lead if no
+              headline is set. */}
+          {project.headline && (
+            <p className="project-card__headline">{project.headline}</p>
+          )}
+
+          <p className="project-card__blurb">{project.blurb}</p>
 
           <section className="panel__section">
             <div className="panel__section-label">stack</div>
-            <div className="panel__chips">
+            <div className="project-card__chips">
               {project.stack.map((tag) => (
-                <span key={tag} className="panel__chip">{tag}</span>
+                <span key={tag} className="project-card__chip">{tag}</span>
               ))}
             </div>
           </section>
@@ -107,38 +165,85 @@ export function ProjectCard({ project, onClose }: ProjectCardProps) {
           {stats && (
             <section className="panel__section">
               <div className="panel__section-label">repo</div>
-              <div className="panel__chips panel__chips--stats">
+              <div className="project-card__repo">
                 {stats.lang && (
-                  <span className="panel__chip panel__chip--stat">
-                    <span aria-hidden>●</span> {stats.lang}
+                  <span className="project-card__repo-stat">
+                    <span className="project-card__repo-dot" aria-hidden />
+                    {stats.lang}
                   </span>
                 )}
-                <span className="panel__chip panel__chip--stat">
-                  ★ {stats.stars}
+                <span className="project-card__repo-sep" aria-hidden>·</span>
+                <span className="project-card__repo-stat">
+                  <span aria-hidden>★</span> {stats.stars}
                 </span>
-                <span className="panel__chip panel__chip--stat">
-                  ⟳ {relativeTime(stats.pushed_at)}
+                <span className="project-card__repo-sep" aria-hidden>·</span>
+                <span className="project-card__repo-stat">
+                  <span aria-hidden>⟳</span> {relativeTime(stats.pushed_at)}
                 </span>
               </div>
             </section>
           )}
 
           {(project.links.live || project.links.repo) && (
-            <section className="panel__section">
-              <div className="panel__section-label">links</div>
-              <div className="panel__links">
-                {project.links.live && (
-                  <a href={project.links.live} target="_blank" rel="noreferrer">
-                    live →
-                  </a>
-                )}
-                {project.links.repo && (
-                  <a href={project.links.repo} target="_blank" rel="noreferrer">
-                    repo →
-                  </a>
-                )}
-              </div>
+            <section className="panel__section project-card__ctas">
+              {project.links.live && (
+                <a
+                  className="project-card__cta project-card__cta--primary"
+                  href={project.links.live}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  open live demo
+                  <span className="project-card__cta-arrow" aria-hidden>→</span>
+                </a>
+              )}
+              {project.links.repo && (
+                <a
+                  className="project-card__cta project-card__cta--secondary"
+                  href={project.links.repo}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  view source
+                  <span className="project-card__cta-arrow" aria-hidden>→</span>
+                </a>
+              )}
             </section>
+          )}
+
+          {/* Aisle-order prev/next so the user can page through
+              projects without closing the panel and re-clicking a
+              rack. Wraps so it's also a tour mode — keep clicking
+              "next" to cycle through all 9. */}
+          {(prevProject || nextProject) && (
+            <nav className="project-card__nav" aria-label="Project navigation">
+              {prevProject && (
+                <button
+                  type="button"
+                  className={`project-card__nav-btn project-card__nav-btn--prev project-card__nav-btn--${prevProject.cluster}`}
+                  onClick={() => onNavigate({ kind: "project", projectId: prevProject.id })}
+                >
+                  <span className="project-card__nav-dir" aria-hidden>←</span>
+                  <span className="project-card__nav-meta">
+                    <span className="project-card__nav-label">prev rack</span>
+                    <span className="project-card__nav-name">{prevProject.name}</span>
+                  </span>
+                </button>
+              )}
+              {nextProject && (
+                <button
+                  type="button"
+                  className={`project-card__nav-btn project-card__nav-btn--next project-card__nav-btn--${nextProject.cluster}`}
+                  onClick={() => onNavigate({ kind: "project", projectId: nextProject.id })}
+                >
+                  <span className="project-card__nav-meta">
+                    <span className="project-card__nav-label">next rack</span>
+                    <span className="project-card__nav-name">{nextProject.name}</span>
+                  </span>
+                  <span className="project-card__nav-dir" aria-hidden>→</span>
+                </button>
+              )}
+            </nav>
           )}
         </>
       )}
