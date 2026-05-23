@@ -139,9 +139,12 @@ export function TradingTerminal({
   const logRef = useRef<HTMLDivElement>(null);
 
   // Auto-focus the prompt when the panel opens — the user almost
-  // certainly wants to start typing.
+  // certainly wants to start typing. `preventScroll: true` matters
+  // because the input is below the dashboard + repo list; without
+  // it the browser scroll-into-views the input and the aisle map
+  // ends up clipped above the panel body's scroll region.
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (open) inputRef.current?.focus({ preventScroll: true });
   }, [open]);
 
   // Auto-scroll the log to the latest entry whenever it grows.
@@ -278,6 +281,33 @@ export function TradingTerminal({
       .slice(0, 6);
   }, []);
 
+  // Project lookup by id, used by the aisle map + cluster aggregates.
+  const projectsById = useMemo(
+    () => new Map(projects.map((p) => [p.id, p])),
+    [],
+  );
+
+  // Cluster headcounts for the load widget. Stable across renders so
+  // the bar fills don't reflow on every scroll tick.
+  const clusterCounts = useMemo(() => {
+    const counts = { quant: 0, swe: 0, analyst: 0 } as Record<string, number>;
+    for (const p of projects) counts[p.cluster] = (counts[p.cluster] ?? 0) + 1;
+    return counts;
+  }, []);
+  const totalProjects = projects.length;
+
+  // Translate a rack index in AISLE_ORDER to the scroll progress that
+  // parks the camera ~5 m in front of that rack — i.e. the position
+  // where its label peaks at full opacity. Used by the aisle-map node
+  // buttons: clicking a node jumps the scroll to a "you're looking at
+  // this rack" framing rather than teleporting into the middle of it.
+  const scrollProgressForRack = useCallback((index: number): number => {
+    const rackZ = AISLE_Z_START - index * AISLE_SPACING - 1;
+    const targetCamZ = rackZ + 5;
+    const t = (SCROLL_CAM_Z_START - targetCamZ) / (SCROLL_CAM_Z_START - SCROLL_CAM_Z_END);
+    return Math.max(0, Math.min(1, t));
+  }, []);
+
   // Prefix glyph per entry kind so a glance at the column tells you
   // what each line is without reading the text. Kept aligned (two
   // chars wide) so multi-line outputs stay visually columnar.
@@ -299,95 +329,166 @@ export function TradingTerminal({
       onClose={onClose}
       variantClass="panel--console"
     >
+      <section className="panel__section aisle-map-section">
+        <div className="aisle-map" aria-label={`Aisle position: ${Math.round(progress * 100)}%`}>
+          <header className="aisle-map__header">
+            <span className="aisle-map__title">aisle_map</span>
+            <span className="aisle-map__progress" aria-live="polite">
+              {Math.round(progress * 100).toString().padStart(2, "0")}
+              <span className="aisle-map__progress-unit">%</span>
+            </span>
+          </header>
+          <div className="aisle-map__track">
+            <span className="aisle-map__endpoint aisle-map__endpoint--start" aria-hidden>
+              ◂ ENTRY
+            </span>
+            <div className="aisle-map__rail" aria-hidden />
+            <div
+              className="aisle-map__cursor"
+              style={{ left: `${(progress * 100).toFixed(2)}%` }}
+              aria-hidden
+            />
+            {AISLE_ORDER.map((id, i) => {
+              const project = projectsById.get(id);
+              if (!project) return null;
+              // Node positions track the same scroll-progress the
+              // user would hit if they clicked the node — so the
+              // cursor's percentage matches whichever node the
+              // dominant-rack readout names below.
+              const pos = scrollProgressForRack(i) * 100;
+              const isActive = id === activeRackId;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`aisle-map__node aisle-map__node--${project.cluster} ${
+                    isActive ? "aisle-map__node--active" : ""
+                  }`}
+                  style={{ left: `${pos.toFixed(2)}%` }}
+                  onClick={() => {
+                    aisleScroll.set(scrollProgressForRack(i));
+                  }}
+                  title={`${project.name} · ${project.cluster}`}
+                  aria-label={`Jump to ${project.name}`}
+                >
+                  <span className="aisle-map__node-dot" aria-hidden />
+                  <span className="aisle-map__node-label">{project.name}</span>
+                </button>
+              );
+            })}
+            <span className="aisle-map__endpoint aisle-map__endpoint--end" aria-hidden>
+              EXIT ▸
+            </span>
+          </div>
+          <div className="aisle-map__readout">
+            <span className="aisle-map__readout-key">active:</span>
+            {activeRack ? (
+              <button
+                type="button"
+                className={`aisle-map__readout-name aisle-map__readout-name--${activeRack.cluster}`}
+                onClick={() => onNavigate({ kind: "project", projectId: activeRack.id })}
+              >
+                {activeRack.name}
+                <span className="aisle-map__readout-cluster">// {activeRack.cluster}</span>
+              </button>
+            ) : (
+              <span className="aisle-map__readout-name aisle-map__readout-name--empty">
+                between racks
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
       <section className="panel__section">
-        <div className="panel__section-label">system.status</div>
-        <div className="console-dashboard">
-          <div className="console-widget">
-            <div className="console-widget__header">
-              <span className="console-widget__title">build</span>
-              <span className="console-widget__dot console-widget__dot--ok" aria-hidden />
+        <div className="console-pills">
+          <div className="console-pill console-pill--build">
+            <div className="console-pill__header">
+              <span className="console-pill__title">build</span>
+              <span className="console-pill__dot console-pill__dot--ok" aria-hidden />
             </div>
-            <div className="console-widget__value console-widget__value--mono">{SHORT_SHA}</div>
-            <div className="console-widget__sub" title={BUILD_MESSAGE}>
-              {BUILD_MESSAGE.length > 42
-                ? `${BUILD_MESSAGE.slice(0, 40)}…`
+            <div className="console-pill__value">{SHORT_SHA}</div>
+            <div className="console-pill__sub" title={BUILD_MESSAGE}>
+              {BUILD_MESSAGE.length > 50
+                ? `${BUILD_MESSAGE.slice(0, 48)}…`
                 : BUILD_MESSAGE}
             </div>
-            <div className="console-widget__sub console-widget__sub--dim">
-              {relativeTime(BUILD_TIMESTAMP)}
-            </div>
+            <div className="console-pill__meta">{relativeTime(BUILD_TIMESTAMP)}</div>
           </div>
 
-          <div className="console-widget">
-            <div className="console-widget__header">
-              <span className="console-widget__title">telemetry</span>
-              <span className="console-widget__dot console-widget__dot--live" aria-hidden />
-            </div>
-            <div className="console-widget__value console-widget__value--mono">
-              {(progress * 100).toFixed(0)}<span className="console-widget__unit">%</span>
-            </div>
-            <div
-              className="console-widget__bar"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(progress * 100)}
-            >
-              <div
-                className="console-widget__bar-fill"
-                style={{ width: `${(progress * 100).toFixed(1)}%` }}
-              />
-            </div>
-            <div className="console-widget__sub">
-              {activeRack
-                ? `${activeRack.name} · ${activeRack.cluster}`
-                : "between racks"}
-            </div>
-          </div>
-
-          <div className="console-widget">
-            <div className="console-widget__header">
-              <span className="console-widget__title">audio</span>
+          <div className="console-pill console-pill--audio">
+            <div className="console-pill__header">
+              <span className="console-pill__title">audio</span>
               <span
-                className={`console-widget__dot ${audioEnabled ? "console-widget__dot--ok" : "console-widget__dot--muted"}`}
+                className={`console-pill__dot ${
+                  audioEnabled ? "console-pill__dot--ok" : "console-pill__dot--muted"
+                }`}
                 aria-hidden
               />
             </div>
-            <div className="console-widget__value">{audioEnabled ? "on" : "muted"}</div>
-            <button
-              type="button"
-              className="console-widget__toggle"
-              onClick={onToggleAudio}
-            >
-              {audioEnabled ? "mute" : "unmute"}
-            </button>
+            <div className="console-pill__value">
+              {audioEnabled ? "online" : "muted"}
+              <button
+                type="button"
+                className="console-pill__action"
+                onClick={onToggleAudio}
+              >
+                {audioEnabled ? "mute" : "unmute"}
+              </button>
+            </div>
+            <div className="console-pill__meta">60 Hz hum · cooling LFO</div>
           </div>
 
-          <div className="console-widget console-widget--span">
-            <div className="console-widget__header">
-              <span className="console-widget__title">repo activity</span>
-              <span className="console-widget__title-meta">{repoRows.length} repos</span>
+          <div className="console-pill console-pill--cluster">
+            <div className="console-pill__header">
+              <span className="console-pill__title">cluster_load</span>
+              <span className="console-pill__dot console-pill__dot--ok" aria-hidden />
             </div>
-            <ul className="console-widget__list">
-              {repoRows.map(({ project, stats }) => (
-                <li key={project.id}>
-                  <button
-                    type="button"
-                    className="console-widget__row console-widget__row--button"
-                    onClick={() => onNavigate({ kind: "project", projectId: project.id })}
-                  >
-                    <span className="console-widget__row-name">{project.name}</span>
-                    <span className="console-widget__row-meta">
-                      <span className="console-widget__row-lang">{stats.lang ?? "—"}</span>
-                      <span className="console-widget__row-dot" aria-hidden>·</span>
-                      <span className="console-widget__row-time">{relativeTime(stats.pushed_at)}</span>
+            <div className="cluster-bars">
+              {(["quant", "swe", "analyst"] as const).map((c) => {
+                const count = clusterCounts[c] ?? 0;
+                const pct = totalProjects > 0 ? (count / totalProjects) * 100 : 0;
+                return (
+                  <div key={c} className={`cluster-bar cluster-bar--${c}`}>
+                    <span className="cluster-bar__label">{c}</span>
+                    <span className="cluster-bar__track">
+                      <span
+                        className="cluster-bar__fill"
+                        style={{ width: `${pct.toFixed(1)}%` }}
+                      />
                     </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <span className="cluster-bar__count">{count}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
+      </section>
+
+      <section className="panel__section">
+        <div className="panel__section-label">
+          repo_activity
+          <span className="panel__section-meta">{repoRows.length} repos · last push</span>
+        </div>
+        <ul className="repo-list">
+          {repoRows.map(({ project, stats }) => (
+            <li key={project.id}>
+              <button
+                type="button"
+                className={`repo-row repo-row--${project.cluster}`}
+                onClick={() => onNavigate({ kind: "project", projectId: project.id })}
+              >
+                <span className="repo-row__stripe" aria-hidden />
+                <span className="repo-row__cluster">{project.cluster}</span>
+                <span className="repo-row__name">{project.name}</span>
+                <span className="repo-row__lang">{stats.lang ?? "—"}</span>
+                <span className="repo-row__time">{relativeTime(stats.pushed_at)}</span>
+                <span className="repo-row__arrow" aria-hidden>›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="panel__section console-section">

@@ -617,138 +617,401 @@
    the default 95vw / 85vh — only one widget per row anyway. */
 .panel--console {
   width: min(1080px, 88vw);
-  max-height: 88vh;
+  max-height: 92vh;
+}
+
+.panel--console .panel__body {
+  gap: 14px;
+  padding: 14px 22px 18px;
 }
 
 @media (max-width: 720px) {
   .panel--console {
     width: 95vw;
-    max-height: 90vh;
+    max-height: 92vh;
+  }
+  .panel--console .panel__body {
+    padding: 12px 14px 14px;
+    gap: 12px;
   }
 }
 
-.console-dashboard {
+/* Per-cluster accent tokens. Reused by the aisle map nodes, the
+   compact pills, and the repo-row left-stripes so a single cluster
+   reads with the same colour everywhere on the panel. */
+.aisle-map__node--quant,
+.cluster-bar--quant,
+.repo-row--quant   { --cluster-color: var(--neon-cyan);    }
+.aisle-map__node--swe,
+.cluster-bar--swe,
+.repo-row--swe     { --cluster-color: var(--neon-amber);   }
+.aisle-map__node--analyst,
+.cluster-bar--analyst,
+.repo-row--analyst { --cluster-color: var(--neon-magenta); }
+
+/* Slow vertical scan-line that sweeps the entire panel whenever the
+   console variant is mounted. Lives as a sibling of .panel__body
+   inside .panel__inner (which is position: relative + overflow:
+   hidden), so it floats over scrolling content without moving with
+   the scroll. Pointer-events disabled to never intercept clicks. */
+.panel__overlay-scan {
+  position: absolute;
+  inset: 0;
+  top: 38px; /* clear the header chrome */
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.panel__overlay-scan::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 120%;
+  top: -10%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 46%,
+    rgba(76, 242, 255, 0.08) 50%,
+    transparent 54%,
+    transparent 100%
+  );
+  animation: console-scan-sweep 7s linear infinite;
+}
+
+@keyframes console-scan-sweep {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+/* Aisle map ----------------------------------------------------- */
+
+.aisle-map-section {
+  position: relative;
+}
+
+.aisle-map {
+  position: relative;
+  padding: 14px 18px 16px;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 50%,
+      rgba(76, 242, 255, 0.06) 0%,
+      transparent 70%
+    ),
+    linear-gradient(135deg, rgba(8, 10, 18, 0.6), rgba(8, 10, 18, 0.85));
+  border: 1px solid rgba(76, 242, 255, 0.18);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(76, 242, 255, 0.12),
+    0 0 24px rgba(76, 242, 255, 0.04);
+}
+
+.aisle-map__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+
+.aisle-map__title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.aisle-map__progress {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(76, 242, 255, 0.35);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.aisle-map__progress-unit {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 2px;
+  text-shadow: none;
+}
+
+.aisle-map__track {
+  position: relative;
+  height: 56px;
+  margin: 0 4px;
+}
+
+.aisle-map__rail {
+  position: absolute;
+  top: 50%;
+  left: 7%;
+  right: 7%;
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(76, 242, 255, 0.55) 10%,
+    rgba(76, 242, 255, 0.55) 90%,
+    transparent
+  );
+  box-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
+  border-radius: 1px;
+}
+
+.aisle-map__endpoint {
+  position: absolute;
+  top: 50%;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.aisle-map__endpoint--start { left: 0; }
+.aisle-map__endpoint--end   { right: 0; }
+
+.aisle-map__cursor {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--neon-cyan);
+  box-shadow:
+    0 0 8px rgba(76, 242, 255, 0.8),
+    0 0 16px rgba(76, 242, 255, 0.4);
+  transition: left 150ms ease-out;
+}
+
+.aisle-map__cursor::before,
+.aisle-map__cursor::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border: 5px solid transparent;
+  transform: translateX(-50%);
+}
+
+.aisle-map__cursor::before {
+  top: -6px;
+  border-top-color: var(--neon-cyan);
+}
+
+.aisle-map__cursor::after {
+  bottom: -6px;
+  border-bottom-color: var(--neon-cyan);
+}
+
+.aisle-map__node {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border: none;
+  padding: 8px 6px;
+  cursor: pointer;
+  color: var(--cluster-color);
+}
+
+.aisle-map__node-dot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: var(--bg-deep);
+  box-shadow: 0 0 6px currentColor;
+  transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.aisle-map__node:hover .aisle-map__node-dot,
+.aisle-map__node:focus-visible .aisle-map__node-dot {
+  background: currentColor;
+  transform: scale(1.2);
+  box-shadow: 0 0 10px currentColor, 0 0 18px currentColor;
+}
+
+.aisle-map__node:focus-visible {
+  outline: none;
+}
+
+.aisle-map__node--active .aisle-map__node-dot {
+  background: currentColor;
+  width: 14px;
+  height: 14px;
+  animation: aisle-node-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes aisle-node-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 14px currentColor, 0 0 28px currentColor;
+    transform: scale(1.15);
+  }
+}
+
+/* Label sits below the dot; hidden by default, fades in on hover and
+   for the active node. Rendered via a flex span so it doesn't shift
+   the dot's centre. */
+.aisle-map__node-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 4px);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+.aisle-map__node:hover .aisle-map__node-label,
+.aisle-map__node:focus-visible .aisle-map__node-label,
+.aisle-map__node--active .aisle-map__node-label {
+  opacity: 1;
+}
+
+.aisle-map__readout {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(76, 242, 255, 0.12);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.aisle-map__readout-key {
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+
+.aisle-map__readout-name {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: 0.02em;
+  color: var(--cluster-color, var(--text-primary));
+  text-shadow: 0 0 8px rgba(76, 242, 255, 0.2);
+}
+
+.aisle-map__readout-name:hover,
+.aisle-map__readout-name:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.aisle-map__readout-name--empty {
+  color: var(--text-muted);
+  cursor: default;
+  text-shadow: none;
+}
+
+.aisle-map__readout-cluster {
+  color: var(--text-muted);
+  margin-left: 8px;
+  text-shadow: none;
+}
+
+/* Compact pills row (build / audio / cluster_load) -------------- */
+
+.console-pills {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 10px;
 }
 
-.console-widget {
+.console-pill {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 10px 12px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(76, 242, 255, 0.06) 0%,
-      rgba(76, 242, 255, 0.02) 100%
-    );
+  padding: 10px 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(76, 242, 255, 0.05) 0%,
+    rgba(76, 242, 255, 0.01) 100%
+  );
   border: 1px solid rgba(76, 242, 255, 0.14);
-  border-radius: 3px;
-  /* Subtle bevel-style top highlight so each widget reads as its own
-     "panel slice" rather than a flat patch. */
+  /* Cut the top-left corner so the row stops reading as another row
+     of plain rectangles. Tiny diagonal slice — visible without
+     making the shape feel novelty. */
+  clip-path: polygon(
+    14px 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    0 100%,
+    0 14px
+  );
+  border-radius: 0;
   box-shadow: inset 0 1px 0 rgba(76, 242, 255, 0.08);
 }
 
-.console-widget--span {
-  grid-column: 1 / -1;
-}
-
-.console-widget__header {
+.console-pill__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 6px;
 }
 
-.console-widget__title {
+.console-pill__title {
+  font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
-.console-widget__title-meta {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-
-/* Status dot, top-right of each widget header. Modifiers:
-   --ok   = healthy / nominal (cyan, soft glow)
-   --live = changing in real-time (cyan, gentle pulse)
-   --muted = nominally off (dim grey) */
-.console-widget__dot {
+.console-pill__dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--neon-cyan);
-  box-shadow: 0 0 6px rgba(76, 242, 255, 0.45);
+  background: var(--terminal-green);
+  box-shadow: 0 0 6px var(--terminal-green);
   flex-shrink: 0;
 }
 
-.console-widget__dot--muted {
+.console-pill__dot--muted {
   background: var(--text-muted);
   box-shadow: none;
 }
 
-.console-widget__dot--live {
-  animation: console-dot-pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes console-dot-pulse {
-  0%, 100% { opacity: 1;   transform: scale(1);    }
-  50%      { opacity: 0.45; transform: scale(0.8); }
-}
-
-.console-widget__value {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--text-primary);
-  letter-spacing: 0.01em;
-}
-
-.console-widget__value--mono {
+.console-pill__value {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
   font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
   color: var(--neon-cyan);
-  text-shadow: 0 0 8px rgba(76, 242, 255, 0.3);
+  text-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
+  letter-spacing: 0.02em;
 }
 
-.console-widget__unit {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-left: 2px;
-  font-weight: 400;
-  text-shadow: none;
-}
-
-.console-widget__bar {
-  height: 4px;
-  background: rgba(76, 242, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-  margin: 6px 0 4px;
-}
-
-.console-widget__bar-fill {
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(76, 242, 255, 0.6),
-    var(--neon-cyan)
-  );
-  box-shadow: 0 0 6px rgba(76, 242, 255, 0.5);
-  transition: width 220ms ease-out;
-  border-radius: 2px;
-}
-
-.console-widget__sub {
+.console-pill__sub {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-muted);
@@ -756,103 +1019,182 @@
   word-break: break-word;
 }
 
-.console-widget__sub--dim {
-  opacity: 0.65;
+.console-pill__meta {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
-.console-widget__toggle {
-  margin-top: 6px;
-  align-self: flex-start;
-  padding: 4px 10px;
+.console-pill__action {
+  margin-left: auto;
+  padding: 3px 9px;
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-size: 9px;
+  letter-spacing: 0.1em;
   text-transform: lowercase;
   background: rgba(76, 242, 255, 0.06);
-  border: 1px solid rgba(76, 242, 255, 0.22);
+  border: 1px solid rgba(76, 242, 255, 0.25);
   color: var(--neon-cyan);
-  border-radius: 3px;
+  border-radius: 999px;
   cursor: pointer;
   transition: background 150ms ease, border-color 150ms ease;
 }
 
-.console-widget__toggle:hover,
-.console-widget__toggle:focus-visible {
-  background: rgba(76, 242, 255, 0.12);
-  border-color: rgba(76, 242, 255, 0.45);
+.console-pill__action:hover,
+.console-pill__action:focus-visible {
+  background: rgba(76, 242, 255, 0.14);
+  border-color: rgba(76, 242, 255, 0.5);
   outline: none;
 }
 
-.console-widget__list {
+/* Cluster-load mini bars ---------------------------------------- */
+
+.cluster-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.cluster-bar {
+  display: grid;
+  grid-template-columns: 50px 1fr 22px;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--cluster-color, var(--text-muted));
+}
+
+.cluster-bar__label {
+  letter-spacing: 0.08em;
+}
+
+.cluster-bar__track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.cluster-bar__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(to right, var(--cluster-color), var(--cluster-color));
+  box-shadow: 0 0 6px var(--cluster-color);
+  border-radius: 2px;
+}
+
+.cluster-bar__count {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--cluster-color);
+  text-shadow: 0 0 6px var(--cluster-color);
+}
+
+/* Repo activity list (no longer inside a "widget"; full-width
+   row-by-row layout with a cluster-coloured left stripe) ---- */
+
+.panel__section-meta {
+  margin-left: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  text-transform: none;
+  opacity: 0.65;
+}
+
+.repo-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   margin: 0;
   padding: 0;
 }
 
-.console-widget__row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 4px 8px;
-  margin: 0 -8px;
+.repo-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 70px 1fr auto auto 14px;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 9px 14px 9px 22px;
+  background: rgba(8, 10, 18, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 3px;
-}
-
-/* Repo-activity rows render as buttons so the user can hop straight to
-   a project panel by clicking. Reset native button styling to look
-   like the original list rows, then add a hover affordance. */
-.console-widget__row--button {
-  width: calc(100% + 16px);
-  background: transparent;
-  border: none;
-  color: inherit;
-  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
   cursor: pointer;
   text-align: left;
-  transition: background 120ms ease, color 120ms ease;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
-.console-widget__row--button:hover,
-.console-widget__row--button:focus-visible {
-  background: rgba(76, 242, 255, 0.08);
+.repo-row__stripe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--cluster-color);
+  box-shadow: 0 0 8px var(--cluster-color);
+}
+
+.repo-row:hover,
+.repo-row:focus-visible {
+  background: rgba(76, 242, 255, 0.06);
+  border-color: rgba(76, 242, 255, 0.22);
   outline: none;
+  transform: translateX(2px);
 }
 
-.console-widget__row--button:hover .console-widget__row-name,
-.console-widget__row--button:focus-visible .console-widget__row-name {
-  color: var(--neon-cyan);
-  text-shadow: 0 0 6px rgba(76, 242, 255, 0.35);
+.repo-row__cluster {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cluster-color);
+  text-shadow: 0 0 6px var(--cluster-color);
 }
 
-.console-widget__row-name {
+.repo-row__name {
+  font-size: 13px;
   color: var(--text-primary);
-  transition: color 120ms ease;
 }
 
-.console-widget__row-meta {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  color: var(--text-muted);
+.repo-row:hover .repo-row__name,
+.repo-row:focus-visible .repo-row__name {
+  color: var(--neon-cyan);
+}
+
+.repo-row__lang {
   font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
 }
 
-.console-widget__row-lang {
-  color: rgba(220, 226, 240, 0.7);
-}
-
-.console-widget__row-dot {
-  opacity: 0.5;
-}
-
-.console-widget__row-time {
+.repo-row__time {
+  font-size: 10px;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+.repo-row__arrow {
+  font-size: 16px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: transform 140ms ease, opacity 140ms ease, color 140ms ease;
+}
+
+.repo-row:hover .repo-row__arrow,
+.repo-row:focus-visible .repo-row__arrow {
+  opacity: 1;
+  color: var(--neon-cyan);
+  transform: translateX(3px);
 }
 
 /* Console log + prompt ----------------------------------------- */

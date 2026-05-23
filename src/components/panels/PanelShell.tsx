@@ -44,6 +44,13 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
 
       <div className="panel__inner">
         <span className="panel__scan" aria-hidden />
+        {/* Slow continuous scan-line overlay, only on variants that opt
+            in (currently just the control console). Sibling of the
+            scrollable body so it floats over content without moving
+            with scroll. */}
+        {variantClass?.includes("console") && (
+          <span className="panel__overlay-scan" aria-hidden />
+        )}
 
         <header className="panel__header">
           <div className="panel__chrome">
