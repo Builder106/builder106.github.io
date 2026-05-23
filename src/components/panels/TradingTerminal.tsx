@@ -642,7 +642,11 @@ export function TradingTerminal({
             { kind: "output", text: "  three.js                  (WebGL)" },
             { kind: "output", text: "  vite + react              (build / ui)" },
             { kind: "output", text: "  blender                   (rack model)" },
-            { kind: "output", text: "  webaudio api              (ambient hum + cooling LFO)" },
+            { kind: "output", text: "" },
+            { kind: "output", text: "ambient music:" },
+            { kind: "output", text: "  Vermillion Gaze — Mechanical Sunsets (Sun Waves)" },
+            { kind: "output", text: "  CC-BY 4.0 · archive.org/details/SunWaves" },
+            { kind: "output", text: "" },
             { kind: "output", text: "source: github.com/Builder106/builder106.github.io" },
           ];
 
@@ -960,7 +964,9 @@ export function TradingTerminal({
                 {audioEnabled ? "mute" : "unmute"}
               </button>
             </div>
-            <div className="console-pill__meta">60 Hz hum · cooling LFO</div>
+            <div className="console-pill__meta">
+              vermillion gaze · mechanical sunsets
+            </div>
           </div>
 
           <div className="console-pill console-pill--cluster">

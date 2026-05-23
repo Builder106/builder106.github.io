@@ -1,115 +1,105 @@
 import { useEffect, useRef } from "react";
 
-// Three-layer ambient bed for the data-centre aisle: a 60 Hz power
-// hum, low-passed pink-ish noise (the "wind" of an air-handling
-// system), and a slowly-modulated 280 Hz tone (cooling-fan whir).
-// All synthesised via WebAudio — no asset to ship — and lazily
-// instantiated on first user interaction to satisfy browser autoplay
-// policies.
+// Ambient bed for the data-centre aisle. Previously a three-layer
+// WebAudio synth (60 Hz power hum + filtered noise + cooling-fan whir);
+// now a streamed mp3 — "Mechanical Sunsets" by Vermillion Gaze, from
+// the Sun Waves release on archive.org, CC-BY 4.0. The synth read as
+// a buzz; the track is slowave / techno / 80s synth and lands closer
+// to the cyberpunk-server-room vibe the rest of the scene is selling.
+//
+// Hosted on Internet Archive's CDN (Fastly-fronted, CORS open, range
+// requests supported, so the browser streams instead of downloading
+// the whole file before playback). No file checked into public/.
+//
+// Attribution is surfaced in the console's `credits` command and in
+// the audio pill's meta line.
 
-interface AudioGraph {
-  ctx: AudioContext;
-  master: GainNode;
-}
+export const AMBIENT_TRACK = {
+  url: "https://archive.org/download/SunWaves/MechanicalSunsets.mp3",
+  artist: "Vermillion Gaze",
+  title: "Mechanical Sunsets",
+  album: "Sun Waves",
+  license: "CC-BY 4.0",
+  source: "archive.org/details/SunWaves",
+} as const;
 
-const TARGET_VOLUME = 0.55;
+const TARGET_VOLUME = 0.4;
 const FADE_IN_SECONDS = 2.2;
 const FADE_OUT_SECONDS = 0.4;
+// Tick rate of the fade-volume animation. 60 Hz is overkill for a
+// 2 s ramp but the work per tick is one math.min + one assignment —
+// nothing the GC will notice.
+const FADE_TICK_MS = 16;
 
-function buildGraph(): AudioGraph {
-  const Ctx =
-    window.AudioContext ||
-    (window as unknown as { webkitAudioContext: typeof AudioContext })
-      .webkitAudioContext;
-  const ctx = new Ctx();
-  const master = ctx.createGain();
-  master.gain.value = 0;
-  master.connect(ctx.destination);
-
-  // Layer 1: 60 Hz power hum.
-  const hum = ctx.createOscillator();
-  hum.type = "sawtooth";
-  hum.frequency.value = 60;
-  const humGain = ctx.createGain();
-  humGain.gain.value = 0.045;
-  hum.connect(humGain).connect(master);
-  hum.start();
-
-  // Layer 2: filtered noise — air-handler "wind".
-  const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-  const noiseData = noiseBuf.getChannelData(0);
-  for (let i = 0; i < noiseData.length; i++) {
-    noiseData[i] = (Math.random() - 0.5);
-  }
-  const noise = ctx.createBufferSource();
-  noise.buffer = noiseBuf;
-  noise.loop = true;
-  const noiseFilter = ctx.createBiquadFilter();
-  noiseFilter.type = "lowpass";
-  noiseFilter.frequency.value = 580;
-  const noiseGain = ctx.createGain();
-  noiseGain.gain.value = 0.07;
-  noise.connect(noiseFilter).connect(noiseGain).connect(master);
-  noise.start();
-
-  // Layer 3: cooling-fan whir at 280 Hz, slowly modulated.
-  const fan = ctx.createOscillator();
-  fan.type = "sine";
-  fan.frequency.value = 280;
-  const fanLFO = ctx.createOscillator();
-  fanLFO.frequency.value = 0.35;
-  const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 7;
-  fanLFO.connect(lfoGain).connect(fan.frequency);
-  const fanGain = ctx.createGain();
-  fanGain.gain.value = 0.014;
-  fan.connect(fanGain).connect(master);
-  fan.start();
-  fanLFO.start();
-
-  return { ctx, master };
+function rampGain(audio: HTMLAudioElement, to: number, seconds: number): number {
+  const from = audio.volume;
+  const startedAt = performance.now();
+  const id = window.setInterval(() => {
+    const t = Math.min(1, (performance.now() - startedAt) / (seconds * 1000));
+    audio.volume = from + (to - from) * t;
+    if (t >= 1) {
+      window.clearInterval(id);
+      // Pause playback once a fade-out completes so the browser stops
+      // buffering the remote file in the background.
+      if (to === 0) audio.pause();
+    }
+  }, FADE_TICK_MS);
+  return id;
 }
 
 export function useAisleAudio(enabled: boolean): void {
-  const graphRef = useRef<AudioGraph | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fadeIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!enabled) {
-      // Fade out if a graph already exists.
-      const g = graphRef.current;
-      if (g) {
-        g.master.gain.cancelScheduledValues(g.ctx.currentTime);
-        g.master.gain.linearRampToValueAtTime(0, g.ctx.currentTime + FADE_OUT_SECONDS);
+      const a = audioRef.current;
+      if (a && !a.paused) {
+        if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
+        fadeIdRef.current = rampGain(a, 0, FADE_OUT_SECONDS);
       }
       return;
     }
 
-    const fadeIn = (g: AudioGraph) => {
-      g.master.gain.cancelScheduledValues(g.ctx.currentTime);
-      g.master.gain.linearRampToValueAtTime(
-        TARGET_VOLUME,
-        g.ctx.currentTime + FADE_IN_SECONDS,
-      );
+    const fadeUp = (a: HTMLAudioElement) => {
+      if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
+      fadeIdRef.current = rampGain(a, TARGET_VOLUME, FADE_IN_SECONDS);
     };
 
-    // If graph already exists from a previous enable, just unmute.
-    if (graphRef.current) {
-      // The context may be suspended after browser autoplay-policy
-      // freezes; resume if needed.
-      if (graphRef.current.ctx.state === "suspended") {
-        void graphRef.current.ctx.resume();
-      }
-      fadeIn(graphRef.current);
+    // Re-enable on a pre-existing element: just resume play + fade up.
+    if (audioRef.current) {
+      const a = audioRef.current;
+      a.volume = 0; // restart the fade from silence
+      void a.play().catch(() => {
+        // Autoplay may be re-locked if the user navigated away and
+        // back without a fresh gesture; the gesture listeners below
+        // will pick it up.
+      });
+      fadeUp(a);
       return;
     }
 
-    // First-time start needs a user gesture per browser policy.
+    // First-time start needs a user gesture. Build the element now
+    // (so it's preloaded enough to start instantly on the gesture)
+    // but defer play() until the gesture fires.
+    const a = new Audio();
+    a.src = AMBIENT_TRACK.url;
+    a.loop = true;
+    a.preload = "auto";
+    a.crossOrigin = "anonymous";
+    a.volume = 0;
+
     let cancelled = false;
     const start = () => {
-      if (cancelled || graphRef.current) return;
-      const g = buildGraph();
-      graphRef.current = g;
-      fadeIn(g);
+      if (cancelled || audioRef.current) return;
+      audioRef.current = a;
+      void a.play().catch(() => {
+        // Even after a gesture, some browsers can reject if the file
+        // hasn't buffered enough; the canplay listener below kicks
+        // back in once it has. We silently ignore — the next gesture
+        // (or canplay) will retry.
+      });
+      fadeUp(a);
       cleanup();
     };
     const cleanup = () => {
@@ -128,4 +118,17 @@ export function useAisleAudio(enabled: boolean): void {
       cleanup();
     };
   }, [enabled]);
+
+  // Stop and tear down on unmount so the stream doesn't keep buffering
+  // if the host page unmounts the hook.
+  useEffect(() => {
+    return () => {
+      if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
+      const a = audioRef.current;
+      if (a) {
+        a.pause();
+        a.src = "";
+      }
+    };
+  }, []);
 }
