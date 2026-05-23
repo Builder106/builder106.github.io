@@ -358,36 +358,37 @@
   text-decoration: none;
 }
 
-/* Hero image at the top of a ProjectCard. The wrapper section has
-   negative margins so the image extends edge-to-edge inside the panel
-   body's padding, then a subtle border + tonal gradient ties it back
-   into the panel chrome. */
+/* Hero image / demo video inside a ProjectCard. The wrapper section
+   extends edge-to-edge inside the panel body's padding via negative
+   horizontal margins, then a subtle border + tonal gradient ties it
+   back into the panel chrome. No vertical negative margin — the
+   media section is no longer the first child of the body (identity
+   + headline land above it), so pulling it upward would overlap the
+   headline. */
 .panel__section--media {
-  margin: -18px -22px 4px;
+  margin: 0 -22px;
   padding: 0;
+  border-top: 1px solid rgba(76, 242, 255, 0.15);
 }
 
 .panel__hero {
   display: block;
   width: 100%;
   height: auto;
-  /* All bundled demo recordings ship at 1440×900 (8:5). Pinning the
-     same ratio on the element so the video renders at its native
-     proportions instead of being center-cropped — the previous rule
-     used max-height: 240 + object-fit: cover, which kept a ~3:1
-     strip in the middle of every demo and lost the bottom two-thirds
-     (where the actual interesting UI usually lives). object-fit:
+  /* All bundled demo recordings ship at 1440×900 (8:5). object-fit:
      contain handles any future outliers by letterboxing rather than
      cropping. 1440 is exactly 2× the .panel default width (720 CSS
-     px), so the video is sharp on retina without upscaling. Cap at
-     80vh to keep an unusually tall fallback image from scrolling
-     the whole panel body. */
-  aspect-ratio: 8 / 5;
+     px), so the video is sharp on retina without upscaling.
+     max-height: 360 caps the hero so it doesn't dominate the panel
+     and push the primary CTAs below the fold on a typical 900 px
+     desktop. At a panel width of 720 the hero renders 720 × 360
+     (= 2:1 element ratio) with the 8:5 source contained inside —
+     ~56 px of dark letterbox on each side, no source cropped. */
   object-fit: contain;
   object-position: center;
   border-bottom: 1px solid rgba(76, 242, 255, 0.15);
   background: rgba(0, 0, 0, 0.4);
-  max-height: 80vh;
+  max-height: 360px;
 }
 
 .panel__hero--video {
@@ -474,11 +475,14 @@
 
 @media (max-width: 720px) {
   .panel__section--media {
-    margin: -14px -16px 2px;
+    margin: 0 -16px;
   }
-  /* Native aspect-ratio handling from the desktop rule applies on
-     mobile too — no max-height override needed. The video shrinks
-     proportionally with the panel's 95vw width. */
+  .panel__hero {
+    /* Mobile cap is tighter so the hero doesn't eat half the screen
+       on a phone-portrait viewport, where the panel is already
+       95vh tall. */
+    max-height: 260px;
+  }
   .panel__headline--hero {
     margin: 12px 16px 0;
     font-size: 13px;
@@ -861,6 +865,32 @@
 .panel--project--quant   { --cluster-color: var(--neon-cyan);    }
 .panel--project--swe     { --cluster-color: var(--neon-amber);   }
 .panel--project--analyst { --cluster-color: var(--neon-magenta); }
+
+/* Project panel sizing. Default .panel is 80vh which clipped the
+   CTAs below the fold once the hero + 8 sections of content stacked
+   up — measured at 946 px content vs 674 px visible body. 92vh +
+   tighter body padding gives ~150 px of additional vertical room so
+   the primary "open live demo" button and prev/next nav both sit
+   above the fold on a 900 px desktop. Mobile keeps the default 95vw,
+   bumps to 92vh too. */
+.panel--project {
+  max-height: 92vh;
+}
+
+.panel--project .panel__body {
+  padding: 14px 22px 18px;
+  gap: 14px;
+}
+
+@media (max-width: 720px) {
+  .panel--project {
+    max-height: 92vh;
+  }
+  .panel--project .panel__body {
+    padding: 12px 14px 14px;
+    gap: 12px;
+  }
+}
 
 .project-card__identity {
   display: flex;

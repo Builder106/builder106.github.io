@@ -81,6 +81,34 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
     <PanelShell open={open} title={title} onClose={onClose} variantClass={variantClass}>
       {project && (
         <>
+          {/* Identity strip: cluster lozenge + project name + repo slug.
+              The lozenge is filled with the cluster colour so each card
+              telegraphs its cluster at first glance instead of relying
+              on a small uppercase label. Reads first now (above the
+              hero) so the recruiter-relevant signal — "this is a
+              <cluster> project called <name>" — lands before they
+              even see the demo video. */}
+          <section className="panel__section project-card__identity">
+            <span className="project-card__cluster">
+              {CLUSTER_DISPLAY[project.cluster]}
+            </span>
+            <h3 className="project-card__name">{project.name}</h3>
+            {slug && (
+              <span className="project-card__slug" title={slug}>
+                {slug}
+              </span>
+            )}
+          </section>
+
+          {/* Money-shot headline. Bigger and cluster-tinted so it lands
+              as the card's signature stat rather than a regular line of
+              copy. Promoted above the hero so the "16,203 trades ·
+              +2.58% alpha" type of stat hits the eye before the visual
+              evidence. */}
+          {project.headline && (
+            <p className="project-card__headline">{project.headline}</p>
+          )}
+
           {(project.demo || project.image) && (
             <section
               className="panel__section panel__section--media"
@@ -125,30 +153,6 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
                 </picture>
               )}
             </section>
-          )}
-
-          {/* Identity strip: cluster lozenge + project name + repo slug.
-              The lozenge is filled with the cluster colour so each card
-              telegraphs its cluster at first glance instead of relying
-              on a small uppercase label. */}
-          <section className="panel__section project-card__identity">
-            <span className="project-card__cluster">
-              {CLUSTER_DISPLAY[project.cluster]}
-            </span>
-            <h3 className="project-card__name">{project.name}</h3>
-            {slug && (
-              <span className="project-card__slug" title={slug}>
-                {slug}
-              </span>
-            )}
-          </section>
-
-          {/* Money-shot headline. Bigger and cluster-tinted so it lands
-              as the card's signature stat rather than a regular line of
-              copy. Falls back to the blurb being the lead if no
-              headline is set. */}
-          {project.headline && (
-            <p className="project-card__headline">{project.headline}</p>
           )}
 
           <p className="project-card__blurb">{project.blurb}</p>
