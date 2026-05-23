@@ -1,10 +1,33 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
+import { execSync } from "node:child_process";
 import {
   buildSemanticContentHTML,
   buildStructuredDataJSON,
 } from "./src/utils/semanticHtml";
+
+// Resolve the current HEAD's short SHA, message, and ISO timestamp at
+// build/dev time. Surfaced in the terminal-panel dashboard so the
+// "control console" widget shows real deploy info instead of a static
+// placeholder. Falls back to "dev" markers if git isn't available
+// (e.g. when the source has been extracted from a tarball).
+function gitMetadata() {
+  const tryRun = (cmd: string) => {
+    try {
+      return execSync(cmd, { encoding: "utf8" }).trim();
+    } catch {
+      return null;
+    }
+  };
+  return {
+    sha: tryRun("git rev-parse --short HEAD") ?? "dev",
+    message: tryRun("git log -1 --pretty=%s") ?? "local development build",
+    timestamp: tryRun("git log -1 --pretty=%cI") ?? new Date().toISOString(),
+  };
+}
+
+const BUILD_META = gitMetadata();
 
 // Inject the static SemanticContent HTML into index.html at build /
 // dev time. The block sits as a sibling of #root so the React app
@@ -59,6 +82,11 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "src"),
     },
+  },
+  define: {
+    __BUILD_SHA__: JSON.stringify(BUILD_META.sha),
+    __BUILD_MESSAGE__: JSON.stringify(BUILD_META.message),
+    __BUILD_TIMESTAMP__: JSON.stringify(BUILD_META.timestamp),
   },
   build: {
     target: "es2022",

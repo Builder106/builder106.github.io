@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BootSequence } from "./components/BootSequence";
 import { HUD } from "./components/HUD";
 import { ScrollHint } from "./components/ScrollHint";
@@ -65,7 +65,18 @@ export function App() {
 
   const close = useCallback(() => setActive({ kind: "none" }), []);
 
+  // Suppress null-selects (Canvas onPointerMissed) that fire in the
+  // same micro-window as a fresh non-null select. The label-button
+  // path and Canvas's pointerup-missed path both feed handleSelect,
+  // and depending on browser the missed callback fires *after* the
+  // button click — overwriting the just-opened panel with "none". A
+  // 150 ms ignore window lets a real "click outside to close" still
+  // work without clobbering a deliberate select.
+  const lastSelectRef = useRef(0);
   const handleSelect = useCallback((target: ClickTarget) => {
+    const now = performance.now();
+    if (target === null && now - lastSelectRef.current < 150) return;
+    lastSelectRef.current = now;
     if (target === null) {
       setActive({ kind: "none" });
       return;
@@ -104,7 +115,13 @@ export function App() {
           />
           {variant === "portrait" && active.kind === "none" && <ScrollHint />}
           <Suspense fallback={null}>
-            <TradingTerminal open={active.kind === "terminal"} onClose={close} />
+            <TradingTerminal
+              open={active.kind === "terminal"}
+              onClose={close}
+              onNavigate={setActive}
+              audioEnabled={audioEnabled}
+              onToggleAudio={() => setAudioEnabled((v) => !v)}
+            />
             <ProjectCard project={activeProject} onClose={close} />
             <ContactPing open={active.kind === "contact"} onClose={close} />
           </Suspense>

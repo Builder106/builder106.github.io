@@ -586,3 +586,212 @@
 .contact__cta-arrow {
   margin-left: auto;
 }
+
+/* ---------- Control console (TradingTerminal panel) ----------
+ *
+ * Two stacked sections inside the standard panel body:
+ *
+ *   1. Dashboard grid: 4 widgets (build, telemetry, audio, repo
+ *      activity). auto-fit wrap so narrow viewports stack to one
+ *      column without explicit breakpoints. The repo-activity tile
+ *      spans the full row on wide layouts via --span.
+ *
+ *   2. Console: scrolling log + single-line prompt. The log is a
+ *      fixed-height scroll surface; the prompt sits beneath it as a
+ *      bordered input row that lights up on focus. Commands feed
+ *      back into the log via runCommand() in TradingTerminal.tsx.
+ */
+
+.console-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.console-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: rgba(76, 242, 255, 0.04);
+  border: 1px solid rgba(76, 242, 255, 0.12);
+  border-radius: 3px;
+}
+
+.console-widget--span {
+  grid-column: 1 / -1;
+}
+
+.console-widget__title {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.console-widget__value {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
+  letter-spacing: 0.02em;
+}
+
+.console-widget__sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.console-widget__toggle {
+  margin-top: 6px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  background: rgba(76, 242, 255, 0.06);
+  border: 1px solid rgba(76, 242, 255, 0.22);
+  color: var(--neon-cyan);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.console-widget__toggle:hover,
+.console-widget__toggle:focus-visible {
+  background: rgba(76, 242, 255, 0.12);
+  border-color: rgba(76, 242, 255, 0.45);
+  outline: none;
+}
+
+.console-widget__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+}
+
+.console-widget__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.console-widget__row-name {
+  color: var(--text-primary);
+}
+
+.console-widget__row-meta {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-align: right;
+}
+
+/* Console log + prompt ----------------------------------------- */
+
+.console-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.console-log {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(76, 242, 255, 0.12);
+  border-radius: 3px;
+  padding: 10px 12px;
+  height: 180px;
+  overflow-y: auto;
+  color: var(--text-primary);
+}
+
+.console-log__entry {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.console-log__entry--input {
+  color: var(--terminal-green);
+}
+
+.console-log__entry--input::before {
+  content: "> ";
+  color: var(--neon-cyan);
+  opacity: 0.7;
+}
+
+.console-log__entry--output {
+  color: rgba(220, 226, 240, 0.85);
+}
+
+.console-log__entry--system {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.console-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(76, 242, 255, 0.18);
+  border-radius: 3px;
+  padding: 8px 12px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.console-input-row:focus-within {
+  border-color: rgba(76, 242, 255, 0.6);
+  box-shadow: 0 0 14px rgba(76, 242, 255, 0.18);
+}
+
+.console-prompt-prefix {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--neon-cyan);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.console-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  caret-color: var(--neon-cyan);
+}
+
+.console-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+@media (max-width: 720px) {
+  /* Tighter log on phones so the dashboard above stays visible
+     without forcing the user to scroll past it to reach the prompt. */
+  .console-log {
+    height: 140px;
+    font-size: 11px;
+  }
+  .console-widget__value {
+    font-size: 14px;
+  }
+}
