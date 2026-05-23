@@ -1254,15 +1254,15 @@
 /* Per-cluster accent tokens. Reused by the aisle map nodes, the
    compact pills, and the repo-row left-stripes so a single cluster
    reads with the same colour everywhere on the panel. */
-.aisle-map__node--quant,
 .cluster-bar--quant,
-.repo-row--quant   { --cluster-color: var(--neon-cyan);    }
-.aisle-map__node--swe,
+.repo-row--quant,
+.console-pill__sub-link--quant   { --cluster-color: var(--neon-cyan);    }
 .cluster-bar--swe,
-.repo-row--swe     { --cluster-color: var(--neon-amber);   }
-.aisle-map__node--analyst,
+.repo-row--swe,
+.console-pill__sub-link--swe     { --cluster-color: var(--neon-amber);   }
 .cluster-bar--analyst,
-.repo-row--analyst { --cluster-color: var(--neon-magenta); }
+.repo-row--analyst,
+.console-pill__sub-link--analyst { --cluster-color: var(--neon-magenta); }
 
 /* Slow vertical scan-line that sweeps the entire panel whenever the
    console variant is mounted. Lives as a sibling of .panel__body
@@ -1320,264 +1320,11 @@
   }
 }
 
-.aisle-map--flash {
-  animation: console-widget-flash 600ms ease-out;
-}
-
 .console-pill--flash {
   animation: console-widget-flash 600ms ease-out;
 }
 
-/* Aisle map ----------------------------------------------------- */
-
-.aisle-map-section {
-  position: relative;
-}
-
-.aisle-map {
-  position: relative;
-  padding: 14px 18px 16px;
-  background:
-    radial-gradient(
-      ellipse 80% 60% at 50% 50%,
-      rgba(76, 242, 255, 0.06) 0%,
-      transparent 70%
-    ),
-    linear-gradient(135deg, rgba(8, 10, 18, 0.6), rgba(8, 10, 18, 0.85));
-  border: 1px solid rgba(76, 242, 255, 0.18);
-  border-radius: 4px;
-  box-shadow:
-    inset 0 1px 0 rgba(76, 242, 255, 0.12),
-    0 0 24px rgba(76, 242, 255, 0.04);
-}
-
-.aisle-map__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 14px;
-}
-
-.aisle-map__title {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.aisle-map__progress {
-  font-family: var(--font-mono);
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--neon-cyan);
-  text-shadow: 0 0 10px rgba(76, 242, 255, 0.35);
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
-}
-
-.aisle-map__progress-unit {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-left: 2px;
-  text-shadow: none;
-}
-
-.aisle-map__track {
-  position: relative;
-  height: 56px;
-  margin: 0 4px;
-}
-
-.aisle-map__rail {
-  position: absolute;
-  top: 50%;
-  left: 7%;
-  right: 7%;
-  height: 2px;
-  margin-top: -1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(76, 242, 255, 0.55) 10%,
-    rgba(76, 242, 255, 0.55) 90%,
-    transparent
-  );
-  box-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
-  border-radius: 1px;
-}
-
-.aisle-map__endpoint {
-  position: absolute;
-  top: 50%;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.16em;
-  color: var(--text-muted);
-  transform: translateY(-50%);
-  white-space: nowrap;
-}
-
-.aisle-map__endpoint--start { left: 0; }
-.aisle-map__endpoint--end   { right: 0; }
-
-.aisle-map__cursor {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  margin-left: -1px;
-  background: var(--neon-cyan);
-  box-shadow:
-    0 0 8px rgba(76, 242, 255, 0.8),
-    0 0 16px rgba(76, 242, 255, 0.4);
-  transition: left 150ms ease-out;
-}
-
-.aisle-map__cursor::before,
-.aisle-map__cursor::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border: 5px solid transparent;
-  transform: translateX(-50%);
-}
-
-.aisle-map__cursor::before {
-  top: -6px;
-  border-top-color: var(--neon-cyan);
-}
-
-.aisle-map__cursor::after {
-  bottom: -6px;
-  border-bottom-color: var(--neon-cyan);
-}
-
-.aisle-map__node {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: transparent;
-  border: none;
-  padding: 8px 6px;
-  cursor: pointer;
-  color: var(--cluster-color);
-}
-
-.aisle-map__node-dot {
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1.5px solid currentColor;
-  background: var(--bg-deep);
-  box-shadow: 0 0 6px currentColor;
-  transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
-}
-
-.aisle-map__node:hover .aisle-map__node-dot,
-.aisle-map__node:focus-visible .aisle-map__node-dot {
-  background: currentColor;
-  transform: scale(1.2);
-  box-shadow: 0 0 10px currentColor, 0 0 18px currentColor;
-}
-
-.aisle-map__node:focus-visible {
-  outline: none;
-}
-
-.aisle-map__node--active .aisle-map__node-dot {
-  background: currentColor;
-  width: 14px;
-  height: 14px;
-  animation: aisle-node-pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes aisle-node-pulse {
-  0%, 100% {
-    box-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 14px currentColor, 0 0 28px currentColor;
-    transform: scale(1.15);
-  }
-}
-
-/* Label sits below the dot; hidden by default, fades in on hover and
-   for the active node. Rendered via a flex span so it doesn't shift
-   the dot's centre. */
-.aisle-map__node-label {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translate(-50%, 4px);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.04em;
-  color: var(--text-primary);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 150ms ease;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
-}
-
-.aisle-map__node:hover .aisle-map__node-label,
-.aisle-map__node:focus-visible .aisle-map__node-label,
-.aisle-map__node--active .aisle-map__node-label {
-  opacity: 1;
-}
-
-.aisle-map__readout {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(76, 242, 255, 0.12);
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-.aisle-map__readout-key {
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-}
-
-.aisle-map__readout-name {
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-  letter-spacing: 0.02em;
-  color: var(--cluster-color, var(--text-primary));
-  text-shadow: 0 0 8px rgba(76, 242, 255, 0.2);
-}
-
-.aisle-map__readout-name:hover,
-.aisle-map__readout-name:focus-visible {
-  outline: none;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.aisle-map__readout-name--empty {
-  color: var(--text-muted);
-  cursor: default;
-  text-shadow: none;
-}
-
-.aisle-map__readout-cluster {
-  color: var(--text-muted);
-  margin-left: 8px;
-  text-shadow: none;
-}
-
-/* Compact pills row (build / audio / cluster_load) -------------- */
+/* Compact pills row (build / telemetry / audio / cluster_load) -- */
 
 .console-pills {
   display: grid;
@@ -1659,6 +1406,67 @@
   color: var(--text-muted);
   line-height: 1.4;
   word-break: break-word;
+}
+
+/* Small unit suffix (e.g. "%") inside the pill value. Lower contrast
+   than the main number so the digits stay the focal read. */
+.console-pill__unit {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 2px;
+  font-weight: 400;
+  text-shadow: none;
+}
+
+/* Telemetry-specific progress bar under the % value. Mirrors the
+   width of the pill, fills cluster-cyan as scroll advances. */
+.console-pill__bar {
+  height: 3px;
+  background: rgba(76, 242, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 4px 0 2px;
+}
+
+.console-pill__bar-fill {
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(76, 242, 255, 0.6),
+    var(--neon-cyan)
+  );
+  box-shadow: 0 0 6px rgba(76, 242, 255, 0.5);
+  transition: width 220ms ease-out;
+  border-radius: 2px;
+}
+
+/* Clickable rack readout in the telemetry pill. Reset native button
+   chrome, then tint the name in the cluster colour. */
+.console-pill__sub-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-align: left;
+  color: var(--cluster-color, var(--text-primary));
+  text-shadow: 0 0 6px color-mix(in srgb, var(--cluster-color, var(--neon-cyan)) 30%, transparent);
+  transition: filter 150ms ease;
+}
+
+.console-pill__sub-link:hover,
+.console-pill__sub-link:focus-visible {
+  outline: none;
+  filter: brightness(1.2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.console-pill__sub-cluster {
+  color: var(--text-muted);
+  text-shadow: none;
 }
 
 .console-pill__meta {

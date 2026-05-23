@@ -312,13 +312,13 @@ export function TradingTerminal({
   }, [open]);
 
   // Which widget should flash this frame. A typed command sets it to
-  // "aisleMap" or "audio", a 600 ms timeout clears it. The chosen
+  // "telemetry" or "audio", a 600 ms timeout clears it. The chosen
   // widget renders with the --flash class which runs a one-shot CSS
   // glow animation, giving the prompt visible coupling to the
   // dashboard.
-  const [flashedWidget, setFlashedWidget] = useState<"aisleMap" | "audio" | null>(null);
+  const [flashedWidget, setFlashedWidget] = useState<"telemetry" | "audio" | null>(null);
   const flashTimeoutRef = useRef<number | null>(null);
-  const flashWidget = useCallback((key: "aisleMap" | "audio") => {
+  const flashWidget = useCallback((key: "telemetry" | "audio") => {
     setFlashedWidget(key);
     if (flashTimeoutRef.current !== null) {
       window.clearTimeout(flashTimeoutRef.current);
@@ -385,12 +385,12 @@ export function TradingTerminal({
           }
           if (arg === "entrance" || arg === "home" || arg === "start") {
             aisleScroll.set(0);
-            flashWidget("aisleMap");
+            flashWidget("telemetry");
             return [{ kind: "ok", text: "→ scrolling to corridor entrance" }];
           }
           if (arg === "end" || arg === "back") {
             aisleScroll.set(1);
-            flashWidget("aisleMap");
+            flashWidget("telemetry");
             return [{ kind: "ok", text: "→ scrolling to far end of aisle" }];
           }
           const match = projects.find((p) => p.id === arg);
@@ -402,18 +402,18 @@ export function TradingTerminal({
         }
         case "home":
           aisleScroll.set(0);
-          flashWidget("aisleMap");
+          flashWidget("telemetry");
           return [{ kind: "ok", text: "→ corridor entrance" }];
         case "end":
           aisleScroll.set(1);
-          flashWidget("aisleMap");
+          flashWidget("telemetry");
           return [{ kind: "ok", text: "→ far end of aisle" }];
         case "scroll": {
           const n = Number.parseFloat(arg ?? "");
           if (Number.isNaN(n)) return [{ kind: "error", text: "usage: scroll <0..1>" }];
           const clamped = Math.max(0, Math.min(1, n));
           aisleScroll.set(clamped);
-          flashWidget("aisleMap");
+          flashWidget("telemetry");
           return [{ kind: "ok", text: `→ scrolled to ${(clamped * 100).toFixed(0)}%` }];
         }
         case "mute":
@@ -802,12 +802,6 @@ export function TradingTerminal({
       .slice(0, 6);
   }, []);
 
-  // Project lookup by id, used by the aisle map + cluster aggregates.
-  const projectsById = useMemo(
-    () => new Map(projects.map((p) => [p.id, p])),
-    [],
-  );
-
   // Cluster headcounts for the load widget. Stable across renders so
   // the bar fills don't reflow on every scroll tick.
   const clusterCounts = useMemo(() => {
@@ -816,18 +810,6 @@ export function TradingTerminal({
     return counts;
   }, []);
   const totalProjects = projects.length;
-
-  // Translate a rack index in AISLE_ORDER to the scroll progress that
-  // parks the camera ~5 m in front of that rack — i.e. the position
-  // where its label peaks at full opacity. Used by the aisle-map node
-  // buttons: clicking a node jumps the scroll to a "you're looking at
-  // this rack" framing rather than teleporting into the middle of it.
-  const scrollProgressForRack = useCallback((index: number): number => {
-    const rackZ = AISLE_Z_START - index * AISLE_SPACING - 1;
-    const targetCamZ = rackZ + 5;
-    const t = (SCROLL_CAM_Z_START - targetCamZ) / (SCROLL_CAM_Z_START - SCROLL_CAM_Z_END);
-    return Math.max(0, Math.min(1, t));
-  }, []);
 
   // Prefix glyph per entry kind so a glance at the column tells you
   // what each line is without reading the text. Kept aligned (two
@@ -850,80 +832,6 @@ export function TradingTerminal({
       onClose={onClose}
       variantClass="panel--console"
     >
-      <section className="panel__section aisle-map-section">
-        <div
-          className={`aisle-map ${flashedWidget === "aisleMap" ? "aisle-map--flash" : ""}`}
-          aria-label={`Aisle position: ${Math.round(progress * 100)}%`}
-        >
-          <header className="aisle-map__header">
-            <span className="aisle-map__title">aisle_map</span>
-            <span className="aisle-map__progress" aria-live="polite">
-              {Math.round(progress * 100).toString().padStart(2, "0")}
-              <span className="aisle-map__progress-unit">%</span>
-            </span>
-          </header>
-          <div className="aisle-map__track">
-            <span className="aisle-map__endpoint aisle-map__endpoint--start" aria-hidden>
-              ◂ ENTRY
-            </span>
-            <div className="aisle-map__rail" aria-hidden />
-            <div
-              className="aisle-map__cursor"
-              style={{ left: `${(progress * 100).toFixed(2)}%` }}
-              aria-hidden
-            />
-            {AISLE_ORDER.map((id, i) => {
-              const project = projectsById.get(id);
-              if (!project) return null;
-              // Node positions track the same scroll-progress the
-              // user would hit if they clicked the node — so the
-              // cursor's percentage matches whichever node the
-              // dominant-rack readout names below.
-              const pos = scrollProgressForRack(i) * 100;
-              const isActive = id === activeRackId;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  className={`aisle-map__node aisle-map__node--${project.cluster} ${
-                    isActive ? "aisle-map__node--active" : ""
-                  }`}
-                  style={{ left: `${pos.toFixed(2)}%` }}
-                  onClick={() => {
-                    aisleScroll.set(scrollProgressForRack(i));
-                  }}
-                  title={`${project.name} · ${project.cluster}`}
-                  aria-label={`Jump to ${project.name}`}
-                >
-                  <span className="aisle-map__node-dot" aria-hidden />
-                  <span className="aisle-map__node-label">{project.name}</span>
-                </button>
-              );
-            })}
-            <span className="aisle-map__endpoint aisle-map__endpoint--end" aria-hidden>
-              EXIT ▸
-            </span>
-          </div>
-          <div className="aisle-map__readout">
-            <span className="aisle-map__readout-key">active:</span>
-            {activeRack ? (
-              <button
-                type="button"
-                className={`aisle-map__readout-name aisle-map__readout-name--${activeRack.cluster}`}
-                onClick={() => onNavigate({ kind: "project", projectId: activeRack.id })}
-              >
-                {activeRack.name}
-                <span className="aisle-map__readout-cluster">// {activeRack.cluster}</span>
-              </button>
-            ) : (
-              <span className="aisle-map__readout-name aisle-map__readout-name--empty">
-                between racks
-              </span>
-            )}
-          </div>
-        </div>
-      </section>
-
       <section className="panel__section">
         <div className="console-pills">
           <div className="console-pill console-pill--build">
@@ -938,6 +846,52 @@ export function TradingTerminal({
                 : BUILD_MESSAGE}
             </div>
             <div className="console-pill__meta">{relativeTime(BUILD_TIMESTAMP)}</div>
+          </div>
+
+          {/* Telemetry pill. Reads scroll % + which rack you're at;
+              the rack name is a button to that project's panel. Used
+              to be a big horizontal aisle-map widget covering the
+              full top of the panel; removed in favour of this denser
+              read because the map's "click to jump" + "see all 9 at
+              once" value didn't justify ~120 px of vertical space
+              the rest of the dashboard could use. */}
+          <div
+            className={`console-pill console-pill--telemetry ${
+              flashedWidget === "telemetry" ? "console-pill--flash" : ""
+            }`}
+          >
+            <div className="console-pill__header">
+              <span className="console-pill__title">telemetry</span>
+              <span className="console-pill__dot console-pill__dot--live" aria-hidden />
+            </div>
+            <div className="console-pill__value">
+              {Math.round(progress * 100)}
+              <span className="console-pill__unit">%</span>
+            </div>
+            <div
+              className="console-pill__bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress * 100)}
+            >
+              <div
+                className="console-pill__bar-fill"
+                style={{ width: `${(progress * 100).toFixed(1)}%` }}
+              />
+            </div>
+            {activeRack ? (
+              <button
+                type="button"
+                className={`console-pill__sub-link console-pill__sub-link--${activeRack.cluster}`}
+                onClick={() => onNavigate({ kind: "project", projectId: activeRack.id })}
+              >
+                {activeRack.name}
+                <span className="console-pill__sub-cluster"> · {activeRack.cluster}</span>
+              </button>
+            ) : (
+              <div className="console-pill__sub">between racks</div>
+            )}
           </div>
 
           <div
