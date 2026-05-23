@@ -134,6 +134,24 @@ function AisleScrollRig() {
   const targetPos = useRef(new Vector3());
   const targetLook = useRef(new Vector3());
 
+  // The rig remounts every time a panel closes (it's mounted only when
+  // !panelOpen). useRef defaults init smoothPos to SCROLL_CAMERA_START,
+  // which doesn't match where the camera actually is right after a
+  // panel — the focused-rack rig parked it ~3 m in front of the rack
+  // the user was just viewing. Without this seed, the first useFrame
+  // would teleport the camera straight to the entrance and then lerp
+  // back along the aisle to the scroll position, which a real user
+  // sees as labels jumping up the frame then sliding back down. Seed
+  // both smoothed values from the current camera pose so the handoff
+  // is a single continuous lerp from "wherever the panel left us" to
+  // "where the current scroll progress says we should be."
+  useEffect(() => {
+    smoothPos.current.copy(camera.position);
+    const forward = new Vector3();
+    camera.getWorldDirection(forward);
+    smoothLook.current.copy(camera.position).addScaledVector(forward, 10);
+  }, [camera]);
+
   // Inertia state. velocityRef is "progress per second". We update it on
   // each touchmove and decay it in useFrame after touchend so the camera
   // coasts naturally.
@@ -297,6 +315,19 @@ export function Scene({ active, onSelect }: SceneProps) {
   const cameraTarget: CameraTarget | null = useMemo(() => {
     if (!anchors) return null;
     if (active.kind === "none" && !transitioning) return null;
+    // Portrait close-handoff: don't engage CameraRig with the entrance
+    // default during the transition window. AisleScrollRig remounts as
+    // soon as panelOpen flips false, seeds its smoothed pose from the
+    // camera's current (focused-rack) position, and lerps from there to
+    // the current-scroll target. If CameraRig also runs in parallel
+    // pulling toward the entrance, both rigs overwrite camera.position
+    // every frame and the labels (drei <Html>, projected through the
+    // camera each frame) snap between the two lerps' projections —
+    // user reads it as "labels glitch up and down rapidly before
+    // settling." Landscape keeps the fly-to-default behaviour because
+    // OrbitControls owns the post-transition camera and needs the
+    // entrance pose to hand off cleanly.
+    if (active.kind === "none" && variant === "portrait") return null;
     if (active.kind === "none") return defaultCameraTarget(variant);
     if (active.kind === "contact") return defaultCameraTarget(variant);
     if (active.kind === "terminal") {
