@@ -1288,7 +1288,7 @@ export function ServerRoom({
                 className="rack-label rack-label--terminal"
                 onClick={() => onSelect?.({ kind: "terminal" })}
               >
-                <span className="rack-label__name">trading_terminal</span>
+                <span className="rack-label__name">console</span>
                 <span className="rack-label__cluster">// quant</span>
               </button>
             </Html>
