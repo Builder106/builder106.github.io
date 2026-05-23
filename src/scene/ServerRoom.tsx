@@ -536,16 +536,28 @@ export function ServerRoom({
   useEffect(() => aisleScroll.subscribe(setScrollProgress), []);
 
   // Idle-attractor wave. After IDLE_BEFORE_WAVE_MS of no interaction
-  // (no pointerdown / touch / wheel / keyboard / scroll / panel
-  // change), a soft emissive pulse travels rack-to-rack along the
-  // aisle — sells the "this is a living surface, not a screenshot"
-  // read without screaming for attention. Resets on any real input.
-  // Skipped while a panel is open or while the user is actively
-  // hovering a rack.
+  // a moving spotlight travels rack-to-rack along the aisle — the
+  // rack at the peak of its pulse goes bright, *everything else
+  // dims*, so the highlighted rack reads as a focal spot rather
+  // than a slow ripple. Resets on any real input; skipped while a
+  // panel is open or while the user is hovering.
+  //
+  // Implementation lerps each rack's target between WAVE_DIM and
+  // WAVE_BRIGHT based on its sin-curve pulse intensity (0 outside
+  // its own window, 1 at peak). Stacks on the existing hover-state
+  // lerp by replacing it entirely while the wave is active — hover
+  // is already suppressed during the wave, so the two never need to
+  // compose.
   const IDLE_BEFORE_WAVE_MS = 15_000;
   const WAVE_RACK_DELAY_S = 0.35;
   const WAVE_PULSE_DUR_S = 1.2;
-  const WAVE_BOOST = 0.55;
+  // Multipliers off each material's `it.base` brightness:
+  //   non-pulsing rack during wave      = base × 0.30  (deep dim)
+  //   pulsing rack at peak of its sin   = base × 1.70  (above hover)
+  // The 5–6× spread between dim and bright is what makes the moving
+  // spotlight read as motion rather than a faint pulse.
+  const WAVE_DIM_MULTIPLIER = 0.3;
+  const WAVE_BRIGHT_MULTIPLIER = 1.7;
   const WAVE_TOTAL_S =
     AISLE_ORDER.length * WAVE_RACK_DELAY_S + WAVE_PULSE_DUR_S + 0.4;
   const lastInteractionRef = useRef<number>(performance.now());
@@ -809,31 +821,38 @@ export function ServerRoom({
       }
     }
 
-    // Per-emissive-material targets (rack screens). Hover-state lerp
-    // first, then layer the idle wave on top so the wave reads as an
-    // ambient highlight rather than fighting the hover/dim logic.
+    // Per-emissive-material targets (rack screens). The wave takes
+    // priority over hover (hover is suppressed while the wave runs
+    // anyway, via the idleEnoughForWave guard above), so the two
+    // states never need to compose — we just pick one target per
+    // material and lerp toward it.
     for (const it of interactivesRef.current) {
       let target: number;
-      if (it.hoverKey === activeKey) target = it.hover;
-      else if (isHovering) target = it.dim;
-      else target = it.base;
-      it.current += (target - it.current) * k;
-
-      let waveBoost = 0;
       if (waveActive && it.hoverKey != null) {
+        // Per-rack sin pulse, 0 outside its window, 1 at peak.
+        let waveIntensity = 0;
         const idx = rackIndexByKey.get(it.hoverKey);
         if (idx !== undefined) {
           const rackElapsed = waveElapsedS - idx * WAVE_RACK_DELAY_S;
           if (rackElapsed >= 0 && rackElapsed < WAVE_PULSE_DUR_S) {
-            // Smooth sin ramp 0 → 1 → 0 across the pulse window.
-            waveBoost =
-              Math.sin((rackElapsed / WAVE_PULSE_DUR_S) * Math.PI) *
-              WAVE_BOOST *
-              it.base;
+            waveIntensity = Math.sin((rackElapsed / WAVE_PULSE_DUR_S) * Math.PI);
           }
         }
+        // Spotlight: everything else dims to ~30% of base, the rack
+        // at peak goes to ~170%. Linear interp between the two
+        // endpoints by the sin curve.
+        const dim = it.base * WAVE_DIM_MULTIPLIER;
+        const bright = it.base * WAVE_BRIGHT_MULTIPLIER;
+        target = dim + (bright - dim) * waveIntensity;
+      } else if (it.hoverKey === activeKey) {
+        target = it.hover;
+      } else if (isHovering) {
+        target = it.dim;
+      } else {
+        target = it.base;
       }
-      it.mat.emissiveIntensity = it.current + waveBoost;
+      it.current += (target - it.current) * k;
+      it.mat.emissiveIntensity = it.current;
     }
 
     // Background tower accent pulse. Iterates the cached strip refs
