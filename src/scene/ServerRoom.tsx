@@ -887,6 +887,15 @@ export function ServerRoom({
         console.log("[wave] idle gate elapsed → firing wave", {
           idleMs: Math.round(now - lastInteractionRef.current),
           variant,
+          interactivesCount: interactivesRef.current.length,
+          slotMapSize: slotIndexByKey.size,
+          slotMapKeys: Array.from(slotIndexByKey.keys()),
+          interactiveKeys: interactivesRef.current.map((it) => ({
+            key: it.hoverKey,
+            base: it.base,
+            current: it.current,
+            inMap: slotIndexByKey.has(it.hoverKey),
+          })),
         });
       }
       if (typeof window !== "undefined") {
@@ -922,40 +931,34 @@ export function ServerRoom({
       }
     }
 
-    // Per-emissive-material targets (rack screens). The wave takes
-    // priority over hover (hover is suppressed while the wave runs
-    // anyway, via the idleEnoughForWave guard above), so the two
-    // states never need to compose — we just pick one target per
-    // material and lerp toward it.
-    for (const it of interactivesRef.current) {
-      let target: number;
-      if (waveActive && it.hoverKey != null) {
-        // Per-slot sin pulse, 0 outside its window, 1 at peak.
-        // Slot = rack index on portrait, cluster index on landscape
-        // (so all 3 racks in a cluster fire together on desktop).
-        let waveIntensity = 0;
-        const idx = slotIndexByKey.get(it.hoverKey);
-        if (idx !== undefined) {
-          const slotElapsed = waveElapsedS - idx * waveSlotDelayS;
-          if (slotElapsed >= 0 && slotElapsed < WAVE_PULSE_DUR_S) {
-            waveIntensity = Math.sin((slotElapsed / WAVE_PULSE_DUR_S) * Math.PI);
-          }
-        }
-        // Spotlight: everything else dims to ~30% of base, the rack
-        // at peak goes to ~170%. Linear interp between the two
-        // endpoints by the sin curve.
-        const dim = it.base * WAVE_DIM_MULTIPLIER;
-        const bright = it.base * WAVE_BRIGHT_MULTIPLIER;
-        target = dim + (bright - dim) * waveIntensity;
-      } else if (it.hoverKey === activeKey) {
-        target = it.hover;
-      } else if (isHovering) {
-        target = it.dim;
-      } else {
-        target = it.base;
+    // TEMP DIAGNOSTIC: when the wave is active, slam every interactive
+    // screen to a known-high emissive intensity directly (no lerp, no
+    // per-slot math). If we still see no visual change with this in
+    // place, the bug is in the material → mesh binding, not in the
+    // wave math. If everything goes blindingly bright together but the
+    // sweep is invisible, the bug is in slotIndexByKey / per-slot.
+    if (waveActive) {
+      for (const it of interactivesRef.current) {
+        it.mat.emissiveIntensity = 8.0;
       }
-      it.current += (target - it.current) * k;
-      it.mat.emissiveIntensity = it.current;
+    } else {
+      // Per-emissive-material targets (rack screens). The wave takes
+      // priority over hover (hover is suppressed while the wave runs
+      // anyway, via the idleEnoughForWave guard above), so the two
+      // states never need to compose — we just pick one target per
+      // material and lerp toward it.
+      for (const it of interactivesRef.current) {
+        let target: number;
+        if (it.hoverKey === activeKey) {
+          target = it.hover;
+        } else if (isHovering) {
+          target = it.dim;
+        } else {
+          target = it.base;
+        }
+        it.current += (target - it.current) * k;
+        it.mat.emissiveIntensity = it.current;
+      }
     }
 
     // Background tower accent pulse. Iterates the cached strip refs
