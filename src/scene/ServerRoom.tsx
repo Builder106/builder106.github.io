@@ -566,6 +566,11 @@ export function ServerRoom({
   // spotlight read as motion rather than a faint pulse.
   const WAVE_DIM_MULTIPLIER = 0.3;
   const WAVE_BRIGHT_MULTIPLIER = 1.7;
+  // The brute-force diagnostic path doesn't reference these, but they're
+  // needed again as soon as the lerp path is restored. Touch them to
+  // keep noUnusedLocals quiet on CI.
+  void WAVE_DIM_MULTIPLIER;
+  void WAVE_BRIGHT_MULTIPLIER;
   const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
   // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
