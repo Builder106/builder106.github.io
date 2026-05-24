@@ -12,6 +12,7 @@ import {
   MeshStandardMaterial,
   Object3D,
   PointLight,
+  SphereGeometry,
   SRGBColorSpace,
   Vector3,
   type Material,
@@ -576,6 +577,9 @@ export function ServerRoom({
   // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
   // useFrame each time it reaches 60.
   const waveTickCounterRef = useRef<number>(0);
+  // TEMP: holds the injected debug sphere so we only add it once per
+  // wave cycle.
+  const debugProbeMeshRef = useRef<Mesh | null>(null);
 
   // Variant-aware "which time slot does this rack fire in?" map.
   // Portrait = 9 slots, one per rack in AISLE_ORDER. Landscape = 3
@@ -944,18 +948,42 @@ export function ServerRoom({
     // the very first wave frame so we can see what Three.js actually
     // exposes (vs. what the glb JSON says).
     if (waveActive) {
-      // Slam emissive AND base color, force visible, scale up. If even
-      // this produces no visual change the meshes are not in the
-      // rendered frustum at all — they're either occluded by other
-      // geometry, hidden by visibility cascade, or culled by something
-      // we haven't found yet. The diagnostic log on the first wave
-      // frame also dumps obj.visible + obj.position so we can see
-      // where they actually live.
+      // Triple probe:
+      //   1. Slam material on M_Screen meshes (as before).
+      //   2. Inject a brand-new red mesh into the scene — if it doesn't
+      //      appear, no part of the wave-active branch is reaching the
+      //      renderer (e.g. the cloned scene we're mutating is detached
+      //      from the actually-rendered tree even though sceneInRoot=true).
+      //   3. Read material values back AFTER writing them and compare —
+      //      if the read-back doesn't match what we wrote, another
+      //      frame loop is overwriting our writes after ours.
+      // Add a giant pink sphere at world origin on the very first wave
+      // frame; if it never appears, the rendering pipeline isn't seeing
+      // any of our scene mutations.
+      if (waveElapsedS < 0.05 && !debugProbeMeshRef.current) {
+        const probe = new Mesh(
+          new SphereGeometry(2, 16, 16),
+          new MeshStandardMaterial({
+            color: "#ff0066",
+            emissive: new Color("#ff0066"),
+            emissiveIntensity: 6,
+            toneMapped: false,
+          }),
+        );
+        probe.position.set(0, 2, 0);
+        probe.name = "_wave_debug_sphere";
+        rootScene.add(probe);
+        debugProbeMeshRef.current = probe;
+        // eslint-disable-next-line no-console
+        console.log("[wave] injected debug sphere at origin (0, 2, 0)");
+      }
       let touched = 0;
       const sample: Array<{
         name: string;
         visible: boolean;
         pos: [number, number, number];
+        scale: [number, number, number];
+        emReadBack: number;
         parentChain: string;
       }> = [];
       scene.traverse((obj) => {
@@ -980,6 +1008,8 @@ export function ServerRoom({
               name: obj.name,
               visible: obj.visible,
               pos: [+wp.x.toFixed(2), +wp.y.toFixed(2), +wp.z.toFixed(2)],
+              scale: [obj.scale.x, obj.scale.y, obj.scale.z],
+              emReadBack: m.emissiveIntensity,
               parentChain: chain,
             });
           }
@@ -1000,7 +1030,10 @@ export function ServerRoom({
         // Flatten the sample to a single string so it shows in the
         // chat-pasted log without the collapsed-object indirection.
         const flat = sample
-          .map((s) => `${s.name} vis=${s.visible} pos=[${s.pos.join(",")}] chain="${s.parentChain}"`)
+          .map(
+            (s) =>
+              `${s.name} vis=${s.visible} pos=[${s.pos.join(",")}] scale=[${s.scale.join(",")}] em=${s.emReadBack} chain="${s.parentChain}"`,
+          )
           .join("\n  ");
         // eslint-disable-next-line no-console
         console.log(
