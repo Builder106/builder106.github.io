@@ -1008,22 +1008,29 @@ export function ServerRoom({
           if (sample.length < 6) {
             const wp = obj.getWorldPosition(new Vector3());
             let chain = obj.name;
-            // Walk up and dump each ancestor's local scale to find the
-            // 3.75× multiplier that explains why mesh world X=±4.5
-            // instead of the expected ±1.2.
+            // Walk up and dump each ancestor's local position + scale
+            // + rotation. The world X=±4.5 with all scales=1 means
+            // either (a) some ancestor has translation that doesn't
+            // match what applyAisleLayout sets, or (b) the mesh's own
+            // local position was reset to (0,0,0) by something.
             let p: Object3D | null = obj.parent;
             while (p) {
+              const t = p.position;
               const s = p.scale;
-              chain = `${p.name || "?"}[s=${s.x},${s.y},${s.z}] > ${chain}`;
+              chain = `${p.name || "?"}[t=${t.x.toFixed(2)},${t.y.toFixed(2)},${t.z.toFixed(2)} s=${s.x},${s.y},${s.z} ry=${p.rotation.y.toFixed(2)}] > ${chain}`;
               p = p.parent;
             }
+            // Also report the mesh's OWN local position — if it's
+            // (0,0,0) then attach() never offset it from its original
+            // and the mesh sits at the group's position directly.
+            const meshLocal = `local[t=${obj.position.x.toFixed(2)},${obj.position.y.toFixed(2)},${obj.position.z.toFixed(2)}]`;
             sample.push({
               name: obj.name,
               visible: obj.visible,
               pos: [+wp.x.toFixed(2), +wp.y.toFixed(2), +wp.z.toFixed(2)],
               scale: [obj.scale.x, obj.scale.y, obj.scale.z],
               emReadBack: m.emissiveIntensity,
-              parentChain: chain,
+              parentChain: `${chain} ${meshLocal}`,
             });
           }
         }
