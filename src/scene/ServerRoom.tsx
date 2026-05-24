@@ -944,26 +944,56 @@ export function ServerRoom({
     // the very first wave frame so we can see what Three.js actually
     // exposes (vs. what the glb JSON says).
     if (waveActive) {
+      // Slam emissive AND base color, force visible, scale up. If even
+      // this produces no visual change the meshes are not in the
+      // rendered frustum at all — they're either occluded by other
+      // geometry, hidden by visibility cascade, or culled by something
+      // we haven't found yet. The diagnostic log on the first wave
+      // frame also dumps obj.visible + obj.position so we can see
+      // where they actually live.
       let touched = 0;
-      const sample: string[] = [];
+      const sample: Array<{
+        name: string;
+        visible: boolean;
+        pos: [number, number, number];
+        parentChain: string;
+      }> = [];
       scene.traverse((obj) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const m = (obj as any).material;
         if (m && m.isMeshStandardMaterial && m.name === "M_Screen") {
           m.emissive.setRGB(1, 1, 1);
           m.emissiveIntensity = 12.0;
+          m.color.setRGB(1, 0, 0);
+          obj.visible = true;
+          obj.scale.set(5, 5, 5);
           touched++;
-          if (sample.length < 12) sample.push(obj.name);
+          if (sample.length < 6) {
+            const wp = obj.getWorldPosition(new Vector3());
+            let chain = obj.name;
+            let p: Object3D | null = obj.parent;
+            while (p) {
+              chain = `${p.name || "?"} > ${chain}`;
+              p = p.parent;
+            }
+            sample.push({
+              name: obj.name,
+              visible: obj.visible,
+              pos: [+wp.x.toFixed(2), +wp.y.toFixed(2), +wp.z.toFixed(2)],
+              parentChain: chain,
+            });
+          }
         }
       });
       // Log only on the first frame of each wave so we don't spam.
       if (waveElapsedS < 0.05 && typeof console !== "undefined") {
         // eslint-disable-next-line no-console
-        console.log("[wave] brute-force traversal touched", touched, "M_Screen meshes:", sample);
-      }
-      // Also still write through interactivesRef so we can compare.
-      for (const it of interactivesRef.current) {
-        it.mat.emissiveIntensity = 12.0;
+        console.log(
+          "[wave] AGGRESSIVE PROBE touched",
+          touched,
+          "M_Screen meshes — also scaled 5x, colored red, forced visible:",
+          sample,
+        );
       }
     } else {
       // Per-emissive-material targets (rack screens). The wave takes
