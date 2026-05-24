@@ -995,13 +995,26 @@ export function ServerRoom({
           m.color.setRGB(1, 0, 0);
           obj.visible = true;
           obj.scale.set(5, 5, 5);
+          // Disable frustum culling so even an outdated bounding
+          // sphere can't drop the draw call.
+          obj.frustumCulled = false;
+          // Update geometry's bounding info so culling reflects the
+          // new world-space extents.
+          if (obj instanceof Mesh && obj.geometry) {
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+          }
           touched++;
           if (sample.length < 6) {
             const wp = obj.getWorldPosition(new Vector3());
             let chain = obj.name;
+            // Walk up and dump each ancestor's local scale to find the
+            // 3.75× multiplier that explains why mesh world X=±4.5
+            // instead of the expected ±1.2.
             let p: Object3D | null = obj.parent;
             while (p) {
-              chain = `${p.name || "?"} > ${chain}`;
+              const s = p.scale;
+              chain = `${p.name || "?"}[s=${s.x},${s.y},${s.z}] > ${chain}`;
               p = p.parent;
             }
             sample.push({
