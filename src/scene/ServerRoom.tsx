@@ -987,12 +987,24 @@ export function ServerRoom({
       });
       // Log only on the first frame of each wave so we don't spam.
       if (waveElapsedS < 0.05 && typeof console !== "undefined") {
+        // Walk up from the cloned scene to find out whether it's
+        // actually in the rendered root. If sceneInRoot=false then we
+        // are mutating an orphan — the rendered tree is a *different*
+        // object somehow.
+        let cur: Object3D | null = scene;
+        let sceneInRoot = false;
+        while (cur) {
+          if (cur === rootScene) { sceneInRoot = true; break; }
+          cur = cur.parent;
+        }
+        // Flatten the sample to a single string so it shows in the
+        // chat-pasted log without the collapsed-object indirection.
+        const flat = sample
+          .map((s) => `${s.name} vis=${s.visible} pos=[${s.pos.join(",")}] chain="${s.parentChain}"`)
+          .join("\n  ");
         // eslint-disable-next-line no-console
         console.log(
-          "[wave] AGGRESSIVE PROBE touched",
-          touched,
-          "M_Screen meshes — also scaled 5x, colored red, forced visible:",
-          sample,
+          `[wave] AGGRESSIVE PROBE touched ${touched} M_Screen meshes (sceneInRoot=${sceneInRoot}, rootScene.name="${rootScene.name}", scene.name="${scene.name}"):\n  ${flat}`,
         );
       }
     } else {
