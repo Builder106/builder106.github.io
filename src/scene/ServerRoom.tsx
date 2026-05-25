@@ -950,6 +950,13 @@ export function ServerRoom({
             current: it.current,
             inMap: slotIndexByKey.has(it.hoverKey),
           })),
+          rackOutlinesCount: rackOutlinesRef.current.length,
+          rackOutlineKeys: rackOutlinesRef.current.map((o) => ({
+            key: o.hoverKey,
+            inMap: slotIndexByKey.has(o.hoverKey),
+            thickness: o.uniforms.uThickness.value,
+            opacity: o.uniforms.uOpacity.value,
+          })),
         });
       }
       if (typeof window !== "undefined") {
@@ -1146,7 +1153,11 @@ export function ServerRoom({
           const pulse = (localT >= 0 && localT <= 1)
             ? Math.sin(localT * Math.PI)
             : 0;
-          targetThickness = 0.04 * pulse;
+          // Thickness in model units. At 0.04 m the outline projected
+          // to ~3 px from the portrait entrance camera (7.7 m away) —
+          // invisibly thin. 0.20 m gives ~15 px at slot 0 and is still
+          // legible past slot 5 where camera distance grows to ~20 m.
+          targetThickness = 0.20 * pulse;
           targetOpacity = 0.85 * pulse;
         }
       }
