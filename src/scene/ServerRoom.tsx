@@ -566,11 +566,14 @@ export function ServerRoom({
   // spotlight read as motion rather than a faint pulse.
   const WAVE_DIM_MULTIPLIER = 0.3;
   const WAVE_BRIGHT_MULTIPLIER = 1.7;
-  // Flip to false to render the slot-staggered idle outline pulse
-  // (the actual feature). True keeps the AGGRESSIVE PROBE active
-  // while the screen-mesh position bug is being hunted; once that
-  // lands, flip this and the probe block stays as a reusable harness.
-  const WAVE_DEBUG_PROBE = true;
+  // Probe harness. Flip to true to slam every M_Screen mesh red and
+  // 5× scale on every wave frame for diagnostic work. The scale-5
+  // expansion blows screen vertices ~28 m past the mesh origin so
+  // they fly out of the frustum — useful for hunting whether the
+  // wave-active branch is being reached at all, *not* useful for
+  // confirming visibility (it kills its own visibility test). Keep
+  // off for the real feature.
+  const WAVE_DEBUG_PROBE = false;
   const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
   // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
