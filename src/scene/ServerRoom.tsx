@@ -942,21 +942,6 @@ export function ServerRoom({
           idleMs: Math.round(now - lastInteractionRef.current),
           variant,
           interactivesCount: interactivesRef.current.length,
-          slotMapSize: slotIndexByKey.size,
-          slotMapKeys: Array.from(slotIndexByKey.keys()),
-          interactiveKeys: interactivesRef.current.map((it) => ({
-            key: it.hoverKey,
-            base: it.base,
-            current: it.current,
-            inMap: slotIndexByKey.has(it.hoverKey),
-          })),
-          rackOutlinesCount: rackOutlinesRef.current.length,
-          rackOutlineKeys: rackOutlinesRef.current.map((o) => ({
-            key: o.hoverKey,
-            inMap: slotIndexByKey.has(o.hoverKey),
-            thickness: o.uniforms.uThickness.value,
-            opacity: o.uniforms.uOpacity.value,
-          })),
         });
       }
       if (typeof window !== "undefined") {
