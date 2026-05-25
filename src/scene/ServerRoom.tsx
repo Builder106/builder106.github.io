@@ -12,7 +12,6 @@ import {
   MeshStandardMaterial,
   Object3D,
   PointLight,
-  SphereGeometry,
   SRGBColorSpace,
   Vector3,
   type Material,
@@ -567,19 +566,16 @@ export function ServerRoom({
   // spotlight read as motion rather than a faint pulse.
   const WAVE_DIM_MULTIPLIER = 0.3;
   const WAVE_BRIGHT_MULTIPLIER = 1.7;
-  // The brute-force diagnostic path doesn't reference these, but they're
-  // needed again as soon as the lerp path is restored. Touch them to
-  // keep noUnusedLocals quiet on CI.
-  void WAVE_DIM_MULTIPLIER;
-  void WAVE_BRIGHT_MULTIPLIER;
+  // Flip to false to render the slot-staggered idle outline pulse
+  // (the actual feature). True keeps the AGGRESSIVE PROBE active
+  // while the screen-mesh position bug is being hunted; once that
+  // lands, flip this and the probe block stays as a reusable harness.
+  const WAVE_DEBUG_PROBE = true;
   const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
   // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
   // useFrame each time it reaches 60.
   const waveTickCounterRef = useRef<number>(0);
-  // TEMP: holds the injected debug sphere so we only add it once per
-  // wave cycle.
-  const debugProbeMeshRef = useRef<Mesh | null>(null);
 
   // Variant-aware "which time slot does this rack fire in?" map.
   // Portrait = 9 slots, one per rack in AISLE_ORDER. Landscape = 3
@@ -947,36 +943,17 @@ export function ServerRoom({
     // isn't being reached at all. Also dumps the names we observe on
     // the very first wave frame so we can see what Three.js actually
     // exposes (vs. what the glb JSON says).
-    if (waveActive) {
-      // Triple probe:
-      //   1. Slam material on M_Screen meshes (as before).
-      //   2. Inject a brand-new red mesh into the scene — if it doesn't
-      //      appear, no part of the wave-active branch is reaching the
-      //      renderer (e.g. the cloned scene we're mutating is detached
-      //      from the actually-rendered tree even though sceneInRoot=true).
-      //   3. Read material values back AFTER writing them and compare —
+    if (waveActive && WAVE_DEBUG_PROBE) {
+      // Dual probe:
+      //   1. Slam material on M_Screen meshes to a known-high emissive
+      //      red — if no red appears in-frame, either the touched
+      //      meshes are off-frustum or the cloned scene we're mutating
+      //      is detached from the actually-rendered tree.
+      //   2. Read material values back AFTER writing them and compare —
       //      if the read-back doesn't match what we wrote, another
       //      frame loop is overwriting our writes after ours.
-      // Add a giant pink sphere at world origin on the very first wave
-      // frame; if it never appears, the rendering pipeline isn't seeing
-      // any of our scene mutations.
-      if (waveElapsedS < 0.05 && !debugProbeMeshRef.current) {
-        const probe = new Mesh(
-          new SphereGeometry(2, 16, 16),
-          new MeshStandardMaterial({
-            color: "#ff0066",
-            emissive: new Color("#ff0066"),
-            emissiveIntensity: 6,
-            toneMapped: false,
-          }),
-        );
-        probe.position.set(0, 2, 0);
-        probe.name = "_wave_debug_sphere";
-        rootScene.add(probe);
-        debugProbeMeshRef.current = probe;
-        // eslint-disable-next-line no-console
-        console.log("[wave] injected debug sphere at origin (0, 2, 0)");
-      }
+      // (The scene-mutation-reaches-renderer question was answered by
+      // an earlier debug-sphere probe; removed once it confirmed yes.)
       let touched = 0;
       const sample: Array<{
         name: string;
@@ -1059,6 +1036,31 @@ export function ServerRoom({
         console.log(
           `[wave] AGGRESSIVE PROBE touched ${touched} M_Screen meshes (sceneInRoot=${sceneInRoot}, rootScene.name="${rootScene.name}", scene.name="${scene.name}"):\n  ${flat}`,
         );
+      }
+    } else if (waveActive) {
+      // Slot-staggered idle outline pulse. Each rack's slot in
+      // slotIndexByKey picks its sin-bump phase within the wave
+      // window — racks outside their own window sit at base ×
+      // WAVE_DIM_MULTIPLIER (spotlit-recede), inside at base ×
+      // WAVE_BRIGHT_MULTIPLIER at peak. Shares the hover lerp `k`
+      // so the rack settles back to idle on the same time-constant.
+      for (const it of interactivesRef.current) {
+        const slot = slotIndexByKey.get(it.hoverKey);
+        let target: number;
+        if (slot === undefined) {
+          target = it.base;
+        } else {
+          const slotStartS = slot * waveSlotDelayS;
+          const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
+          const pulse = (localT >= 0 && localT <= 1)
+            ? Math.sin(localT * Math.PI)
+            : 0;
+          const dim = it.base * WAVE_DIM_MULTIPLIER;
+          const bright = it.base * WAVE_BRIGHT_MULTIPLIER;
+          target = dim + (bright - dim) * pulse;
+        }
+        it.current += (target - it.current) * k;
+        it.mat.emissiveIntensity = it.current;
       }
     } else {
       // Per-emissive-material targets (rack screens). The wave takes
