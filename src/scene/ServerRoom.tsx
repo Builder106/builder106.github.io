@@ -21,6 +21,7 @@ import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from "./anchor
 import { resolveClick, type ClickTarget } from "./clickResolver";
 import { aisleScroll } from "./aisleScroll";
 import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
+import { createRackOutlineMaterial, type RackOutlineUniforms } from "./rackOutlineShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
@@ -579,6 +580,16 @@ export function ServerRoom({
   // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
   // useFrame each time it reaches 60.
   const waveTickCounterRef = useRef<number>(0);
+  // One inverted-hull outline mesh per Rack_<id>, attached as a child
+  // so it inherits applyAisleLayout's per-variant transform. Pulsed
+  // by the idle wave to spotlight one rack at a time — visible from
+  // any camera angle, unlike the M_Screen emissive pulse which is
+  // near-edge-on to the portrait camera and disappears into LED glare.
+  const rackOutlinesRef = useRef<{
+    mesh: Mesh;
+    uniforms: RackOutlineUniforms;
+    hoverKey: string;
+  }[]>([]);
 
   // Variant-aware "which time slot does this rack fire in?" map.
   // Portrait = 9 slots, one per rack in AISLE_ORDER. Landscape = 3
@@ -709,6 +720,11 @@ export function ServerRoom({
 
   useLayoutEffect(() => {
     const interactives: Interactive[] = [];
+    const outlines: {
+      mesh: Mesh;
+      uniforms: RackOutlineUniforms;
+      hoverKey: string;
+    }[] = [];
     let bodyGeom: BufferGeometry | null = null;
     let bodyMat: Material | null = null;
     let ledGeom: BufferGeometry | null = null;
@@ -780,6 +796,26 @@ export function ServerRoom({
         return;
       }
 
+      // Rack body outline. Inverted-hull child mesh that traces the
+      // rack's silhouette; pulsed by the idle wave (uThickness +
+      // uOpacity) so a moving spotlight reads from any camera angle.
+      // raycast disabled so pointer hits still resolve to the rack
+      // body itself, not the outline shell.
+      if (obj.name.startsWith("Rack_")) {
+        const projectId = obj.name.slice("Rack_".length);
+        const accent = projectsById.get(projectId)?.color ?? "#00ffff";
+        const outlineMat = createRackOutlineMaterial(accent);
+        const outlineMesh = new Mesh(obj.geometry, outlineMat);
+        outlineMesh.raycast = () => {};
+        obj.add(outlineMesh);
+        outlines.push({
+          mesh: outlineMesh,
+          uniforms: outlineMat.uniforms,
+          hoverKey: `project:${projectId}`,
+        });
+        return;
+      }
+
       const mat = obj.material;
       if (!(mat instanceof MeshStandardMaterial)) return;
       if (!isUntonedMaterial(mat.name)) return;
@@ -843,6 +879,16 @@ export function ServerRoom({
     // into the reflective floor. Previously this was inside useFrame
     // and ran every frame; same value, same effect, no need to re-set.
     rootScene.environmentIntensity = 0;
+    rackOutlinesRef.current = outlines;
+    return () => {
+      // Variant flip rebuilds the scene; the old rack meshes get GC'd
+      // but their child outline meshes hold ShaderMaterials whose GPU
+      // resources need explicit disposal.
+      for (const o of outlines) {
+        o.mesh.removeFromParent();
+        (o.mesh.material as ShaderMaterial).dispose();
+      }
+    };
   }, [scene, rootScene]);
 
   // Re-emit anchors every time the loaded glTF scene changes — this is what
@@ -1083,6 +1129,29 @@ export function ServerRoom({
         it.current += (target - it.current) * k;
         it.mat.emissiveIntensity = it.current;
       }
+    }
+
+    // Rack outlines: per-slot sin-bump pulse during the wave, lerp
+    // to invisible otherwise. Gated on !WAVE_DEBUG_PROBE so the
+    // outline doesn't appear during diagnostic probe sessions —
+    // those want pure red-screen visibility, not a competing cue.
+    for (const o of rackOutlinesRef.current) {
+      let targetThickness = 0;
+      let targetOpacity = 0;
+      if (waveActive && !WAVE_DEBUG_PROBE) {
+        const slot = slotIndexByKey.get(o.hoverKey);
+        if (slot !== undefined) {
+          const slotStartS = slot * waveSlotDelayS;
+          const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
+          const pulse = (localT >= 0 && localT <= 1)
+            ? Math.sin(localT * Math.PI)
+            : 0;
+          targetThickness = 0.04 * pulse;
+          targetOpacity = 0.85 * pulse;
+        }
+      }
+      o.uniforms.uThickness.value += (targetThickness - o.uniforms.uThickness.value) * k;
+      o.uniforms.uOpacity.value += (targetOpacity - o.uniforms.uOpacity.value) * k;
     }
 
     // Background tower accent pulse. Iterates the cached strip refs
