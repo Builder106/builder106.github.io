@@ -1,23 +1,26 @@
 import { AdditiveBlending, BackSide, Color, ShaderMaterial } from "three";
 
-// Inverted-hull outline material for the rack bodies. Each vertex
-// is pushed along its model-space normal by uThickness, then only
-// the back faces render. The expanded shell's front is occluded by
-// the rack body itself; the slivers that stick out past the rack
-// silhouette form the visible "stroke." Driven by the idle wave to
+// Inverted-hull rim-light shader for the rack bodies. Each vertex is
+// pushed along its model-space normal by uThickness; back-face-only
+// rendering means the shell renders only outside the rack silhouette
+// (occluded by the rack body inside it). Driven by the idle wave to
 // spotlight one rack at a time independent of camera angle — the
 // M_Screen plane is near-edge-on to the portrait camera at every
-// scroll position, so screen-emissive pulse alone isn't a reliable
-// idle-attractor cue.
+// scroll position, so screen-emissive pulse alone isn't reliable.
 //
-// Additive blending so the outline reads as a glow rather than a
-// flat tinted band; uOpacity controls both the intensity of the
-// add and the fade-in/out at slot boundaries.
+// Fresnel falloff in the fragment shader concentrates the glow at
+// the silhouette edge (where the back-face is perpendicular to view)
+// and fades it to zero where the back-face is parallel to view. The
+// first version solid-filled every visible back-face and read as a
+// chunky tint on the rack — the fresnel makes it read as a rim light
+// tracing the silhouette, which is what "outline" suggests.
 
 const vertexShader = /* glsl */ `
   uniform float uThickness;
+  varying vec3 vViewNormal;
   void main() {
     vec3 displaced = position + normal * uThickness;
+    vViewNormal = normalize(normalMatrix * normal);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
   }
 `;
@@ -26,8 +29,17 @@ const fragmentShader = /* glsl */ `
   precision mediump float;
   uniform vec3 uColor;
   uniform float uOpacity;
+  varying vec3 vViewNormal;
   void main() {
-    gl_FragColor = vec4(uColor * uOpacity, uOpacity);
+    // Fresnel rim: peaks at 1.0 where viewNormal is perpendicular to
+    // view (silhouette edge), drops to 0 where parallel (centre of
+    // the shell, which would otherwise read as a flat tint). Squared
+    // for a sharper falloff so the rim feels like a stroke rather
+    // than a soft glow.
+    float fresnel = 1.0 - abs(vViewNormal.z);
+    fresnel = pow(fresnel, 2.0);
+    float alpha = uOpacity * fresnel;
+    gl_FragColor = vec4(uColor * alpha, alpha);
   }
 `;
 

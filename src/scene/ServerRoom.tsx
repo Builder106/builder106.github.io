@@ -1153,12 +1153,14 @@ export function ServerRoom({
           const pulse = (localT >= 0 && localT <= 1)
             ? Math.sin(localT * Math.PI)
             : 0;
-          // Thickness in model units. At 0.04 m the outline projected
-          // to ~3 px from the portrait entrance camera (7.7 m away) —
-          // invisibly thin. 0.20 m gives ~15 px at slot 0 and is still
-          // legible past slot 5 where camera distance grows to ~20 m.
-          targetThickness = 0.20 * pulse;
-          targetOpacity = 0.85 * pulse;
+          // Thickness in model units. 0.10 m is the rim-light sweet
+          // spot: thin enough not to feel chunky, thick enough to be
+          // legible at slot 8's ~20 m camera distance once the fresnel
+          // falloff concentrates brightness at the silhouette edge.
+          // Opacity 0.55 because the fresnel intensifies the rim — a
+          // flat 0.85 with the fresnel cranked would blow out.
+          targetThickness = 0.10 * pulse;
+          targetOpacity = 0.55 * pulse;
         }
       }
       o.uniforms.uThickness.value += (targetThickness - o.uniforms.uThickness.value) * k;
