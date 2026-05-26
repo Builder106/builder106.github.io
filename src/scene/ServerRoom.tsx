@@ -580,14 +580,17 @@ export function ServerRoom({
   // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
   // useFrame each time it reaches 60.
   const waveTickCounterRef = useRef<number>(0);
-  // One inverted-hull outline mesh per Rack_<id>, attached as a child
-  // so it inherits applyAisleLayout's per-variant transform. Pulsed
-  // by the idle wave to spotlight one rack at a time — visible from
-  // any camera angle, unlike the M_Screen emissive pulse which is
-  // near-edge-on to the portrait camera and disappears into LED glare.
+  // Per-rack wave-animation state. Three coordinated channels so the
+  // rack pair "lights up like a techno wash" during its slot:
+  //   - outline: inverted-hull rim-light traces the silhouette
+  //   - body:    rack's own material emissive cranks → rack self-glows
+  //   - light:   PointLight at rack centre spills onto floor + neighbours
+  // All three are pulsed on the same sin schedule keyed by hoverKey.
   const rackOutlinesRef = useRef<{
     mesh: Mesh;
     uniforms: RackOutlineUniforms;
+    body: MeshStandardMaterial;
+    light: PointLight;
     hoverKey: string;
   }[]>([]);
 
@@ -723,6 +726,8 @@ export function ServerRoom({
     const outlines: {
       mesh: Mesh;
       uniforms: RackOutlineUniforms;
+      body: MeshStandardMaterial;
+      light: PointLight;
       hoverKey: string;
     }[] = [];
     let bodyGeom: BufferGeometry | null = null;
@@ -796,21 +801,52 @@ export function ServerRoom({
         return;
       }
 
-      // Rack body outline. Inverted-hull child mesh that traces the
-      // rack's silhouette; pulsed by the idle wave (uThickness +
-      // uOpacity) so a moving spotlight reads from any camera angle.
-      // raycast disabled so pointer hits still resolve to the rack
-      // body itself, not the outline shell.
+      // Rack body wave setup. Three channels per rack, all keyed to
+      // the same `project:<id>` slot in the wave:
+      //   1. Inverted-hull outline shell traces the silhouette.
+      //   2. Cloned body material's emissive cranks during the slot
+      //      so the rack itself glows (point light at the rack centre
+      //      contributes 0 to the rack's own outward-facing surfaces).
+      //   3. PointLight at rack centre washes the floor + neighbours
+      //      so the wave reads as a *passing* spotlight, not just
+      //      synchronous rack-by-rack pulses.
       if (obj.name.startsWith("Rack_")) {
         const projectId = obj.name.slice("Rack_".length);
         const accent = projectsById.get(projectId)?.color ?? "#00ffff";
+        const accentColor = new Color(accent);
+
+        // Outline shell.
         const outlineMat = createRackOutlineMaterial(accent);
         const outlineMesh = new Mesh(obj.geometry, outlineMat);
         outlineMesh.raycast = () => {};
         obj.add(outlineMesh);
+
+        // Body material clone — per-rack so emissive lerps don't
+        // leak between racks. emissive set to accent, intensity 0
+        // until the wave drives it.
+        const sourceMat = obj.material instanceof MeshStandardMaterial
+          ? obj.material
+          : null;
+        const body = sourceMat
+          ? sourceMat.clone()
+          : new MeshStandardMaterial({ color: 0x111111 });
+        body.emissive = accentColor.clone();
+        body.emissiveIntensity = 0;
+        body.toneMapped = false;
+        obj.material = body;
+
+        // PointLight at the rack body centre (mesh local origin). The
+        // 3 m distance reaches the next slot (~2.6 m away) before
+        // decaying — that overlap is what makes the wash travel down
+        // the aisle rather than blink rack-by-rack.
+        const light = new PointLight(accentColor.clone(), 0, 3.0);
+        obj.add(light);
+
         outlines.push({
           mesh: outlineMesh,
           uniforms: outlineMat.uniforms,
+          body,
+          light,
           hoverKey: `project:${projectId}`,
         });
         return;
@@ -882,11 +918,14 @@ export function ServerRoom({
     rackOutlinesRef.current = outlines;
     return () => {
       // Variant flip rebuilds the scene; the old rack meshes get GC'd
-      // but their child outline meshes hold ShaderMaterials whose GPU
-      // resources need explicit disposal.
+      // but the per-rack outline ShaderMaterial + cloned body material
+      // need explicit GPU disposal. The PointLight is a plain
+      // Object3D — removing from parent is enough.
       for (const o of outlines) {
         o.mesh.removeFromParent();
         (o.mesh.material as ShaderMaterial).dispose();
+        o.body.dispose();
+        o.light.removeFromParent();
       }
     };
   }, [scene, rootScene]);
@@ -1123,13 +1162,14 @@ export function ServerRoom({
       }
     }
 
-    // Rack outlines: per-slot sin-bump pulse during the wave, lerp
-    // to invisible otherwise. Gated on !WAVE_DEBUG_PROBE so the
-    // outline doesn't appear during diagnostic probe sessions —
-    // those want pure red-screen visibility, not a competing cue.
+    // Per-rack wave pulse: outline rim + body emissive + point light,
+    // all driven by the same sin bump for the current slot. Gated on
+    // !WAVE_DEBUG_PROBE so probe sessions don't get a competing wash.
     for (const o of rackOutlinesRef.current) {
       let targetThickness = 0;
       let targetOpacity = 0;
+      let targetEmissive = 0;
+      let targetLight = 0;
       if (waveActive && !WAVE_DEBUG_PROBE) {
         const slot = slotIndexByKey.get(o.hoverKey);
         if (slot !== undefined) {
@@ -1138,18 +1178,25 @@ export function ServerRoom({
           const pulse = (localT >= 0 && localT <= 1)
             ? Math.sin(localT * Math.PI)
             : 0;
-          // Thickness in model units. 0.10 m is the rim-light sweet
-          // spot: thin enough not to feel chunky, thick enough to be
-          // legible at slot 8's ~20 m camera distance once the fresnel
-          // falloff concentrates brightness at the silhouette edge.
-          // Opacity 0.55 because the fresnel intensifies the rim — a
-          // flat 0.85 with the fresnel cranked would blow out.
+          // Rim outline: thin silhouette stroke (fresnel concentrates
+          // the colour at the edge).
           targetThickness = 0.10 * pulse;
           targetOpacity = 0.55 * pulse;
+          // Body emissive: rack self-glow. 2.5 peaks well above hover
+          // (HOVER_INTENSITY_MULTIPLIER=1.8 × base) so the pulsing
+          // rack pair clearly dominates the visual hierarchy.
+          targetEmissive = 2.5 * pulse;
+          // Point light: corridor + floor wash. 5.0 cd at 3 m gives a
+          // strong club-light beam without blowing out the reflective
+          // floor; the overlap with adjacent slots (decay reaches the
+          // next rack faintly) is what makes the wave *travel*.
+          targetLight = 5.0 * pulse;
         }
       }
       o.uniforms.uThickness.value += (targetThickness - o.uniforms.uThickness.value) * k;
       o.uniforms.uOpacity.value += (targetOpacity - o.uniforms.uOpacity.value) * k;
+      o.body.emissiveIntensity += (targetEmissive - o.body.emissiveIntensity) * k;
+      o.light.intensity += (targetLight - o.light.intensity) * k;
     }
 
     // Background tower accent pulse. Iterates the cached strip refs
