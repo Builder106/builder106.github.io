@@ -22,7 +22,7 @@ import {
 import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from "./anchors";
 import { resolveClick, type ClickTarget } from "./clickResolver";
 import { aisleScroll } from "./aisleScroll";
-import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
+import { createConsoleMaterial, type ConsoleUniforms } from "./consoleShader";
 import { createWaveBeamMaterial, type WaveBeamUniforms } from "./waveBeamShader";
 import { createWaveFloorMaterial, type WaveFloorUniforms } from "./waveFloorShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
@@ -576,7 +576,7 @@ export function ServerRoom({
   // causing the modified material not to reach the renderer; see the
   // useFrame block for details).
   const elapsedRef = useRef(0);
-  const monitorShaderRef = useRef<(ShaderMaterial & { uniforms: SwarmUniforms }) | null>(null);
+  const monitorShaderRef = useRef<(ShaderMaterial & { uniforms: ConsoleUniforms }) | null>(null);
   const [hover, setHover] = useState<ClickTarget>(null);
   const [anchorMap, setAnchorMap] = useState<Map<string, SceneAnchor>>(new Map());
 
@@ -847,13 +847,15 @@ export function ServerRoom({
         return;
       }
 
-      // The Monitor mesh gets the swarm shader, replacing its baked
-      // M_Monitor material entirely. From here on it's hover-driven
-      // through uniforms, not emissionIntensity.
+      // The Monitor mesh gets the console-panel shader, replacing its
+      // baked M_Monitor material entirely. Renders a control-panel HUD
+      // (oscilloscope traces, bar graph, status dots) so the desk
+      // monitor reads as "this is actively driving the room." From
+      // here on it's hover-driven through uniforms, not emissive.
       if (obj.name === "Monitor") {
-        const swarmMat = createSwarmMaterial(isMobile);
-        obj.material = swarmMat;
-        monitorShaderRef.current = swarmMat;
+        const consoleMat = createConsoleMaterial(isMobile);
+        obj.material = consoleMat;
+        monitorShaderRef.current = consoleMat;
         return;
       }
 
@@ -1705,12 +1707,12 @@ export function ServerRoom({
         if (labelOpacity < 0.2 && id !== "terminal") return null;
         if (id === "terminal") {
           // Terminal anchor is closer to the camera than the rack
-          // labels (~5 m vs ~7 m), so a smaller distanceFactor keeps
-          // its rendered size in line with the nearest rack label
-          // instead of dwarfing it. 1.4 puts the projected scale at
-          // ~0.28 of native — same ballpark as a rack at the front
-          // of the aisle.
-          const terminalDistance = isPortrait ? 1.4 : labelDistance;
+          // labels (~5 m vs ~7 m). Portrait: distanceFactor 2.6 makes
+          // the "console" badge ~85% bigger than the front rack label
+          // (which was the prior 1.4 target) — the desk monitor is
+          // the room's control surface, so its label should read as
+          // the dominant on-screen anchor when nothing's hovered.
+          const terminalDistance = isPortrait ? 2.6 : labelDistance;
           return (
             <Html
               key={id}
