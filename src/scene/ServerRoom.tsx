@@ -1497,60 +1497,49 @@ export function ServerRoom({
       {/* Polished dark floor — concept-art palette, lit by the bright
           overhead fluorescents above. Reads as glossy dark concrete
           / polished tile rather than office vinyl. Soft real-time
-          reflection picks up the rack LED bars and the ceiling
-          lights. Extended to 60×60 so the user can't see the floor
-          edge before the fog hides it. */}
+          reflection picks up the rack LED bars + the wave's floor
+          discs and ceiling lights. Extended to 60×60 so the user
+          can't see the floor edge before the fog hides it.
+          Mobile uses 256² reflection texture vs 1024² on desktop —
+          16× less fragment work per frame, still enough resolution
+          for the perceived-glossy read at the smaller viewport. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[60, 60]} />
-        {isMobile ? (
-          // Mobile: skip the real-time reflection entirely. The
-          // MeshReflectorMaterial re-renders the entire scene into a
-          // texture every frame from the floor's POV — even at 128 px
-          // resolution that's a second draw call per mesh. Measured
-          // ~85 % of mobile frame time on a CPU-throttled run. Flat
-          // dark plane with subtle glow keeps the atmosphere; the
-          // glowing floor centre-line + reflective LED-bar tint from
-          // the fluorescents still sells the "polished" floor read.
-          <meshBasicMaterial color="#1a1f2e" fog />
-        ) : (
-          <MeshReflectorMaterial
-            blur={[300, 100]}
-            mixBlur={1.0}
-            mixStrength={1.4}
-            resolution={1024}
-            mirror={0.5}
-            mixContrast={1.0}
-            depthScale={1.0}
-            minDepthThreshold={0.4}
-            maxDepthThreshold={1.5}
-            color="#262a3d"
-            metalness={0.55}
-            roughness={0.4}
-          />
-        )}
+        <MeshReflectorMaterial
+          blur={isMobile ? [200, 60] : [300, 100]}
+          mixBlur={1.0}
+          mixStrength={1.4}
+          resolution={isMobile ? 256 : 1024}
+          mirror={0.5}
+          mixContrast={1.0}
+          depthScale={1.0}
+          minDepthThreshold={0.4}
+          maxDepthThreshold={1.5}
+          color="#262a3d"
+          metalness={0.55}
+          roughness={0.4}
+        />
       </mesh>
 
       {/* Infinite floor-tile grid. Renders over the reflective floor
           inside the room and extends out into the fogged void, so the
-          eye reads it as a vast data hall. Per-pixel shader cost
-          across the floor's screen footprint — measurably expensive
-          on mobile GPUs. Desktop-only now (the desktop landscape view
-          is where the grid's tile-hall read matters most). */}
-      {!isMobile && (
-        <Grid
-          position={[0, 0.005, 0]}
-          cellSize={1}
-          cellThickness={0.7}
-          cellColor="#4e5476"
-          sectionSize={4}
-          sectionThickness={1.1}
-          sectionColor="#727a9c"
-          fadeDistance={55}
-          fadeStrength={1.2}
-          infiniteGrid
-          side={2}
-        />
-      )}
+          eye reads it as a vast data hall. Mobile fades the grid out
+          at 35 m instead of 55 m so fewer tiles paint per frame at the
+          narrower viewport — visually nearly identical because the
+          fog at [24, 65] already swallows the far cells anyway. */}
+      <Grid
+        position={[0, 0.005, 0]}
+        cellSize={1}
+        cellThickness={0.7}
+        cellColor="#4e5476"
+        sectionSize={4}
+        sectionThickness={1.1}
+        sectionColor="#727a9c"
+        fadeDistance={isMobile ? 35 : 55}
+        fadeStrength={1.2}
+        infiniteGrid
+        side={2}
+      />
 
       {/* Distant data-center skyline: rack-shaped templates authored
           in Blender, instanced ~80x in a 22–50m ring around the room.
