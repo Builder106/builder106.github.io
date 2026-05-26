@@ -129,10 +129,35 @@ function adsrPulse(t: number): number {
 // pulse window (~150 ms at WAVE_PULSE_DUR_S=1.0). Mixes the beam +
 // disc + rack-body emissive colour toward white during this window
 // so each slot hit reads with a camera-flash quality before settling
-// into the project's accent colour for the sustain + decay.
+// into the cluster colour for the sustain + decay.
 function strobeFlash(t: number): number {
   if (t <= 0 || t >= 0.15) return 0;
   return 1.0 - t / 0.15;
+}
+
+// Per-cluster wave colours. Pure-neon hues with at least one channel
+// at 0 so the body emissive's ~9× intensity boost can saturate the
+// other channels without producing a hue shift (e.g. orange #f29100
+// at 9× clamps to yellow because R+G both saturate before B). These
+// three match the scene's existing cyan/magenta cable palette so the
+// wave reads as "the room's neon system reacting" rather than the
+// project's brand colours pasted in.
+//
+// Project-level accent colours (per projects.ts) are still used for
+// LED variation — those are tiny dots where saturation matters less.
+const WAVE_CLUSTER_COLORS: Record<string, string> = {
+  quant:   "#00d4ff",   // electric cyan      (R = 0)
+  swe:     "#ff0080",   // hot magenta-pink   (G = 0)
+  analyst: "#aa00ff",   // electric violet    (G = 0)
+};
+
+function waveColorForProject(
+  projectId: string,
+  byId: Map<string, { cluster?: string }>,
+): string {
+  const project = byId.get(projectId);
+  const cluster = project?.cluster ?? "quant";
+  return WAVE_CLUSTER_COLORS[cluster] ?? WAVE_CLUSTER_COLORS.quant;
 }
 
 // Tiny seeded RNG so the distant-rack layout is stable across reloads.
@@ -850,7 +875,7 @@ export function ServerRoom({
         const projectId = obj.name.slice("Rack_".length);
         const slot = slotIndexByKey.get(`project:${projectId}`);
         if (slot === undefined) return;
-        const accent = projectsById.get(projectId)?.color ?? "#00ffff";
+        const accent = waveColorForProject(projectId, projectsById);
         const accentColor = new Color(accent);
         const body = obj.material instanceof MeshStandardMaterial
           ? obj.material.clone()
@@ -950,7 +975,7 @@ export function ServerRoom({
       sharedDiscGeom = new CircleGeometry(discRadius, 48);
       for (let i = 0; i < AISLE_ORDER.length; i++) {
         const id = AISLE_ORDER[i];
-        const color = projectsById.get(id)?.color ?? "#00ffff";
+        const color = waveColorForProject(id, projectsById);
         const z = AISLE_Z_START - i * AISLE_SPACING;
 
         const beamMat = createWaveBeamMaterial(color, beamHeight);
