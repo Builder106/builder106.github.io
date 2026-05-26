@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AmbientLight,
   BufferGeometry,
+  CircleGeometry,
   Color,
   ConeGeometry,
   DirectionalLight,
@@ -23,6 +24,7 @@ import { resolveClick, type ClickTarget } from "./clickResolver";
 import { aisleScroll } from "./aisleScroll";
 import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
 import { createWaveBeamMaterial, type WaveBeamUniforms } from "./waveBeamShader";
+import { createWaveFloorMaterial, type WaveFloorUniforms } from "./waveFloorShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
@@ -618,6 +620,16 @@ export function ServerRoom({
     slot: number;
   }[]>([]);
 
+  // One floor disc per slot, sat ~2 cm above the reflective floor.
+  // Radial-gradient shader produces a "neon puddle" under the rack
+  // pair during its slot; the disc is in the scene above the floor
+  // so the MeshReflectorMaterial's mirror reflection picks it up too.
+  const slotDiscsRef = useRef<{
+    mesh: Mesh;
+    uniforms: WaveFloorUniforms;
+    slot: number;
+  }[]>([]);
+
   // slotIndexByKey isn't consumed by the beam (it indexes by slot
   // directly via AISLE_ORDER). Commit 4 (body wash) re-introduces a
   // mesh-name → slot lookup that needs it.
@@ -864,40 +876,64 @@ export function ServerRoom({
     // and ran every frame; same value, same effect, no need to re-set.
     rootScene.environmentIntensity = 0;
 
-    // Wave beams — portrait-only for now. One downward-pointing cone
-    // per slot, positioned at the corridor centerline over the rack
-    // pair's Z. apex at ceiling (y=4.4), base at floor (y=0). Cone
-    // geometry shared across all 9 beams; per-beam material instances
-    // own the per-slot uniforms (color, intensity).
+    // Wave beams + floor discs — portrait-only for now. One downward-
+    // pointing cone per slot at corridor centerline (apex y=4.4, base
+    // y=0) plus one disc just above the floor (y=0.02). Shared geometry
+    // per layer keeps GPU buffer count low; per-slot material instances
+    // own the uniforms.
     const beams: { mesh: Mesh; uniforms: WaveBeamUniforms; slot: number }[] = [];
+    const discs: { mesh: Mesh; uniforms: WaveFloorUniforms; slot: number }[] = [];
     let sharedBeamGeom: ConeGeometry | null = null;
+    let sharedDiscGeom: CircleGeometry | null = null;
     if (variant === "portrait") {
       const beamHeight = 4.4;
       const beamRadius = 1.8;
+      const discRadius = 2.2;
       sharedBeamGeom = new ConeGeometry(beamRadius, beamHeight, 24, 4, true);
+      sharedDiscGeom = new CircleGeometry(discRadius, 48);
       for (let i = 0; i < AISLE_ORDER.length; i++) {
         const id = AISLE_ORDER[i];
         const color = projectsById.get(id)?.color ?? "#00ffff";
+        const z = AISLE_Z_START - i * AISLE_SPACING;
+
         const beamMat = createWaveBeamMaterial(color, beamHeight);
         const beamMesh = new Mesh(sharedBeamGeom, beamMat);
-        beamMesh.position.set(0, beamHeight / 2, AISLE_Z_START - i * AISLE_SPACING);
+        beamMesh.position.set(0, beamHeight / 2, z);
         beamMesh.frustumCulled = false;
         beamMesh.raycast = () => {};
         scene.add(beamMesh);
         beams.push({ mesh: beamMesh, uniforms: beamMat.uniforms, slot: i });
+
+        const discMat = createWaveFloorMaterial(color);
+        const discMesh = new Mesh(sharedDiscGeom, discMat);
+        // CircleGeometry lies in the XY plane (normal +Z). Rotate
+        // -π/2 around X so it lies flat in XZ (normal +Y). y=0.02
+        // clears the reflective floor at y=0.
+        discMesh.rotation.x = -Math.PI / 2;
+        discMesh.position.set(0, 0.02, z);
+        discMesh.frustumCulled = false;
+        discMesh.raycast = () => {};
+        scene.add(discMesh);
+        discs.push({ mesh: discMesh, uniforms: discMat.uniforms, slot: i });
       }
     }
     slotBeamsRef.current = beams;
+    slotDiscsRef.current = discs;
 
     return () => {
-      // Dispose beam materials + the shared cone geometry on scene
+      // Dispose beam + disc materials + shared geometries on scene
       // rebuild (variant flip). Meshes themselves are children of the
-      // cloned scene which gets GC'd, but the GPU buffers won't.
+      // cloned scene which gets GC'd; the GPU buffers won't.
       for (const b of beams) {
         b.mesh.removeFromParent();
         (b.mesh.material as ShaderMaterial).dispose();
       }
+      for (const d of discs) {
+        d.mesh.removeFromParent();
+        (d.mesh.material as ShaderMaterial).dispose();
+      }
       sharedBeamGeom?.dispose();
+      sharedDiscGeom?.dispose();
     };
   }, [scene, rootScene, variant, projectsById]);
 
@@ -987,12 +1023,13 @@ export function ServerRoom({
       }
     }
 
-    // Slot beams: each beam pulses during its own ADSR window in the
-    // slot-staggered sweep. Peak intensity 2.0 against additive blend
-    // = clearly visible cone of accent colour descending from ceiling
-    // to floor for the duration of the slot. Outside its window (or
-    // outside any wave) the beam lerps to invisible on the hover `k`.
+    // Slot beams + floor discs: each pulses during its own ADSR window
+    // in the slot-staggered sweep. Peak intensity 2.0 (additive blend
+    // means the colour adds to whatever's behind; values >1 saturate
+    // dramatically against the dark base). Outside its window the
+    // pulse lerps to invisible on the hover `k`.
     const beamPeak = 2.0;
+    const discPeak = 1.6;
     for (const b of slotBeamsRef.current) {
       let target = 0;
       if (waveActive) {
@@ -1001,6 +1038,15 @@ export function ServerRoom({
         target = adsrPulse(localT) * beamPeak;
       }
       b.uniforms.uIntensity.value += (target - b.uniforms.uIntensity.value) * k;
+    }
+    for (const d of slotDiscsRef.current) {
+      let target = 0;
+      if (waveActive) {
+        const slotStartS = d.slot * waveSlotDelayS;
+        const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
+        target = adsrPulse(localT) * discPeak;
+      }
+      d.uniforms.uIntensity.value += (target - d.uniforms.uIntensity.value) * k;
     }
 
     // Per-emissive-material targets (rack screens) — hover/idle lerp.
