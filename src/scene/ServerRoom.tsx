@@ -337,6 +337,7 @@ function isPortraitKeepMesh(name: string): boolean {
     name.startsWith("StatusLED_") ||
     name.startsWith("BackgroundTower_") ||
     name.startsWith("Cable_") ||
+    name.startsWith("DeskNameplate_") ||
     name === "Monitor" ||
     name === "Desk" ||
     name === "Floor" ||
@@ -1584,32 +1585,12 @@ export function ServerRoom({
         <meshBasicMaterial color="#11151f" fog />
       </mesh>
 
-      {/* Engraved-style nameplate on the front face of the desk. On
-          portrait the desk has been pulled forward to z≈AISLE_TERMINAL_Z
-          by applyAisleLayout, so the nameplate position rides off the
-          (moved) terminal anchor rather than the authored z=3.105. */}
-      {!panelOpen && (() => {
-        const isPortrait = variant === "portrait";
-        const terminalAnchor = anchorMap.get("terminal");
-        // Landscape: hardcoded front face of the original desk.
-        // Portrait: anchor.z + a small forward offset puts the plate
-        // on the desk's user-facing edge.
-        const z = isPortrait && terminalAnchor
-          ? terminalAnchor.position.z + 0.55
-          : 3.105;
-        return (
-          <Html
-            position={[0, 0.55, z]}
-            center
-            rotation={[0, 0, 0]}
-            distanceFactor={4.2}
-            zIndexRange={[0, 0]}
-            style={{ pointerEvents: "none", userSelect: "none" }}
-          >
-            <div className="desk-nameplate">Olayinka David Vaughan</div>
-          </Html>
-        );
-      })()}
+      {/* Desk nameplate is now a 3D mesh in the GLB (DeskNameplate_plate +
+          DeskNameplate_text, parented to the Desk in Blender so it rides
+          along when applyAisleLayout pulls the desk forward in portrait).
+          The previous drei-<Html> CSS overlay is gone — the engraved-plate
+          look is geometry now, with proper PBR lighting + reflective-floor
+          pickup. */}
 
       {/* Floating callout labels above each rack + the central monitor.
           Each label is a clickable shortcut that triggers the same
