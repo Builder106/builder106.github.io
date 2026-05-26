@@ -50,7 +50,13 @@ const fragmentShader = /* glsl */ `
     // pow(_, 0.7) gives a softer falloff than linear — keeps the beam
     // legible at floor level instead of dying halfway down.
     float vertical = pow(1.0 - vDepth, 0.7);
-    float alpha = vertical * vEdge * uIntensity;
+    // Density = constant interior fill + fresnel rim. The 0.20 base
+    // gives the cone a body so it reads as "looking into a beam of
+    // light through haze" rather than just a glowing wire outline;
+    // vEdge spikes the silhouette so the cone's shape is still
+    // legible against the dark scene.
+    float density = 0.20 + 0.80 * vEdge;
+    float alpha = vertical * density * uIntensity;
     // Strobe attack: mix accent → white during the first ~150 ms of
     // each slot's pulse. The white flash gives each slot hit a
     // camera-shutter quality before settling into the accent colour.

@@ -1089,7 +1089,11 @@ export function ServerRoom({
     // smear the attack.
     const beamPeak = 2.0;
     const discPeak = 1.6;
-    const bodyPeak = 5.0;
+    // Body peak bumped 5 → 9: the rack's base material is dark, so
+    // emissive at 5.0 read as "warmer rack," not "glowing rack." 9.0
+    // pushes the rack body to a luminous wash that clearly dominates
+    // the visual hierarchy when its slot fires.
+    const bodyPeak = 9.0;
     for (const b of slotBeamsRef.current) {
       let target = 0;
       let flash = 0;
