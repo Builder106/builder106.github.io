@@ -838,6 +838,14 @@ export function ServerRoom({
       // cloned material is stored by slot — both rack-pair materials
       // for a given slot fire together. Emissive starts white so the
       // strobe attack can swap to accent without a colour pop.
+      //
+      // CRITICAL: the source M_Bake_Rack_<id> material ships with an
+      // emissiveTexture (baked lighting). Three.js multiplies the
+      // emissive output by that texture per-fragment, so wherever the
+      // baked texture is black, our wash colour × intensity is gated
+      // to zero — the racks never glow no matter how high we push
+      // emissiveIntensity. Nulling emissiveMap on the clone makes
+      // the wash paint uniformly across the rack body.
       if (obj.name.startsWith("Rack_")) {
         const projectId = obj.name.slice("Rack_".length);
         const slot = slotIndexByKey.get(`project:${projectId}`);
@@ -849,6 +857,7 @@ export function ServerRoom({
           : new MeshStandardMaterial({ color: 0x111111 });
         body.emissive = new Color(1, 1, 1);
         body.emissiveIntensity = 0;
+        body.emissiveMap = null;
         body.toneMapped = false;
         obj.material = body;
         let entry = bodyMap.get(slot);
