@@ -5,6 +5,7 @@ import {
   AmbientLight,
   BufferGeometry,
   Color,
+  ConeGeometry,
   DirectionalLight,
   Group,
   HemisphereLight,
@@ -21,6 +22,7 @@ import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from "./anchor
 import { resolveClick, type ClickTarget } from "./clickResolver";
 import { aisleScroll } from "./aisleScroll";
 import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
+import { createWaveBeamMaterial, type WaveBeamUniforms } from "./waveBeamShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
@@ -104,6 +106,21 @@ function strHash(s: string): number {
 function ledProjectId(name: string): string | null {
   const m = name.match(/^StatusLED_(.+?)_r\d+_c\d+$/);
   return m ? m[1] : null;
+}
+
+// ADSR-shaped pulse for the wave. t ∈ [0, 1].
+//   attack  [0,    0.08]  → 0 → 1.0  (snap rise)
+//   sustain [0.08, 0.40]  → 1.0      (hold)
+//   decay   [0.40, 1.0]   → 1.0 → 0  (quadratic ease-out)
+// Replaces the prior sin(πt) bump — the snap-rise + hold + slow-decay
+// shape reads as a "drop" rather than a soft swell, which is what the
+// techno-club aesthetic needs.
+function adsrPulse(t: number): number {
+  if (t <= 0 || t >= 1) return 0;
+  if (t < 0.08) return t / 0.08;
+  if (t < 0.40) return 1.0;
+  const dt = (t - 0.40) / 0.60;
+  return 1.0 - dt * dt;
 }
 
 // Tiny seeded RNG so the distant-rack layout is stable across reloads.
@@ -549,7 +566,11 @@ export function ServerRoom({
   // is already suppressed during the wave, so the two never need to
   // compose.
   const IDLE_BEFORE_WAVE_MS = 15_000;
-  const WAVE_PULSE_DUR_S = 1.2;
+  // 1.0 s per-slot pulse (down from 1.2): the ADSR curve has a faster
+  // attack + shorter sustain so the slot reads as a hit rather than
+  // a swell, and 1.0 keeps the total wave duration tight at ~4.55 s
+  // in portrait.
+  const WAVE_PULSE_DUR_S = 1.0;
   // Per-slot delay differs by variant:
   //   portrait  → 9 individual racks, 0.35 s apart (rack-by-rack)
   //   landscape → 3 cluster groups, 0.70 s apart (3 racks at once)
@@ -588,9 +609,18 @@ export function ServerRoom({
     return m;
   }, [variant]);
 
-  // slotIndexByKey isn't referenced after the strip — commit 2 (beam)
-  // re-introduces the per-slot consumer. Touch it to keep
-  // noUnusedLocals quiet on CI until then.
+  // One volumetric cone beam per slot, apex at the ceiling and base on
+  // the floor, positioned over the rack pair for that slot. Pulsed by
+  // the slot's ADSR window during a wave; intensity 0 otherwise.
+  const slotBeamsRef = useRef<{
+    mesh: Mesh;
+    uniforms: WaveBeamUniforms;
+    slot: number;
+  }[]>([]);
+
+  // slotIndexByKey isn't consumed by the beam (it indexes by slot
+  // directly via AISLE_ORDER). Commit 4 (body wash) re-introduces a
+  // mesh-name → slot lookup that needs it.
   void slotIndexByKey;
 
   const waveSlotDelayS =
@@ -833,7 +863,43 @@ export function ServerRoom({
     // into the reflective floor. Previously this was inside useFrame
     // and ran every frame; same value, same effect, no need to re-set.
     rootScene.environmentIntensity = 0;
-  }, [scene, rootScene]);
+
+    // Wave beams — portrait-only for now. One downward-pointing cone
+    // per slot, positioned at the corridor centerline over the rack
+    // pair's Z. apex at ceiling (y=4.4), base at floor (y=0). Cone
+    // geometry shared across all 9 beams; per-beam material instances
+    // own the per-slot uniforms (color, intensity).
+    const beams: { mesh: Mesh; uniforms: WaveBeamUniforms; slot: number }[] = [];
+    let sharedBeamGeom: ConeGeometry | null = null;
+    if (variant === "portrait") {
+      const beamHeight = 4.4;
+      const beamRadius = 1.8;
+      sharedBeamGeom = new ConeGeometry(beamRadius, beamHeight, 24, 4, true);
+      for (let i = 0; i < AISLE_ORDER.length; i++) {
+        const id = AISLE_ORDER[i];
+        const color = projectsById.get(id)?.color ?? "#00ffff";
+        const beamMat = createWaveBeamMaterial(color, beamHeight);
+        const beamMesh = new Mesh(sharedBeamGeom, beamMat);
+        beamMesh.position.set(0, beamHeight / 2, AISLE_Z_START - i * AISLE_SPACING);
+        beamMesh.frustumCulled = false;
+        beamMesh.raycast = () => {};
+        scene.add(beamMesh);
+        beams.push({ mesh: beamMesh, uniforms: beamMat.uniforms, slot: i });
+      }
+    }
+    slotBeamsRef.current = beams;
+
+    return () => {
+      // Dispose beam materials + the shared cone geometry on scene
+      // rebuild (variant flip). Meshes themselves are children of the
+      // cloned scene which gets GC'd, but the GPU buffers won't.
+      for (const b of beams) {
+        b.mesh.removeFromParent();
+        (b.mesh.material as ShaderMaterial).dispose();
+      }
+      sharedBeamGeom?.dispose();
+    };
+  }, [scene, rootScene, variant, projectsById]);
 
   // Re-emit anchors every time the loaded glTF scene changes — this is what
   // makes a portrait↔landscape variant flip pick up the new layout instead
@@ -907,14 +973,34 @@ export function ServerRoom({
         }),
       );
     }
+    let waveElapsedS = 0;
+    let waveActive = false;
     if (waveStartRef.current !== null) {
-      const elapsedS = (now - waveStartRef.current) / 1000;
-      if (elapsedS > WAVE_TOTAL_S || panelOpen) {
+      waveElapsedS = (now - waveStartRef.current) / 1000;
+      if (waveElapsedS > WAVE_TOTAL_S || panelOpen) {
         // Wave window elapsed (or a panel opened mid-wave). Reset the
         // idle clock so the cycle doesn't immediately re-trigger.
         waveStartRef.current = null;
         lastInteractionRef.current = now;
+      } else {
+        waveActive = true;
       }
+    }
+
+    // Slot beams: each beam pulses during its own ADSR window in the
+    // slot-staggered sweep. Peak intensity 2.0 against additive blend
+    // = clearly visible cone of accent colour descending from ceiling
+    // to floor for the duration of the slot. Outside its window (or
+    // outside any wave) the beam lerps to invisible on the hover `k`.
+    const beamPeak = 2.0;
+    for (const b of slotBeamsRef.current) {
+      let target = 0;
+      if (waveActive) {
+        const slotStartS = b.slot * waveSlotDelayS;
+        const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
+        target = adsrPulse(localT) * beamPeak;
+      }
+      b.uniforms.uIntensity.value += (target - b.uniforms.uIntensity.value) * k;
     }
 
     // Per-emissive-material targets (rack screens) — hover/idle lerp.
