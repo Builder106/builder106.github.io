@@ -42,6 +42,7 @@ const fragmentShader = /* glsl */ `
   precision mediump float;
   uniform vec3 uColor;
   uniform float uIntensity;
+  uniform float uFlash;
   varying float vDepth;
   varying float vEdge;
   void main() {
@@ -50,7 +51,11 @@ const fragmentShader = /* glsl */ `
     // legible at floor level instead of dying halfway down.
     float vertical = pow(1.0 - vDepth, 0.7);
     float alpha = vertical * vEdge * uIntensity;
-    gl_FragColor = vec4(uColor * alpha, alpha);
+    // Strobe attack: mix accent → white during the first ~150 ms of
+    // each slot's pulse. The white flash gives each slot hit a
+    // camera-shutter quality before settling into the accent colour.
+    vec3 col = mix(uColor, vec3(1.0), uFlash);
+    gl_FragColor = vec4(col * alpha, alpha);
   }
 `;
 
@@ -58,6 +63,7 @@ export interface WaveBeamUniforms {
   uHeight: { value: number };
   uColor: { value: Color };
   uIntensity: { value: number };
+  uFlash: { value: number };
 }
 
 export function createWaveBeamMaterial(
@@ -71,6 +77,7 @@ export function createWaveBeamMaterial(
       uHeight: { value: height },
       uColor: { value: new Color(color) },
       uIntensity: { value: 0 },
+      uFlash: { value: 0 },
     },
     side: DoubleSide,
     transparent: true,

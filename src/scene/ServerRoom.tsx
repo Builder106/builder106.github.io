@@ -125,6 +125,16 @@ function adsrPulse(t: number): number {
   return 1.0 - dt * dt;
 }
 
+// Strobe attack: 1.0 → 0.0 linear fade over the first 15 % of the
+// pulse window (~150 ms at WAVE_PULSE_DUR_S=1.0). Mixes the beam +
+// disc + rack-body emissive colour toward white during this window
+// so each slot hit reads with a camera-flash quality before settling
+// into the project's accent colour for the sustain + decay.
+function strobeFlash(t: number): number {
+  if (t <= 0 || t >= 0.15) return 0;
+  return 1.0 - t / 0.15;
+}
+
 // Tiny seeded RNG so the distant-rack layout is stable across reloads.
 function mulberry32(seed: number) {
   return () => {
@@ -630,10 +640,15 @@ export function ServerRoom({
     slot: number;
   }[]>([]);
 
-  // slotIndexByKey isn't consumed by the beam (it indexes by slot
-  // directly via AISLE_ORDER). Commit 4 (body wash) re-introduces a
-  // mesh-name → slot lookup that needs it.
-  void slotIndexByKey;
+  // Per-slot rack body materials. Cloned at scene-build time so each
+  // slot's body emissive is independently driven by the wave. Each
+  // entry holds both the original and the mirrored rack's material
+  // (same slot fires both racks of the pair in portrait).
+  const slotBodiesRef = useRef<{
+    materials: MeshStandardMaterial[];
+    accentColor: Color;
+    slot: number;
+  }[]>([]);
 
   const waveSlotDelayS =
     variant === "portrait" ? WAVE_RACK_DELAY_S : WAVE_CLUSTER_DELAY_S;
@@ -741,6 +756,11 @@ export function ServerRoom({
 
   useLayoutEffect(() => {
     const interactives: Interactive[] = [];
+    const bodyMap = new Map<number, {
+      materials: MeshStandardMaterial[];
+      accentColor: Color;
+      slot: number;
+    }>();
     let bodyGeom: BufferGeometry | null = null;
     let bodyMat: Material | null = null;
     let ledGeom: BufferGeometry | null = null;
@@ -809,6 +829,34 @@ export function ServerRoom({
         const swarmMat = createSwarmMaterial(isMobile);
         obj.material = swarmMat;
         monitorShaderRef.current = swarmMat;
+        return;
+      }
+
+      // Rack body wash. Each Rack_<id> mesh (original + portrait
+      // mirror share the same name) gets its material cloned so the
+      // wave can crank emissive without leaking to other racks. The
+      // cloned material is stored by slot — both rack-pair materials
+      // for a given slot fire together. Emissive starts white so the
+      // strobe attack can swap to accent without a colour pop.
+      if (obj.name.startsWith("Rack_")) {
+        const projectId = obj.name.slice("Rack_".length);
+        const slot = slotIndexByKey.get(`project:${projectId}`);
+        if (slot === undefined) return;
+        const accent = projectsById.get(projectId)?.color ?? "#00ffff";
+        const accentColor = new Color(accent);
+        const body = obj.material instanceof MeshStandardMaterial
+          ? obj.material.clone()
+          : new MeshStandardMaterial({ color: 0x111111 });
+        body.emissive = new Color(1, 1, 1);
+        body.emissiveIntensity = 0;
+        body.toneMapped = false;
+        obj.material = body;
+        let entry = bodyMap.get(slot);
+        if (!entry) {
+          entry = { materials: [], accentColor, slot };
+          bodyMap.set(slot, entry);
+        }
+        entry.materials.push(body);
         return;
       }
 
@@ -919,14 +967,21 @@ export function ServerRoom({
     }
     slotBeamsRef.current = beams;
     slotDiscsRef.current = discs;
+    slotBodiesRef.current = Array.from(bodyMap.values());
 
     return () => {
-      // Dispose beam + disc materials + shared geometries on scene
-      // rebuild (variant flip). Meshes themselves are children of the
-      // cloned scene which gets GC'd; the GPU buffers won't.
+      // Dispose beam + disc materials + shared geometries + cloned
+      // rack body materials on scene rebuild (variant flip). Meshes
+      // are children of the cloned scene which gets GC'd; the GPU
+      // buffers won't.
       for (const b of beams) {
         b.mesh.removeFromParent();
         (b.mesh.material as ShaderMaterial).dispose();
+      }
+      for (const entry of bodyMap.values()) {
+        for (const mat of entry.materials) {
+          mat.dispose();
+        }
       }
       for (const d of discs) {
         d.mesh.removeFromParent();
@@ -1023,30 +1078,61 @@ export function ServerRoom({
       }
     }
 
-    // Slot beams + floor discs: each pulses during its own ADSR window
-    // in the slot-staggered sweep. Peak intensity 2.0 (additive blend
-    // means the colour adds to whatever's behind; values >1 saturate
-    // dramatically against the dark base). Outside its window the
-    // pulse lerps to invisible on the hover `k`.
+    // Slot beams + floor discs + rack body wash: all three layers pulse
+    // during the slot's ADSR window. Beam (peak 2.0) descends from
+    // ceiling. Disc (peak 1.6) lights the floor + its reflection. Body
+    // wash (peak 5.0) makes the rack itself glow.
+    //
+    // uIntensity is lerped on the hover `k` so layers settle smoothly.
+    // uFlash is set directly (no lerp) because the strobe needs to
+    // snap white at slot start and fade within 150 ms — lerping would
+    // smear the attack.
     const beamPeak = 2.0;
     const discPeak = 1.6;
+    const bodyPeak = 5.0;
     for (const b of slotBeamsRef.current) {
       let target = 0;
+      let flash = 0;
       if (waveActive) {
         const slotStartS = b.slot * waveSlotDelayS;
         const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
         target = adsrPulse(localT) * beamPeak;
+        flash = strobeFlash(localT);
       }
       b.uniforms.uIntensity.value += (target - b.uniforms.uIntensity.value) * k;
+      b.uniforms.uFlash.value = flash;
     }
     for (const d of slotDiscsRef.current) {
       let target = 0;
+      let flash = 0;
       if (waveActive) {
         const slotStartS = d.slot * waveSlotDelayS;
         const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
         target = adsrPulse(localT) * discPeak;
+        flash = strobeFlash(localT);
       }
       d.uniforms.uIntensity.value += (target - d.uniforms.uIntensity.value) * k;
+      d.uniforms.uFlash.value = flash;
+    }
+    for (const body of slotBodiesRef.current) {
+      let intensityTarget = 0;
+      let flash = 0;
+      if (waveActive) {
+        const slotStartS = body.slot * waveSlotDelayS;
+        const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
+        intensityTarget = adsrPulse(localT) * bodyPeak;
+        flash = strobeFlash(localT);
+      }
+      // Body emissive colour: mix accent → white based on flash.
+      // White during the first 150 ms of the slot, then snaps to the
+      // accent colour for the sustain + decay.
+      const r = body.accentColor.r + (1 - body.accentColor.r) * flash;
+      const g = body.accentColor.g + (1 - body.accentColor.g) * flash;
+      const b2 = body.accentColor.b + (1 - body.accentColor.b) * flash;
+      for (const mat of body.materials) {
+        mat.emissiveIntensity += (intensityTarget - mat.emissiveIntensity) * k;
+        mat.emissive.setRGB(r, g, b2);
+      }
     }
 
     // Per-emissive-material targets (rack screens) — hover/idle lerp.

@@ -26,6 +26,7 @@ const fragmentShader = /* glsl */ `
   precision mediump float;
   uniform vec3 uColor;
   uniform float uIntensity;
+  uniform float uFlash;
   varying vec2 vUv;
   void main() {
     // CircleGeometry UVs run 0..1 across the disc bounding box; centre
@@ -39,13 +40,17 @@ const fragmentShader = /* glsl */ `
     float radial = 1.0 - smoothstep(0.0, 1.0, r);
     radial = pow(radial, 1.5);
     float alpha = radial * uIntensity;
-    gl_FragColor = vec4(uColor * alpha, alpha);
+    // Strobe attack: mix accent → white during the first ~150 ms of
+    // each slot's pulse to sync with the beam's flash.
+    vec3 col = mix(uColor, vec3(1.0), uFlash);
+    gl_FragColor = vec4(col * alpha, alpha);
   }
 `;
 
 export interface WaveFloorUniforms {
   uColor: { value: Color };
   uIntensity: { value: number };
+  uFlash: { value: number };
 }
 
 export function createWaveFloorMaterial(
@@ -57,6 +62,7 @@ export function createWaveFloorMaterial(
     uniforms: {
       uColor: { value: new Color(color) },
       uIntensity: { value: 0 },
+      uFlash: { value: 0 },
     },
     side: DoubleSide,
     transparent: true,
