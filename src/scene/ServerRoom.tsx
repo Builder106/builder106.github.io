@@ -21,7 +21,6 @@ import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from "./anchor
 import { resolveClick, type ClickTarget } from "./clickResolver";
 import { aisleScroll } from "./aisleScroll";
 import { createSwarmMaterial, type SwarmUniforms } from "./swarmShader";
-import { createRackOutlineMaterial, type RackOutlineUniforms } from "./rackOutlineShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
@@ -560,39 +559,11 @@ export function ServerRoom({
   // work" story spatially, since each cluster owns its own wall.
   const WAVE_RACK_DELAY_S = 0.35;
   const WAVE_CLUSTER_DELAY_S = 0.7;
-  // Multipliers off each material's `it.base` brightness:
-  //   non-pulsing rack during wave      = base × 0.30  (deep dim)
-  //   pulsing rack at peak of its sin   = base × 1.70  (above hover)
-  // The 5–6× spread between dim and bright is what makes the moving
-  // spotlight read as motion rather than a faint pulse.
-  const WAVE_DIM_MULTIPLIER = 0.3;
-  const WAVE_BRIGHT_MULTIPLIER = 1.7;
-  // Probe harness. Flip to true to slam every M_Screen mesh red and
-  // 5× scale on every wave frame for diagnostic work. The scale-5
-  // expansion blows screen vertices ~28 m past the mesh origin so
-  // they fly out of the frustum — useful for hunting whether the
-  // wave-active branch is being reached at all, *not* useful for
-  // confirming visibility (it kills its own visibility test). Keep
-  // off for the real feature.
-  const WAVE_DEBUG_PROBE = false;
   const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
   // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
   // useFrame each time it reaches 60.
   const waveTickCounterRef = useRef<number>(0);
-  // Per-rack wave-animation state. Three coordinated channels so the
-  // rack pair "lights up like a techno wash" during its slot:
-  //   - outline: inverted-hull rim-light traces the silhouette
-  //   - body:    rack's own material emissive cranks → rack self-glows
-  //   - light:   PointLight at rack centre spills onto floor + neighbours
-  // All three are pulsed on the same sin schedule keyed by hoverKey.
-  const rackOutlinesRef = useRef<{
-    mesh: Mesh;
-    uniforms: RackOutlineUniforms;
-    body: MeshStandardMaterial;
-    light: PointLight;
-    hoverKey: string;
-  }[]>([]);
 
   // Variant-aware "which time slot does this rack fire in?" map.
   // Portrait = 9 slots, one per rack in AISLE_ORDER. Landscape = 3
@@ -616,6 +587,11 @@ export function ServerRoom({
     }
     return m;
   }, [variant]);
+
+  // slotIndexByKey isn't referenced after the strip — commit 2 (beam)
+  // re-introduces the per-slot consumer. Touch it to keep
+  // noUnusedLocals quiet on CI until then.
+  void slotIndexByKey;
 
   const waveSlotDelayS =
     variant === "portrait" ? WAVE_RACK_DELAY_S : WAVE_CLUSTER_DELAY_S;
@@ -723,13 +699,6 @@ export function ServerRoom({
 
   useLayoutEffect(() => {
     const interactives: Interactive[] = [];
-    const outlines: {
-      mesh: Mesh;
-      uniforms: RackOutlineUniforms;
-      body: MeshStandardMaterial;
-      light: PointLight;
-      hoverKey: string;
-    }[] = [];
     let bodyGeom: BufferGeometry | null = null;
     let bodyMat: Material | null = null;
     let ledGeom: BufferGeometry | null = null;
@@ -801,57 +770,6 @@ export function ServerRoom({
         return;
       }
 
-      // Rack body wave setup. Three channels per rack, all keyed to
-      // the same `project:<id>` slot in the wave:
-      //   1. Inverted-hull outline shell traces the silhouette.
-      //   2. Cloned body material's emissive cranks during the slot
-      //      so the rack itself glows (point light at the rack centre
-      //      contributes 0 to the rack's own outward-facing surfaces).
-      //   3. PointLight at rack centre washes the floor + neighbours
-      //      so the wave reads as a *passing* spotlight, not just
-      //      synchronous rack-by-rack pulses.
-      if (obj.name.startsWith("Rack_")) {
-        const projectId = obj.name.slice("Rack_".length);
-        const accent = projectsById.get(projectId)?.color ?? "#00ffff";
-        const accentColor = new Color(accent);
-
-        // Outline shell.
-        const outlineMat = createRackOutlineMaterial(accent);
-        const outlineMesh = new Mesh(obj.geometry, outlineMat);
-        outlineMesh.raycast = () => {};
-        obj.add(outlineMesh);
-
-        // Body material clone — per-rack so emissive lerps don't
-        // leak between racks. emissive set to accent, intensity 0
-        // until the wave drives it.
-        const sourceMat = obj.material instanceof MeshStandardMaterial
-          ? obj.material
-          : null;
-        const body = sourceMat
-          ? sourceMat.clone()
-          : new MeshStandardMaterial({ color: 0x111111 });
-        body.emissive = accentColor.clone();
-        body.emissiveIntensity = 0;
-        body.toneMapped = false;
-        obj.material = body;
-
-        // PointLight at the rack body centre (mesh local origin). The
-        // 3 m distance reaches the next slot (~2.6 m away) before
-        // decaying — that overlap is what makes the wash travel down
-        // the aisle rather than blink rack-by-rack.
-        const light = new PointLight(accentColor.clone(), 0, 3.0);
-        obj.add(light);
-
-        outlines.push({
-          mesh: outlineMesh,
-          uniforms: outlineMat.uniforms,
-          body,
-          light,
-          hoverKey: `project:${projectId}`,
-        });
-        return;
-      }
-
       const mat = obj.material;
       if (!(mat instanceof MeshStandardMaterial)) return;
       if (!isUntonedMaterial(mat.name)) return;
@@ -915,19 +833,6 @@ export function ServerRoom({
     // into the reflective floor. Previously this was inside useFrame
     // and ran every frame; same value, same effect, no need to re-set.
     rootScene.environmentIntensity = 0;
-    rackOutlinesRef.current = outlines;
-    return () => {
-      // Variant flip rebuilds the scene; the old rack meshes get GC'd
-      // but the per-rack outline ShaderMaterial + cloned body material
-      // need explicit GPU disposal. The PointLight is a plain
-      // Object3D — removing from parent is enough.
-      for (const o of outlines) {
-        o.mesh.removeFromParent();
-        (o.mesh.material as ShaderMaterial).dispose();
-        o.body.dispose();
-        o.light.removeFromParent();
-      }
-    };
   }, [scene, rootScene]);
 
   // Re-emit anchors every time the loaded glTF scene changes — this is what
@@ -1002,201 +907,31 @@ export function ServerRoom({
         }),
       );
     }
-    let waveElapsedS = 0;
-    let waveActive = false;
     if (waveStartRef.current !== null) {
-      waveElapsedS = (now - waveStartRef.current) / 1000;
-      if (waveElapsedS > WAVE_TOTAL_S || panelOpen) {
-        // Done (or panel opened). Reset the idle clock so the cycle
-        // doesn't immediately re-trigger.
+      const elapsedS = (now - waveStartRef.current) / 1000;
+      if (elapsedS > WAVE_TOTAL_S || panelOpen) {
+        // Wave window elapsed (or a panel opened mid-wave). Reset the
+        // idle clock so the cycle doesn't immediately re-trigger.
         waveStartRef.current = null;
         lastInteractionRef.current = now;
+      }
+    }
+
+    // Per-emissive-material targets (rack screens) — hover/idle lerp.
+    // The wave does *not* drive these in the current rebuild; the new
+    // beam + floor disc + body wash stack handles the wave visual on
+    // a separate layer (see commits 2–4 of the techno-wave rebuild).
+    for (const it of interactivesRef.current) {
+      let target: number;
+      if (it.hoverKey === activeKey) {
+        target = it.hover;
+      } else if (isHovering) {
+        target = it.dim;
       } else {
-        waveActive = true;
+        target = it.base;
       }
-    }
-
-    // TEMP DIAGNOSTIC: when the wave is active, traverse the actual
-    // rendered scene and slam every M_Screen material to a known-high
-    // emissive intensity. Decouples from interactivesRef entirely — if
-    // this still produces no visible change, the wave-active block
-    // isn't being reached at all. Also dumps the names we observe on
-    // the very first wave frame so we can see what Three.js actually
-    // exposes (vs. what the glb JSON says).
-    if (waveActive && WAVE_DEBUG_PROBE) {
-      // Dual probe:
-      //   1. Slam material on M_Screen meshes to a known-high emissive
-      //      red — if no red appears in-frame, either the touched
-      //      meshes are off-frustum or the cloned scene we're mutating
-      //      is detached from the actually-rendered tree.
-      //   2. Read material values back AFTER writing them and compare —
-      //      if the read-back doesn't match what we wrote, another
-      //      frame loop is overwriting our writes after ours.
-      // (The scene-mutation-reaches-renderer question was answered by
-      // an earlier debug-sphere probe; removed once it confirmed yes.)
-      let touched = 0;
-      const sample: Array<{
-        name: string;
-        visible: boolean;
-        pos: [number, number, number];
-        scale: [number, number, number];
-        emReadBack: number;
-        parentChain: string;
-      }> = [];
-      scene.traverse((obj) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const m = (obj as any).material;
-        if (m && m.isMeshStandardMaterial && m.name === "M_Screen") {
-          m.emissive.setRGB(1, 1, 1);
-          m.emissiveIntensity = 12.0;
-          m.color.setRGB(1, 0, 0);
-          obj.visible = true;
-          obj.scale.set(5, 5, 5);
-          // Disable frustum culling so even an outdated bounding
-          // sphere can't drop the draw call.
-          obj.frustumCulled = false;
-          // Update geometry's bounding info so culling reflects the
-          // new world-space extents.
-          if (obj instanceof Mesh && obj.geometry) {
-            obj.geometry.computeBoundingSphere();
-            obj.geometry.computeBoundingBox();
-          }
-          touched++;
-          if (sample.length < 6) {
-            const wp = obj.getWorldPosition(new Vector3());
-            let chain = obj.name;
-            // Walk up and dump each ancestor's local position + scale
-            // + rotation. The world X=±4.5 with all scales=1 means
-            // either (a) some ancestor has translation that doesn't
-            // match what applyAisleLayout sets, or (b) the mesh's own
-            // local position was reset to (0,0,0) by something.
-            let p: Object3D | null = obj.parent;
-            while (p) {
-              const t = p.position;
-              const s = p.scale;
-              chain = `${p.name || "?"}[t=${t.x.toFixed(2)},${t.y.toFixed(2)},${t.z.toFixed(2)} s=${s.x},${s.y},${s.z} ry=${p.rotation.y.toFixed(2)}] > ${chain}`;
-              p = p.parent;
-            }
-            // Also report the mesh's OWN local position — if it's
-            // (0,0,0) then attach() never offset it from its original
-            // and the mesh sits at the group's position directly.
-            const meshLocal = `local[t=${obj.position.x.toFixed(2)},${obj.position.y.toFixed(2)},${obj.position.z.toFixed(2)}]`;
-            sample.push({
-              name: obj.name,
-              visible: obj.visible,
-              pos: [+wp.x.toFixed(2), +wp.y.toFixed(2), +wp.z.toFixed(2)],
-              scale: [obj.scale.x, obj.scale.y, obj.scale.z],
-              emReadBack: m.emissiveIntensity,
-              parentChain: `${chain} ${meshLocal}`,
-            });
-          }
-        }
-      });
-      // Log only on the first frame of each wave so we don't spam.
-      if (waveElapsedS < 0.05 && typeof console !== "undefined") {
-        // Walk up from the cloned scene to find out whether it's
-        // actually in the rendered root. If sceneInRoot=false then we
-        // are mutating an orphan — the rendered tree is a *different*
-        // object somehow.
-        let cur: Object3D | null = scene;
-        let sceneInRoot = false;
-        while (cur) {
-          if (cur === rootScene) { sceneInRoot = true; break; }
-          cur = cur.parent;
-        }
-        // Flatten the sample to a single string so it shows in the
-        // chat-pasted log without the collapsed-object indirection.
-        const flat = sample
-          .map(
-            (s) =>
-              `${s.name} vis=${s.visible} pos=[${s.pos.join(",")}] scale=[${s.scale.join(",")}] em=${s.emReadBack} chain="${s.parentChain}"`,
-          )
-          .join("\n  ");
-        // eslint-disable-next-line no-console
-        console.log(
-          `[wave] AGGRESSIVE PROBE touched ${touched} M_Screen meshes (sceneInRoot=${sceneInRoot}, rootScene.name="${rootScene.name}", scene.name="${scene.name}"):\n  ${flat}`,
-        );
-      }
-    } else if (waveActive) {
-      // Slot-staggered idle outline pulse. Each rack's slot in
-      // slotIndexByKey picks its sin-bump phase within the wave
-      // window — racks outside their own window sit at base ×
-      // WAVE_DIM_MULTIPLIER (spotlit-recede), inside at base ×
-      // WAVE_BRIGHT_MULTIPLIER at peak. Shares the hover lerp `k`
-      // so the rack settles back to idle on the same time-constant.
-      for (const it of interactivesRef.current) {
-        const slot = slotIndexByKey.get(it.hoverKey);
-        let target: number;
-        if (slot === undefined) {
-          target = it.base;
-        } else {
-          const slotStartS = slot * waveSlotDelayS;
-          const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
-          const pulse = (localT >= 0 && localT <= 1)
-            ? Math.sin(localT * Math.PI)
-            : 0;
-          const dim = it.base * WAVE_DIM_MULTIPLIER;
-          const bright = it.base * WAVE_BRIGHT_MULTIPLIER;
-          target = dim + (bright - dim) * pulse;
-        }
-        it.current += (target - it.current) * k;
-        it.mat.emissiveIntensity = it.current;
-      }
-    } else {
-      // Per-emissive-material targets (rack screens). The wave takes
-      // priority over hover (hover is suppressed while the wave runs
-      // anyway, via the idleEnoughForWave guard above), so the two
-      // states never need to compose — we just pick one target per
-      // material and lerp toward it.
-      for (const it of interactivesRef.current) {
-        let target: number;
-        if (it.hoverKey === activeKey) {
-          target = it.hover;
-        } else if (isHovering) {
-          target = it.dim;
-        } else {
-          target = it.base;
-        }
-        it.current += (target - it.current) * k;
-        it.mat.emissiveIntensity = it.current;
-      }
-    }
-
-    // Per-rack wave pulse: outline rim + body emissive + point light,
-    // all driven by the same sin bump for the current slot. Gated on
-    // !WAVE_DEBUG_PROBE so probe sessions don't get a competing wash.
-    for (const o of rackOutlinesRef.current) {
-      let targetThickness = 0;
-      let targetOpacity = 0;
-      let targetEmissive = 0;
-      let targetLight = 0;
-      if (waveActive && !WAVE_DEBUG_PROBE) {
-        const slot = slotIndexByKey.get(o.hoverKey);
-        if (slot !== undefined) {
-          const slotStartS = slot * waveSlotDelayS;
-          const localT = (waveElapsedS - slotStartS) / WAVE_PULSE_DUR_S;
-          const pulse = (localT >= 0 && localT <= 1)
-            ? Math.sin(localT * Math.PI)
-            : 0;
-          // Rim outline: thin silhouette stroke (fresnel concentrates
-          // the colour at the edge).
-          targetThickness = 0.10 * pulse;
-          targetOpacity = 0.55 * pulse;
-          // Body emissive: rack self-glow. 2.5 peaks well above hover
-          // (HOVER_INTENSITY_MULTIPLIER=1.8 × base) so the pulsing
-          // rack pair clearly dominates the visual hierarchy.
-          targetEmissive = 2.5 * pulse;
-          // Point light: corridor + floor wash. 5.0 cd at 3 m gives a
-          // strong club-light beam without blowing out the reflective
-          // floor; the overlap with adjacent slots (decay reaches the
-          // next rack faintly) is what makes the wave *travel*.
-          targetLight = 5.0 * pulse;
-        }
-      }
-      o.uniforms.uThickness.value += (targetThickness - o.uniforms.uThickness.value) * k;
-      o.uniforms.uOpacity.value += (targetOpacity - o.uniforms.uOpacity.value) * k;
-      o.body.emissiveIntensity += (targetEmissive - o.body.emissiveIntensity) * k;
-      o.light.intensity += (targetLight - o.light.intensity) * k;
+      it.current += (target - it.current) * k;
+      it.mat.emissiveIntensity = it.current;
     }
 
     // Background tower accent pulse. Iterates the cached strip refs
