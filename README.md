@@ -18,9 +18,11 @@ Live at **[yinkavaughan.me](https://yinkavaughan.me/)**.
 ## Demo
 
 <details open>
-<summary>~2 min walkthrough — open the room, dive into a project, pull up the terminal, send a ping</summary>
+<summary>~90 s walkthrough — land in the room, watch the idle wave sweep, open a project, pull up the console, send a ping</summary>
 
-![Recruiter walkthrough](e2e/demo/output/01-hero-recruiter-explores-the-room.gif)
+![Master tour walkthrough](e2e/demo/output/01-hero-master-tour.gif)
+
+The gif is silent; the [narrated mp4](https://yinkavaughan.me/demo.mp4) carries a Chatterbox-cloned voiceover anchored to [e2e/demo/SCRIPT.md](e2e/demo/SCRIPT.md), and ships as the site's `og:video` (link-preview crawlers play it inline).
 
 </details>
 

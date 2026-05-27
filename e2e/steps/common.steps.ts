@@ -38,7 +38,12 @@ When("I click the {string} project rack", async ({ page }: { page: Page }, name:
 });
 
 When("I click the trading terminal", async ({ page }: { page: Page }) => {
-  await clickButton(page, /trading_terminal/i);
+  // Label was renamed "trading_terminal" → "console" in the HUD pass.
+  // Step phrasing stays for narrative continuity; only the selector
+  // tracks the actual DOM. The terminal also exposes a "// console"
+  // aria-name on the desk-monitor mesh, but the floating callout above
+  // the desk is what the user actually sees and clicks.
+  await clickButton(page, /^console$/i);
   await dwellForDemo(page);
 });
 
@@ -99,3 +104,23 @@ Then("I see the contact form", async ({ page }: { page: Page }) => {
 Then("no panel is open", async ({ page }: { page: Page }) => {
   await expect(page.locator(".panel.panel--open")).toHaveCount(0);
 });
+
+// ── Idle-wave wait ─────────────────────────────────────────────────────────
+// The room fires its attractor wave after IDLE_BEFORE_WAVE_MS (=15 000 ms)
+// of no interaction. The sweep itself takes ~6 s to traverse all nine racks
+// in landscape. This step holds the page idle long enough for one full
+// sweep to be visible in the recording.
+When("I wait for the idle wave to fire", async ({ page }: { page: Page }) => {
+  // 15 s idle threshold + 7 s for the wave's full sweep + tail.
+  await page.waitForTimeout(22_000);
+});
+
+// ── Hover-only beats (for showing UI without committing to a click) ───────
+When(
+  "I hover the {string} project rack",
+  async ({ page }: { page: Page }, name: string) => {
+    const btn = page.getByRole("button", { name: new RegExp(name, "i") }).first();
+    await btn.hover();
+    await dwellForDemo(page);
+  },
+);

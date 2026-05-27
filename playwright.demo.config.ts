@@ -20,9 +20,11 @@ const testDir = defineBddConfig({
 
 export default defineConfig({
   testDir,
-  // Demos are long; the boot sequence alone is ~3-5 s and each scenario
-  // can run 20-60 s once slowMo is applied.
-  timeout: 180_000,
+  // Demos are long. The master tour adds a 22 s idle-wave wait on top
+  // of ~30 s of click + dwell beats; with slowMo (~1 s/action) and
+  // teardown headroom, body+teardown can brush 180 s and trip the
+  // default timeout. 300 s keeps the budget comfortable.
+  timeout: 300_000,
   // Single-worker recordings only. Parallel breaks video subsystem.
   fullyParallel: false,
   workers: 1,
