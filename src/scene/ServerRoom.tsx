@@ -564,6 +564,16 @@ export function ServerRoom({
       }
       if (touched) t.needsUpdate = true;
     }
+    // PFP-only: glTF UV convention has origin at bottom-left; useTexture
+    // ships with flipY=true (matches drei <Image> and most CSS contexts)
+    // which inverts the photo when sampled by the GLB-authored plane's
+    // UVs. The logos don't hit this because they're rendered through
+    // drei's <Image> with its own UV handling. Force flipY=false here so
+    // the holo plane reads the texture right-side up.
+    if (pfpTexture.flipY) {
+      pfpTexture.flipY = false;
+      pfpTexture.needsUpdate = true;
+    }
   }, [logoTextures, pfpTexture, gl, isMobile]);
   const interactivesRef = useRef<Interactive[]>([]);
   // Cached BackgroundTower_*_strip material refs + their per-strip

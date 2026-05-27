@@ -31,33 +31,27 @@ const fragmentShader = /* glsl */ `
 
   uniform sampler2D uTexture;
   uniform float uTime;
-  uniform vec3 uTint;       // dim cyan ambient (mid-tones)
-  uniform vec3 uCoreTint;   // bright cyan-white highlight (peak features)
+  uniform vec3 uTint;       // subtle cyan accent layered over the photo
 
   varying vec2 vUv;
 
   void main() {
     vec4 tex = texture2D(uTexture, vUv);
-    float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 baseCol = tex.rgb;
+    float lum = dot(baseCol, vec3(0.299, 0.587, 0.114));
 
-    // INVERTED-LUMINANCE READOUT (X-ray hologram).
-    //
-    // The LinkedIn portrait is dark-subject on a light grey backdrop —
-    // exact opposite of what the previous "key out dark" pass assumed,
-    // which is why the face was disappearing while the backdrop hung
-    // around as a flat cyan rectangle. Inverting gives:
-    //
-    //   bright backdrop (lum ≈ 0.55–0.70)  → low output, backdrop fades
-    //   face mid-tones  (lum ≈ 0.30–0.50)  → moderate cyan
-    //   dark features    (lum ≈ 0.05–0.20) → bright cyan-white
-    //
-    // Reads the way a classic sci-fi hologram does — dark edges of the
-    // subject glow with the projector's light.
-    float subject = pow(1.0 - lum, 0.85);
+    // Backdrop mask: high-luminance pixels (the light grey studio
+    // backdrop) fade toward zero so they stop painting a flat
+    // rectangle behind the subject. Face mid-tones and dark features
+    // pass through unchanged.
+    float subjectMask = 1.0 - smoothstep(0.55, 0.78, lum);
 
-    // Tint ramp: ambient tint at low subject values → core tint at the
-    // very brightest features.
-    vec3 col = mix(uTint, uCoreTint, subject) * (subject * 1.4);
+    // Gentle cyan channel scale — preserves the photo's natural
+    // hues (skin, hoodie, glasses) while pushing the whole image
+    // toward the room's cyan palette. Not the heavy luminance-tint
+    // monochrome of the previous pass.
+    vec3 cyanTilted = baseCol * vec3(0.82, 1.05, 1.20);
+    vec3 col = cyanTilted * subjectMask * 1.45;
 
     // Horizontal scan lines for CRT feel; slowly drift with uTime.
     float scan = 0.65 + 0.35 * sin(vUv.y * 220.0 + uTime * 1.4);
@@ -74,6 +68,11 @@ const fragmentShader = /* glsl */ `
     float flicker = 0.85 + 0.10 * sin(uTime * 2.3)
                           + 0.05 * sin(uTime * 17.0);
 
+    // Subtle cyan ambient added everywhere subject is visible, so
+    // even the darkest features have a faint glow rather than
+    // disappearing into the additive blend's zero contribution.
+    col += uTint * subjectMask * 0.08;
+
     col *= edge * flicker;
     gl_FragColor = vec4(col, 1.0);
   }
@@ -83,7 +82,6 @@ export interface OperatorHoloUniforms {
   uTexture: { value: Texture | null };
   uTime: { value: number };
   uTint: { value: Color };
-  uCoreTint: { value: Color };
 }
 
 export function createOperatorHoloMaterial(
@@ -95,8 +93,7 @@ export function createOperatorHoloMaterial(
     uniforms: {
       uTexture: { value: texture },
       uTime: { value: 0 },
-      uTint: { value: new Color("#1f8ca8") },      // dim cyan base
-      uCoreTint: { value: new Color("#d4faff") },  // bright cyan highlight
+      uTint: { value: new Color("#1f8ca8") },
     },
     side: DoubleSide,
     transparent: true,
