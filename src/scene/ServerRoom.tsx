@@ -25,6 +25,7 @@ import { aisleScroll } from "./aisleScroll";
 import { createConsoleMaterial, type ConsoleUniforms } from "./consoleShader";
 import { createWaveBeamMaterial, type WaveBeamUniforms } from "./waveBeamShader";
 import { createWaveFloorMaterial, type WaveFloorUniforms } from "./waveFloorShader";
+import { createOperatorHoloMaterial, type OperatorHoloUniforms } from "./operatorHoloShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
@@ -339,6 +340,7 @@ function isPortraitKeepMesh(name: string): boolean {
     name.startsWith("Cable_") ||
     name.startsWith("DeskNameplate_") ||
     name === "Monitor" ||
+    name === "OperatorHolo" ||
     name === "Desk" ||
     name === "Floor" ||
     name === "DistantRackBody" ||
@@ -533,6 +535,10 @@ export function ServerRoom({
     return out;
   }, []);
   const logoTextures = useTexture(logoUrlMap) as Record<string, import("three").Texture>;
+  // Operator portrait — fed into the OperatorHolo shader as uTexture.
+  // Single-image useTexture call; the SRGB + anisotropy fix-up happens
+  // alongside the rack logos below.
+  const pfpTexture = useTexture("/LinkedIn_PFP.png") as import("three").Texture;
   useLayoutEffect(() => {
     // Anisotropic filtering + sRGB colour space. The colour-space
     // step matters because drei's <Image> internally sets
@@ -546,7 +552,7 @@ export function ServerRoom({
     // but the texture-sample cost on a phone GPU is non-trivial.
     const max = gl.capabilities.getMaxAnisotropy();
     const target = isMobile ? Math.min(4, max) : max;
-    for (const t of Object.values(logoTextures)) {
+    for (const t of [...Object.values(logoTextures), pfpTexture]) {
       let touched = false;
       if (t.anisotropy !== target) {
         t.anisotropy = target;
@@ -558,7 +564,7 @@ export function ServerRoom({
       }
       if (touched) t.needsUpdate = true;
     }
-  }, [logoTextures, gl, isMobile]);
+  }, [logoTextures, pfpTexture, gl, isMobile]);
   const interactivesRef = useRef<Interactive[]>([]);
   // Cached BackgroundTower_*_strip material refs + their per-strip
   // phase/speed. Populated once in the useLayoutEffect below; the
@@ -578,6 +584,7 @@ export function ServerRoom({
   // useFrame block for details).
   const elapsedRef = useRef(0);
   const monitorShaderRef = useRef<(ShaderMaterial & { uniforms: ConsoleUniforms }) | null>(null);
+  const operatorHoloShaderRef = useRef<(ShaderMaterial & { uniforms: OperatorHoloUniforms }) | null>(null);
   const [hover, setHover] = useState<ClickTarget>(null);
   const [anchorMap, setAnchorMap] = useState<Map<string, SceneAnchor>>(new Map());
 
@@ -860,6 +867,19 @@ export function ServerRoom({
         return;
       }
 
+      // The OperatorHolo plane (above the keyboard, parented to Desk in
+      // Blender) gets its placeholder M_OperatorHolo material swapped
+      // for the holo shader: cyan-tinted greyscale of LinkedIn_PFP.png,
+      // additive blend, scan lines + vignette + slow flicker so it
+      // reads as a projected operator-ID hologram rather than a flat
+      // photo pinned to the air.
+      if (obj.name === "OperatorHolo") {
+        const holoMat = createOperatorHoloMaterial(pfpTexture);
+        obj.material = holoMat;
+        operatorHoloShaderRef.current = holoMat;
+        return;
+      }
+
       // Rack body wash. Each Rack_<id> mesh (original + portrait
       // mirror share the same name) gets its material cloned so the
       // wave can crank emissive without leaking to other racks. The
@@ -1027,7 +1047,7 @@ export function ServerRoom({
       sharedBeamGeom?.dispose();
       sharedDiscGeom?.dispose();
     };
-  }, [scene, rootScene, variant, projectsById]);
+  }, [scene, rootScene, variant, projectsById, pfpTexture]);
 
   // Re-emit anchors every time the loaded glTF scene changes — this is what
   // makes a portrait↔landscape variant flip pick up the new layout instead
@@ -1232,6 +1252,13 @@ export function ServerRoom({
       const dimTarget = isHovering && activeKey !== "terminal" ? 1 : 0;
       shader.uniforms.uHover.value += (hoverTarget - shader.uniforms.uHover.value) * k;
       shader.uniforms.uDim.value += (dimTarget - shader.uniforms.uDim.value) * k;
+    }
+
+    // Operator holo: uTime drives the scan-line drift + flicker. No
+    // hover/dim channels — the holo always reads at the same intensity.
+    const holo = operatorHoloShaderRef.current;
+    if (holo) {
+      holo.uniforms.uTime.value += delta;
     }
   });
 
