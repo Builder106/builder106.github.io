@@ -409,6 +409,67 @@ export function TradingTerminal({
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [log]);
 
+  // Timer ids for long-running animated commands (currently just the
+  // sudo-sandwich ceremony). Cleared on unmount so a pending beat
+  // doesn't try to setState on a torn-down component.
+  const animationTimersRef = useRef<number[]>([]);
+  useEffect(() => {
+    const timers = animationTimersRef.current;
+    return () => {
+      for (const id of timers) window.clearTimeout(id);
+      timers.length = 0;
+    };
+  }, []);
+
+  // Stream a multi-line apt-install-style "ceremony" into the log as
+  // a reward for the user who finds `sudo make me a sandwich`. Each
+  // beat appends one LogEntry after a cumulative delay so the output
+  // arrives the way a real terminal would render it — not as a wall
+  // of text on the same tick.
+  const playSandwichCeremony = useCallback(() => {
+    const beats: Array<{ delay: number; entry: LogEntry }> = [
+      { delay: 180, entry: { kind: "system", text: "[sudo] password for ov: ••••••••••" } },
+      { delay: 400, entry: { kind: "output", text: "reading pantry lists...      done" } },
+      { delay: 80,  entry: { kind: "output", text: "building dependency tree...  done" } },
+      { delay: 80,  entry: { kind: "output", text: "reading state info...        done" } },
+      { delay: 220, entry: { kind: "output", text: "the following NEW packages will be assembled:" } },
+      { delay: 80,  entry: { kind: "ok",     text: "  bread lettuce tomato cheese mayo turkey" } },
+      { delay: 80,  entry: { kind: "output", text: "0 upgraded, 6 newly assembled, 0 to remove." } },
+      { delay: 80,  entry: { kind: "output", text: "need to get 312 kcal of ingredients." } },
+      { delay: 260, entry: { kind: "output", text: "get:1 pantry/stable bread       [ok]" } },
+      { delay: 100, entry: { kind: "output", text: "get:2 pantry/stable lettuce     [ok]" } },
+      { delay: 100, entry: { kind: "output", text: "get:3 pantry/stable tomato      [ok]" } },
+      { delay: 100, entry: { kind: "output", text: "get:4 pantry/stable cheese      [ok]" } },
+      { delay: 100, entry: { kind: "output", text: "get:5 pantry/stable mayo        [ok]" } },
+      { delay: 100, entry: { kind: "output", text: "get:6 pantry/stable turkey      [ok]" } },
+      { delay: 220, entry: { kind: "output", text: "assembling sandwich..." } },
+      { delay: 160, entry: { kind: "output", text: "  [████████████████] toast      100%" } },
+      { delay: 160, entry: { kind: "output", text: "  [████████████████] mayo       100%" } },
+      { delay: 160, entry: { kind: "output", text: "  [████████████████] turkey     100%" } },
+      { delay: 160, entry: { kind: "output", text: "  [████████████████] cheese     100%" } },
+      { delay: 160, entry: { kind: "output", text: "  [████████████████] greens     100%" } },
+      { delay: 160, entry: { kind: "output", text: "  [████████████████] top slice  100%" } },
+      { delay: 280, entry: { kind: "banner", text: "       _________________" } },
+      { delay: 55,  entry: { kind: "banner", text: "      /  . . . . . . .  \\" } },
+      { delay: 55,  entry: { kind: "banner", text: "     /___________________\\" } },
+      { delay: 55,  entry: { kind: "banner", text: "     |~ ~ ~ ~ ~ ~ ~ ~ ~ ~|" } },
+      { delay: 55,  entry: { kind: "banner", text: "     |###################|" } },
+      { delay: 55,  entry: { kind: "banner", text: "     |@ @ @ @ @ @ @ @ @ @|" } },
+      { delay: 55,  entry: { kind: "banner", text: "     |~ ~ ~ ~ ~ ~ ~ ~ ~ ~|" } },
+      { delay: 55,  entry: { kind: "banner", text: "     \\___________________/" } },
+      { delay: 300, entry: { kind: "ok",     text: "✓ sandwich ready. bon appétit." } },
+      { delay: 120, entry: { kind: "system", text: "1 sandwich assembled. total time: 4.7s. calories: yes." } },
+    ];
+    let elapsed = 0;
+    for (const beat of beats) {
+      elapsed += beat.delay;
+      const id = window.setTimeout(() => {
+        setLog((prev) => [...prev, beat.entry]);
+      }, elapsed);
+      animationTimersRef.current.push(id);
+    }
+  }, []);
+
   const runCommand = useCallback(
     (raw: string): LogEntry[] => {
       const trimmed = raw.trim();
@@ -558,7 +619,8 @@ export function TradingTerminal({
         case "sudo": {
           markSecret("sudo");
           if (args.join(" ").toLowerCase() === "make me a sandwich") {
-            return [{ kind: "ok", text: "okay." }];
+            playSandwichCeremony();
+            return [];
           }
           return [{
             kind: "error",
@@ -752,7 +814,7 @@ export function TradingTerminal({
           return [{ kind: "error", text: `unknown command '${c}'. type 'help'.` }];
       }
     },
-    [audioEnabled, onClose, onNavigate, onToggleAudio, markSecret, flashWidget],
+    [audioEnabled, onClose, onNavigate, onToggleAudio, markSecret, flashWidget, playSandwichCeremony],
   );
 
   const handleSubmit = (e: FormEvent) => {

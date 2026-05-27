@@ -4,6 +4,19 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-05-27 — sudo make me a sandwich gets the ceremony it deserves #decision #quote
+
+The hidden `sudo make me a sandwich` response was a single `okay.` line.
+Feedback: "the terminal should do more than just respond okay." Replaced
+with a 30-beat streamed ceremony — `[sudo] password` prompt, fake apt
+prep + dependency lines, six `get:N pantry/stable <pkg> [ok]` install
+rows, six `[████████████████] step 100%` assembly bars, an eight-line
+ASCII layered sandwich rendered as `banner` entries (cyan, glow, no
+wrap), and a final green `✓ sandwich ready. bon appétit.` Runs ~4.7 s
+end to end. Implemented as `playSandwichCeremony()` — schedules each
+beat with `setTimeout` into `setLog`, tracks timer ids in a ref so an
+unmount mid-show doesn't setState on a torn-down component.
+
 ## 2026-05-25 — Wave idle outline: the probe was killing its own visibility test #incident #pivot
 
 Twelve commits debugging "screens at world X=±4.5" before realising the
