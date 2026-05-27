@@ -82,6 +82,7 @@ interface Interactive {
 function hoverKeyForState(state: ClickTarget): string | null {
   if (state === null) return null;
   if (state.kind === "terminal") return "terminal";
+  if (state.kind === "linkedin") return "linkedin";
   return `project:${state.projectId}`;
 }
 

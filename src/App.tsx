@@ -111,6 +111,18 @@ export function App() {
       setActive({ kind: "terminal" });
       return;
     }
+    if (target.kind === "linkedin") {
+      // Operator holo click → open LinkedIn. Stays out of the panel
+      // system since this is a navigation, not an in-app view.
+      if (typeof window !== "undefined") {
+        window.open(
+          "https://www.linkedin.com/in/yinka-vaughan/",
+          "_blank",
+          "noopener,noreferrer",
+        );
+      }
+      return;
+    }
     setActive({ kind: "project", projectId: target.projectId });
   }, [markExplored]);
 
