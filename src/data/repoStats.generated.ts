@@ -30,7 +30,7 @@ export const repoStats: Record<string, RepoStats> = {
   },
   "Builder106/STAIJA": {
     "lang": "TypeScript",
-    "pushed_at": "2026-05-21T01:15:33Z",
+    "pushed_at": "2026-05-27T04:04:50Z",
     "stars": 0
   },
   "Builder106/StudySprint": {
