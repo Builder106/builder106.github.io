@@ -24,12 +24,27 @@ import Replicate from "replicate";
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "../..");
 
+// Auto-load REPLICATE_API_TOKEN (and anything else) from the repo's
+// gitignored env files. `.env.local` wins over `.env` to match Vite's
+// own precedence, so a developer can override a shared default. Both
+// loads are best-effort — a missing or malformed file is just skipped.
+for (const name of [".env.local", ".env"]) {
+  const path = resolve(repoRoot, name);
+  if (!existsSync(path)) continue;
+  try {
+    process.loadEnvFile(path);
+  } catch {
+    /* malformed line / unreadable — leave env as-is */
+  }
+}
+
 // The reference voice lives in a sibling repo (content-pipeline) so
-// the TTS toolchain is shared across projects. The default resolves
-// from this repo's root upward by one level.
+// the TTS toolchain is shared across projects. content-pipeline sits
+// next to Projects/, so the relative path from this repo's root is
+// two levels up + content-pipeline.
 const DEFAULT_REF = resolve(
   repoRoot,
-  "../content-pipeline/voice-samples/reference.wav",
+  "../../content-pipeline/voice-samples/reference.wav",
 );
 const DEFAULT_TEXT = resolve(repoRoot, "e2e/demo/output/narration.txt");
 const DEFAULT_OUT = resolve(repoRoot, "e2e/demo/output/narration.wav");
