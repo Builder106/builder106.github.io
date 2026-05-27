@@ -37,7 +37,7 @@ const fragmentShader = /* glsl */ `
   varying vec2 vUv;
 
   // Pointy-top hex SDF — returns an L∞-style distance from centre, where
-  // `< apo` means inside the hex with apothem `apo`. Used both to mask
+  // d < apo means inside the hex with apothem apo. Used both to mask
   // the photo into a hex and to draw the rim ring around its edge.
   float hexDist(vec2 p) {
     p = abs(p);
