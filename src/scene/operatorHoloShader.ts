@@ -54,7 +54,11 @@ const fragmentShader = /* glsl */ `
     vec3 col = cyanTilted * subjectMask * 1.45;
 
     // Horizontal scan lines for CRT feel; slowly drift with uTime.
-    float scan = 0.65 + 0.35 * sin(vUv.y * 220.0 + uTime * 1.4);
+    // Softened: previous (0.65 + 0.35×sin × 220 Hz) cut the face into
+    // 35 % brightness troughs every few pixels, which was unreadable.
+    // (0.88 + 0.12×sin × 140 Hz) reads as a hologram surface texture
+    // without obscuring the subject.
+    float scan = 0.88 + 0.12 * sin(vUv.y * 140.0 + uTime * 1.4);
     col *= scan;
 
     // Elliptical vignette dissolves the rectangle's hard edges into
