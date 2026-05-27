@@ -53,3 +53,25 @@ final alignment happens in the muxing pass.
   (slightly understated emotion, slightly stricter adherence to text).
 - **Voice clone reference:** `voice-samples/reference.wav` in
   `~/CS/content-pipeline` (Yinka's own voice).
+
+## Render paths
+
+Two routes to a `narration.wav`:
+
+- **Remote (recommended)** — `npm run demo:voiceover`. Offloads to
+  Replicate's hosted `resemble-ai/chatterbox`. Needs `REPLICATE_API_TOKEN`
+  in env. ~$0.03–0.06 per render, <60 s wall. See
+  [scripts/tts/render-remote.mjs](../../scripts/tts/render-remote.mjs).
+- **Local CPU fallback** — `~/CS/content-pipeline/scripts/tts/render.py`
+  with `--device cpu`. Free, but takes 1–2 h for a ~40 s clip. The
+  MPS path hangs at step 3/1000 on the current PyTorch + Chatterbox
+  versions, so avoid `--device mps`.
+
+After either path produces `e2e/demo/output/narration.wav`:
+
+    npm run demo:mux
+
+…muxes it onto the silent recording (3 s lead-in for boot, silence-pad
+to video length, `-c:v copy` so the video isn't re-encoded) and writes
+both `e2e/demo/output/01-hero-master-tour-narrated.mp4` and
+`public/demo.mp4` (the og:video asset).
