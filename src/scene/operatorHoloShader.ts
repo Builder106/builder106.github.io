@@ -51,7 +51,7 @@ const fragmentShader = /* glsl */ `
     // toward the room's cyan palette. Not the heavy luminance-tint
     // monochrome of the previous pass.
     vec3 cyanTilted = baseCol * vec3(0.82, 1.05, 1.20);
-    vec3 col = cyanTilted * subjectMask * 1.45;
+    vec3 col = cyanTilted * subjectMask * 1.20;
 
     // Horizontal scan lines for CRT feel; slowly drift with uTime.
     // Softened: previous (0.65 + 0.35×sin × 220 Hz) cut the face into
