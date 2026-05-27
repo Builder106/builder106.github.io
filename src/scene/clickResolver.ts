@@ -18,10 +18,11 @@ const NAMED_NODE_RE = /^(Rack|Screen)_(.+)$/;
 export function resolveClick(picked: Object3D | null): ClickTarget {
   let cur: Object3D | null = picked;
   while (cur) {
-    // OperatorHolo is parented to Desk in the GLB. Check it first so a
-    // click on the holo doesn't fall through to the Desk → terminal
-    // branch below.
-    if (cur.name === "OperatorHolo") {
+    // OperatorHolo + its HoloPedestal stand are parented to Desk in
+    // the GLB. Both resolve to LinkedIn so the whole stand reads as a
+    // single click target. Has to fire before the Desk → terminal
+    // branch below or clicks would fall through to "terminal".
+    if (cur.name === "OperatorHolo" || cur.name === "HoloPedestal") {
       return { kind: "linkedin" };
     }
     const m = cur.name.match(NAMED_NODE_RE);

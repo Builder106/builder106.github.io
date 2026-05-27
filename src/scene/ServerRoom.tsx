@@ -342,6 +342,7 @@ function isPortraitKeepMesh(name: string): boolean {
     name.startsWith("DeskNameplate_") ||
     name === "Monitor" ||
     name === "OperatorHolo" ||
+    name === "HoloPedestal" ||
     name === "Desk" ||
     name === "Floor" ||
     name === "DistantRackBody" ||
