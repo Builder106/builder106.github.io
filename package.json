@@ -14,7 +14,10 @@
     "demo:gif": "for f in e2e/demo/output/*.mp4; do ffmpeg -y -i \"$f\" -vf \"fps=8,scale=720:-1:flags=lanczos\" -loop 0 \"${f%.mp4}.gif\"; done",
     "demo:voiceover": "node scripts/tts/render-remote.mjs",
     "demo:voiceover:schema": "node scripts/tts/render-remote.mjs --schema",
-    "demo:mux": "ffmpeg -y -hide_banner -loglevel error -i e2e/demo/output/01-hero-master-tour.mp4 -i e2e/demo/output/narration.wav -filter_complex \"[1:a]silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,adelay=3000,apad[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -b:a 192k -shortest e2e/demo/output/01-hero-master-tour-narrated.mp4 && cp e2e/demo/output/01-hero-master-tour-narrated.mp4 public/demo.mp4"
+    "voice:eleven:create": "node scripts/tts/render-elevenlabs.mjs --create-voice",
+    "demo:voiceover:eleven": "node scripts/tts/render-elevenlabs.mjs",
+    "demo:mux": "ffmpeg -y -hide_banner -loglevel error -i e2e/demo/output/01-hero-master-tour.mp4 -i e2e/demo/output/narration.wav -filter_complex \"[1:a]silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,adelay=3000,apad[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -b:a 192k -shortest e2e/demo/output/01-hero-master-tour-narrated.mp4 && cp e2e/demo/output/01-hero-master-tour-narrated.mp4 public/demo.mp4",
+    "demo:mux:eleven": "ffmpeg -y -hide_banner -loglevel error -i e2e/demo/output/01-hero-master-tour.mp4 -i e2e/demo/output/narration-eleven.mp3 -filter_complex \"[1:a]silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,adelay=3000,apad[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -b:a 192k -shortest e2e/demo/output/01-hero-master-tour-narrated.mp4 && cp e2e/demo/output/01-hero-master-tour-narrated.mp4 public/demo.mp4"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.0",
@@ -24,6 +27,7 @@
     "three": "^0.170.0"
   },
   "devDependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.49.1",
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.6.2",
     "@types/react": "^18.3.12",

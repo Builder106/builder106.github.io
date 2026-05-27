@@ -56,22 +56,33 @@ final alignment happens in the muxing pass.
 
 ## Render paths
 
-Two routes to a `narration.wav`:
+Three routes to a narration file. Pick the one that lands closest to
+the actual voice; the others are fallbacks.
 
-- **Remote (recommended)** — `npm run demo:voiceover`. Offloads to
-  Replicate's hosted `resemble-ai/chatterbox`. Needs `REPLICATE_API_TOKEN`
-  in env. ~$0.03–0.06 per render, <60 s wall. See
+- **ElevenLabs (most faithful)** — `npm run demo:voiceover:eleven`.
+  Uses Instant Voice Cloning: upload reference once via
+  `npm run voice:eleven:create`, paste the returned `voice_id` into
+  `.env`, then re-render any time. Outputs MP3 (Starter tier ceiling).
+  Their cloning beats Chatterbox on fidelity in exchange for a monthly
+  subscription ($5/mo Starter ≈ 58 demo renders/month). See
+  [scripts/tts/render-elevenlabs.mjs](../../scripts/tts/render-elevenlabs.mjs).
+- **Replicate Chatterbox (cheap, zero-shot)** — `npm run demo:voiceover`.
+  Offloads to `resemble-ai/chatterbox`. Needs `REPLICATE_API_TOKEN`.
+  ~$0.03–0.06 per render, <60 s wall. Zero-shot clone quality is
+  inconsistent — sometimes great, sometimes pulls a wrong-accent take
+  from its training prior. See
   [scripts/tts/render-remote.mjs](../../scripts/tts/render-remote.mjs).
 - **Local CPU fallback** — `~/CS/content-pipeline/scripts/tts/render.py`
-  with `--device cpu`. Free, but takes 1–2 h for a ~40 s clip. The
+  with `--device cpu`. Free, offline, but 1–2 h for a ~40 s clip. The
   MPS path hangs at step 3/1000 on the current PyTorch + Chatterbox
   versions, so avoid `--device mps`.
 
-After either path produces `e2e/demo/output/narration.wav`:
+After any path produces `e2e/demo/output/narration*.{wav,mp3}`:
 
-    npm run demo:mux
+    npm run demo:mux         # WAV input (Chatterbox local + Replicate)
+    npm run demo:mux:eleven  # MP3 input (ElevenLabs)
 
-…muxes it onto the silent recording (3 s lead-in for boot, silence-pad
-to video length, `-c:v copy` so the video isn't re-encoded) and writes
-both `e2e/demo/output/01-hero-master-tour-narrated.mp4` and
-`public/demo.mp4` (the og:video asset).
+…muxes onto the silent recording (3 s lead-in for boot, silence-pad
+to video length, `-c:v copy` so the video isn't re-encoded), writes
+`e2e/demo/output/01-hero-master-tour-narrated.mp4`, and promotes it
+to `public/demo.mp4` (the og:video asset).
