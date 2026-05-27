@@ -1,27 +1,87 @@
 import { useEffect, useRef } from "react";
 
-// Ambient bed for the data-centre aisle. Previously a three-layer
-// WebAudio synth (60 Hz power hum + filtered noise + cooling-fan whir);
-// now a streamed mp3 — "Mechanical Sunsets" by Vermillion Gaze, from
-// the Sun Waves release on archive.org, CC-BY 4.0. The synth read as
-// a buzz; the track is slowave / techno / 80s synth and lands closer
-// to the cyberpunk-server-room vibe the rest of the scene is selling.
+// Ambient bed for the data-centre aisle. The catalogue below is the
+// full "Sun Waves" release by Vermillion Gaze on archive.org, CC-BY 4.0
+// — four slowave / techno / 80s-synth cuts that all share the same
+// album vibe, same artist, same license, same CDN. The TradingTerminal
+// audio pill exposes a cycler so the visitor can swap between them; the
+// selection persists across sessions via localStorage (key set in
+// App.tsx). The aisleAudio hook just renders whichever track is
+// requested — App.tsx owns the state.
 //
-// Hosted on Internet Archive's CDN (Fastly-fronted, CORS open, range
-// requests supported, so the browser streams instead of downloading
-// the whole file before playback). No file checked into public/.
+// Archive.org's CDN is Fastly-fronted with CORS open and range requests
+// supported, so the browser streams instead of downloading the whole
+// file before playback. No audio files are checked into public/.
 //
-// Attribution is surfaced in the console's `credits` command and in
-// the audio pill's meta line.
+// Attribution is surfaced in the audio pill's meta line and in the
+// console's `credits` command.
 
-export const AMBIENT_TRACK = {
-  url: "https://archive.org/download/SunWaves/MechanicalSunsets.mp3",
-  artist: "Vermillion Gaze",
-  title: "Mechanical Sunsets",
-  album: "Sun Waves",
-  license: "CC-BY 4.0",
-  source: "archive.org/details/SunWaves",
-} as const;
+export type TrackId =
+  | "mechanical-sunsets"
+  | "hymn-to-the-sun"
+  | "vicissitudes"
+  | "wavelength";
+
+export interface Track {
+  readonly id: TrackId;
+  readonly url: string;
+  readonly title: string;
+  readonly artist: string;
+  readonly album: string;
+  readonly license: string;
+  readonly source: string;
+}
+
+export const TRACKS: readonly Track[] = [
+  {
+    id: "mechanical-sunsets",
+    url: "https://archive.org/download/SunWaves/MechanicalSunsets.mp3",
+    title: "Mechanical Sunsets",
+    artist: "Vermillion Gaze",
+    album: "Sun Waves",
+    license: "CC-BY 4.0",
+    source: "archive.org/details/SunWaves",
+  },
+  {
+    id: "hymn-to-the-sun",
+    url: "https://archive.org/download/SunWaves/HymnToTheSun.mp3",
+    title: "Hymn to the Sun",
+    artist: "Vermillion Gaze",
+    album: "Sun Waves",
+    license: "CC-BY 4.0",
+    source: "archive.org/details/SunWaves",
+  },
+  {
+    id: "vicissitudes",
+    url: "https://archive.org/download/SunWaves/VicissitudesOnTheTamagawa.mp3",
+    title: "Vicissitudes on the Tamagawa",
+    artist: "Vermillion Gaze",
+    album: "Sun Waves",
+    license: "CC-BY 4.0",
+    source: "archive.org/details/SunWaves",
+  },
+  {
+    id: "wavelength",
+    url: "https://archive.org/download/SunWaves/Wavelength.mp3",
+    title: "Wavelength",
+    artist: "Vermillion Gaze",
+    album: "Sun Waves",
+    license: "CC-BY 4.0",
+    source: "archive.org/details/SunWaves",
+  },
+];
+
+export const DEFAULT_TRACK_ID: TrackId = "mechanical-sunsets";
+
+export function getTrack(id: TrackId): Track {
+  return TRACKS.find((t) => t.id === id) ?? TRACKS[0];
+}
+
+export function isTrackId(value: unknown): value is TrackId {
+  return (
+    typeof value === "string" && TRACKS.some((t) => t.id === value)
+  );
+}
 
 const TARGET_VOLUME = 0.4;
 const FADE_IN_SECONDS = 2.2;
@@ -47,60 +107,64 @@ function rampGain(audio: HTMLAudioElement, to: number, seconds: number): number 
   return id;
 }
 
-export function useAisleAudio(enabled: boolean): void {
+export function useAisleAudio({
+  enabled,
+  trackId,
+}: {
+  enabled: boolean;
+  trackId: TrackId;
+}): void {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeIdRef = useRef<number | null>(null);
-
+  // Set to true once the first user gesture has reached the audio
+  // element. After this point we can play() programmatically without
+  // tripping autoplay restrictions, so track swaps and toggle-on
+  // events can resume playback directly instead of re-attaching
+  // gesture listeners.
+  const hasGesturedRef = useRef(false);
+  // Refs for the latest enabled/track values so the once-only setup
+  // effect's gesture-listener closure can read them without going
+  // stale. (Closing over the initial-render values would mean a user
+  // who muted before their first click still gets played at on first
+  // click — annoying.)
+  const enabledRef = useRef(enabled);
+  const trackUrl = getTrack(trackId).url;
+  const trackUrlRef = useRef(trackUrl);
   useEffect(() => {
-    if (!enabled) {
-      const a = audioRef.current;
-      if (a && !a.paused) {
-        if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
-        fadeIdRef.current = rampGain(a, 0, FADE_OUT_SECONDS);
-      }
-      return;
-    }
+    enabledRef.current = enabled;
+  }, [enabled]);
+  useEffect(() => {
+    trackUrlRef.current = trackUrl;
+  }, [trackUrl]);
 
-    const fadeUp = (a: HTMLAudioElement) => {
-      if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
-      fadeIdRef.current = rampGain(a, TARGET_VOLUME, FADE_IN_SECONDS);
-    };
+  // Effect 1 (run once): create the Audio element and attach the
+  // first-gesture listeners. Browsers block programmatic play() until
+  // a user has interacted with the page; after the first gesture,
+  // hasGesturedRef flips and subsequent toggles can play directly.
+  useEffect(() => {
+    if (audioRef.current) return;
 
-    // Re-enable on a pre-existing element: just resume play + fade up.
-    if (audioRef.current) {
-      const a = audioRef.current;
-      a.volume = 0; // restart the fade from silence
-      void a.play().catch(() => {
-        // Autoplay may be re-locked if the user navigated away and
-        // back without a fresh gesture; the gesture listeners below
-        // will pick it up.
-      });
-      fadeUp(a);
-      return;
-    }
-
-    // First-time start needs a user gesture. Build the element now
-    // (so it's preloaded enough to start instantly on the gesture)
-    // but defer play() until the gesture fires.
     const a = new Audio();
-    a.src = AMBIENT_TRACK.url;
+    a.src = trackUrlRef.current;
     a.loop = true;
     a.preload = "auto";
     a.crossOrigin = "anonymous";
     a.volume = 0;
+    audioRef.current = a;
 
-    let cancelled = false;
     const start = () => {
-      if (cancelled || audioRef.current) return;
-      audioRef.current = a;
-      void a.play().catch(() => {
-        // Even after a gesture, some browsers can reject if the file
-        // hasn't buffered enough; the canplay listener below kicks
-        // back in once it has. We silently ignore — the next gesture
-        // (or canplay) will retry.
-      });
-      fadeUp(a);
+      hasGesturedRef.current = true;
       cleanup();
+      const el = audioRef.current;
+      if (!el) return;
+      if (!enabledRef.current) return;
+      void el.play().catch(() => {
+        // Even after a gesture, the file might not have buffered
+        // enough to start. Browsers will retry on the next gesture
+        // and the canplay listener fires when buffering catches up.
+      });
+      if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
+      fadeIdRef.current = rampGain(a, TARGET_VOLUME, FADE_IN_SECONDS);
     };
     const cleanup = () => {
       document.removeEventListener("pointerdown", start);
@@ -113,14 +177,53 @@ export function useAisleAudio(enabled: boolean): void {
     document.addEventListener("keydown", start, { once: true });
     document.addEventListener("wheel", start, { once: true });
 
-    return () => {
-      cancelled = true;
-      cleanup();
-    };
+    return cleanup;
+  }, []);
+
+  // Effect 2: track changes. Swap the audio element's src in place;
+  // if we're currently playing, restart playback on the new track
+  // with a brief silence in between (no cross-fade — keeps the code
+  // simple, and the existing fade-in covers the attack).
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (a.src === trackUrl) return;
+
+    if (fadeIdRef.current !== null) {
+      window.clearInterval(fadeIdRef.current);
+      fadeIdRef.current = null;
+    }
+    a.pause();
+    a.src = trackUrl;
+    a.volume = 0;
+
+    if (enabled && hasGesturedRef.current) {
+      void a.play().catch(() => {});
+      fadeIdRef.current = rampGain(a, TARGET_VOLUME, FADE_IN_SECONDS);
+    }
+  }, [trackUrl, enabled]);
+
+  // Effect 3: enabled changes. Fade in on enable, fade out on disable.
+  // Skipped while we're still waiting for the first gesture — the
+  // gesture handler will fire the initial play().
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (!hasGesturedRef.current) return;
+
+    if (enabled && a.paused) {
+      a.volume = 0;
+      void a.play().catch(() => {});
+      if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
+      fadeIdRef.current = rampGain(a, TARGET_VOLUME, FADE_IN_SECONDS);
+    } else if (!enabled && !a.paused) {
+      if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
+      fadeIdRef.current = rampGain(a, 0, FADE_OUT_SECONDS);
+    }
   }, [enabled]);
 
-  // Stop and tear down on unmount so the stream doesn't keep buffering
-  // if the host page unmounts the hook.
+  // Unmount cleanup. Stop the stream so the browser stops buffering
+  // the remote file in the background.
   useEffect(() => {
     return () => {
       if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
@@ -132,3 +235,4 @@ export function useAisleAudio(enabled: boolean): void {
     };
   }, []);
 }
+

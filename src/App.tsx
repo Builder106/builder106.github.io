@@ -2,7 +2,16 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { BootSequence } from "./components/BootSequence";
 import { HUD } from "./components/HUD";
 import { ScrollHint } from "./components/ScrollHint";
-import { useAisleAudio } from "./components/useAisleAudio";
+import {
+  DEFAULT_TRACK_ID,
+  isTrackId,
+  useAisleAudio,
+  type TrackId,
+} from "./components/useAisleAudio";
+// Side-effect import: pins SESSION_START_MS at app load so the
+// TradingTerminal's uptime widget can read the correct timestamp even
+// when the panel chunk loads lazily later.
+import "./scene/sessionStart";
 
 // The 3D scene drags in three.js + drei + the entire WebGL world —
 // ~80 % of the initial bundle. Lazy-loading it moves the heavy chunk
@@ -54,11 +63,32 @@ export function App() {
   useEffect(() => {
     void import("./components/Scene");
   }, []);
-  // Ambient audio (WebAudio synth — see useAisleAudio). Defaults on
-  // post-boot; the synth needs a user-gesture to actually start per
-  // browser policy, so first interaction is what really kicks it off.
+  // Ambient audio (streamed CC-BY mp3 — see useAisleAudio). Defaults
+  // on post-boot; browser autoplay policy requires a user gesture to
+  // actually start playback, so first interaction is what really kicks
+  // it off. The selected track persists across sessions so returning
+  // visitors keep their pick.
   const [audioEnabled, setAudioEnabled] = useState(true);
-  useAisleAudio(booted && audioEnabled);
+  const AUDIO_TRACK_KEY = "ov_audio_track_v1";
+  const [trackId, setTrackId] = useState<TrackId>(() => {
+    if (typeof window === "undefined") return DEFAULT_TRACK_ID;
+    try {
+      const saved = window.localStorage.getItem(AUDIO_TRACK_KEY);
+      if (isTrackId(saved)) return saved;
+    } catch {
+      /* quota / private-mode failures are non-fatal */
+    }
+    return DEFAULT_TRACK_ID;
+  });
+  const handleSelectTrack = useCallback((id: TrackId) => {
+    setTrackId(id);
+    try {
+      window.localStorage.setItem(AUDIO_TRACK_KEY, id);
+    } catch {
+      /* quota / private-mode failures are non-fatal */
+    }
+  }, []);
+  useAisleAudio({ enabled: booted && audioEnabled, trackId });
   const variant = useSceneVariant();
 
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
@@ -163,6 +193,8 @@ export function App() {
               onNavigate={setActive}
               audioEnabled={audioEnabled}
               onToggleAudio={() => setAudioEnabled((v) => !v)}
+              trackId={trackId}
+              onSelectTrack={handleSelectTrack}
             />
             <ProjectCard project={activeProject} onClose={close} onNavigate={setActive} />
             <ContactPing open={active.kind === "contact"} onClose={close} />

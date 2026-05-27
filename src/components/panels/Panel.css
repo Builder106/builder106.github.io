@@ -1499,6 +1499,70 @@
   outline: none;
 }
 
+/* Audio track switcher — replaces the static credit line in the audio
+   pill. The ‹ › buttons cycle through TRACKS (see useAisleAudio.ts);
+   the middle stack shows artist + title for the current cut. */
+.console-pill__track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.console-pill__track-step {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(76, 242, 255, 0.7);
+  background: rgba(76, 242, 255, 0.05);
+  border: 1px solid rgba(76, 242, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.console-pill__track-step:hover,
+.console-pill__track-step:focus-visible {
+  background: rgba(76, 242, 255, 0.14);
+  border-color: rgba(76, 242, 255, 0.5);
+  color: var(--neon-cyan);
+  outline: none;
+}
+
+.console-pill__track-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.console-pill__track-artist {
+  font-size: 9px;
+  color: var(--text-muted);
+  opacity: 0.7;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.console-pill__track-title {
+  font-size: 10px;
+  color: var(--neon-cyan);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  text-shadow: 0 0 6px rgba(76, 242, 255, 0.25);
+}
+
 /* Cluster-load mini bars ---------------------------------------- */
 
 .cluster-bars {

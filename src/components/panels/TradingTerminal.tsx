@@ -11,6 +11,9 @@ import { projects } from "@/data/projects";
 import { repoStats } from "@/data/repoStats.generated";
 import { aisleScroll } from "@/scene/aisleScroll";
 import type { ActivePanel } from "@/scene/activePanel";
+import { useSceneVariant } from "@/scene/sceneVariant";
+import { SESSION_START_MS } from "@/scene/sessionStart";
+import { getTrack, TRACKS, type TrackId } from "@/components/useAisleAudio";
 import { PanelShell } from "./PanelShell";
 
 interface TradingTerminalProps {
@@ -19,6 +22,8 @@ interface TradingTerminalProps {
   onNavigate: (target: ActivePanel) => void;
   audioEnabled: boolean;
   onToggleAudio: () => void;
+  trackId: TrackId;
+  onSelectTrack: (id: TrackId) => void;
 }
 
 // The terminal panel is the site's "control console": a hybrid
@@ -83,6 +88,17 @@ function relativeTime(iso: string): string {
   const mo = Math.floor(d / 30);
   if (mo < 12) return `${mo}mo ago`;
   return `${Math.floor(mo / 12)}y ago`;
+}
+
+// MM:SS for sessions under an hour, HH:MM:SS once a visitor crosses an
+// hour mark. Used by the landscape SESSION uptime widget.
+function formatUptime(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
 type LogEntry = {
@@ -264,6 +280,8 @@ export function TradingTerminal({
   onNavigate,
   audioEnabled,
   onToggleAudio,
+  trackId,
+  onSelectTrack,
 }: TradingTerminalProps) {
   // Subscribe to the virtual aisle-scroll progress so the telemetry
   // widget updates in real time as the user scrolls the corridor.
@@ -278,6 +296,35 @@ export function TradingTerminal({
     () => (activeRackId ? projects.find((p) => p.id === activeRackId) ?? null : null),
     [activeRackId],
   );
+
+  // The aisleScroll-driven telemetry only does anything in portrait
+  // mode (virtual scrollytelling). In landscape (orbit camera) the
+  // scroll never moves, so the telemetry pill perpetually showed 0%
+  // and pinned to whichever rack was at slot 0 — a misleading "click
+  // to jump" button that always went to the same place. The variant
+  // flag below routes the pill to a SESSION uptime read instead, which
+  // has a real signal in landscape (it ticks forward).
+  const variant = useSceneVariant();
+
+  // Live session uptime tick. SESSION_START_MS is captured at module
+  // load (see src/scene/sessionStart.ts) so the value reflects the
+  // whole site visit, not just panel-open time. The interval only
+  // runs while the panel is open + landscape — there's no display in
+  // portrait, so no reason to re-render.
+  const [uptimeMs, setUptimeMs] = useState(() => Date.now() - SESSION_START_MS);
+  useEffect(() => {
+    if (!open || variant !== "landscape") return;
+    const id = window.setInterval(() => {
+      setUptimeMs(Date.now() - SESSION_START_MS);
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [open, variant]);
+
+  // Track switcher derived state.
+  const currentTrack = getTrack(trackId);
+  const trackIndex = TRACKS.findIndex((t) => t.id === trackId);
+  const nextTrack = TRACKS[(trackIndex + 1) % TRACKS.length];
+  const prevTrack = TRACKS[(trackIndex - 1 + TRACKS.length) % TRACKS.length];
 
   // Console state. The log scrolls inside a fixed-height container; the
   // input is uncontrolled-via-ref + cycles through past inputs on
@@ -673,7 +720,7 @@ export function TradingTerminal({
             { kind: "output", text: "  blender                   (rack model)" },
             { kind: "output", text: "" },
             { kind: "output", text: "ambient music:" },
-            { kind: "output", text: "  Vermillion Gaze — Mechanical Sunsets (Sun Waves)" },
+            { kind: "output", text: "  Vermillion Gaze — Sun Waves (full release, 4 tracks)" },
             { kind: "output", text: "  CC-BY 4.0 · archive.org/details/SunWaves" },
             { kind: "output", text: "" },
             { kind: "output", text: "source: github.com/Builder106/builder106.github.io" },
@@ -877,49 +924,67 @@ export function TradingTerminal({
             <div className="console-pill__meta">{relativeTime(BUILD_TIMESTAMP)}</div>
           </div>
 
-          {/* Telemetry pill. Reads scroll % + which rack you're at;
-              the rack name is a button to that project's panel. Used
-              to be a big horizontal aisle-map widget covering the
-              full top of the panel; removed in favour of this denser
-              read because the map's "click to jump" + "see all 9 at
-              once" value didn't justify ~120 px of vertical space
-              the rest of the dashboard could use. */}
+          {/* Telemetry pill. Two variants:
+              · Portrait (virtual aisle-scroll): scroll % + dominant
+                rack as a click-to-jump button. The widget was originally
+                a big horizontal aisle-map taking ~120 px of vertical
+                space; this denser pill replaced it because "see all 9
+                at once" didn't justify the room cost.
+              · Landscape (orbit camera): no scroll, so the % was always
+                0 and the rack button always pointed at slot 0. The
+                pill swaps to a SESSION uptime read here — same shape,
+                different signal. */}
           <div
             className={`console-pill console-pill--telemetry ${
               flashedWidget === "telemetry" ? "console-pill--flash" : ""
             }`}
           >
-            <div className="console-pill__header">
-              <span className="console-pill__title">telemetry</span>
-              <span className="console-pill__dot console-pill__dot--live" aria-hidden />
-            </div>
-            <div className="console-pill__value">
-              {Math.round(progress * 100)}
-              <span className="console-pill__unit">%</span>
-            </div>
-            <div
-              className="console-pill__bar"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(progress * 100)}
-            >
-              <div
-                className="console-pill__bar-fill"
-                style={{ width: `${(progress * 100).toFixed(1)}%` }}
-              />
-            </div>
-            {activeRack ? (
-              <button
-                type="button"
-                className={`console-pill__sub-link console-pill__sub-link--${activeRack.cluster}`}
-                onClick={() => onNavigate({ kind: "project", projectId: activeRack.id })}
-              >
-                {activeRack.name}
-                <span className="console-pill__sub-cluster"> · {activeRack.cluster}</span>
-              </button>
+            {variant === "portrait" ? (
+              <>
+                <div className="console-pill__header">
+                  <span className="console-pill__title">telemetry</span>
+                  <span className="console-pill__dot console-pill__dot--live" aria-hidden />
+                </div>
+                <div className="console-pill__value">
+                  {Math.round(progress * 100)}
+                  <span className="console-pill__unit">%</span>
+                </div>
+                <div
+                  className="console-pill__bar"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(progress * 100)}
+                >
+                  <div
+                    className="console-pill__bar-fill"
+                    style={{ width: `${(progress * 100).toFixed(1)}%` }}
+                  />
+                </div>
+                {activeRack ? (
+                  <button
+                    type="button"
+                    className={`console-pill__sub-link console-pill__sub-link--${activeRack.cluster}`}
+                    onClick={() => onNavigate({ kind: "project", projectId: activeRack.id })}
+                  >
+                    {activeRack.name}
+                    <span className="console-pill__sub-cluster"> · {activeRack.cluster}</span>
+                  </button>
+                ) : (
+                  <div className="console-pill__sub">between racks</div>
+                )}
+              </>
             ) : (
-              <div className="console-pill__sub">between racks</div>
+              <>
+                <div className="console-pill__header">
+                  <span className="console-pill__title">session</span>
+                  <span className="console-pill__dot console-pill__dot--live" aria-hidden />
+                </div>
+                <div className="console-pill__value">
+                  {formatUptime(uptimeMs)}
+                </div>
+                <div className="console-pill__sub">uptime · since boot</div>
+              </>
             )}
           </div>
 
@@ -947,8 +1012,35 @@ export function TradingTerminal({
                 {audioEnabled ? "mute" : "unmute"}
               </button>
             </div>
-            <div className="console-pill__meta">
-              vermillion gaze · mechanical sunsets
+            {/* Track cycler. ‹ and › step through TRACKS; the middle
+                line shows artist · title for the currently playing cut.
+                All four are from the same Sun Waves release (CC-BY 4.0)
+                so attribution is identical across the set. */}
+            <div className="console-pill__track">
+              <button
+                type="button"
+                className="console-pill__track-step"
+                onClick={() => onSelectTrack(prevTrack.id)}
+                aria-label={`previous track: ${prevTrack.title}`}
+              >
+                ‹
+              </button>
+              <span className="console-pill__track-info">
+                <span className="console-pill__track-artist">
+                  {currentTrack.artist.toLowerCase()}
+                </span>
+                <span className="console-pill__track-title">
+                  {currentTrack.title.toLowerCase()}
+                </span>
+              </span>
+              <button
+                type="button"
+                className="console-pill__track-step"
+                onClick={() => onSelectTrack(nextTrack.id)}
+                aria-label={`next track: ${nextTrack.title}`}
+              >
+                ›
+              </button>
             </div>
           </div>
 
