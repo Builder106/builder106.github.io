@@ -137,20 +137,21 @@ function strobeFlash(t: number): number {
   return 1.0 - t / 0.15;
 }
 
-// Per-cluster wave colours. Pure-neon hues with at least one channel
-// at 0 so the body emissive's ~9× intensity boost can saturate the
-// other channels without producing a hue shift (e.g. orange #f29100
-// at 9× clamps to yellow because R+G both saturate before B). These
-// three match the scene's existing cyan/magenta cable palette so the
-// wave reads as "the room's neon system reacting" rather than the
-// project's brand colours pasted in.
+// Per-cluster wave colours, locked to the room's two-tone palette
+// (the ceiling and floor curves use #4cf2ff and #ff4cf2 — same hues).
+// SWE racks pulse magenta; quant + analyst share cyan. The previous
+// rebuild used hot pink + electric violet at ~9× emissive — that read
+// as a flat saturated wash that obliterated the rack's vertical-LED
+// detail. Reining the hues back into the existing scene palette plus
+// dropping bodyPeak (see below) makes the wave feel like "the room's
+// neon system reacting" rather than "the rack chassis painted pink."
 //
 // Project-level accent colours (per projects.ts) are still used for
 // LED variation — those are tiny dots where saturation matters less.
 const WAVE_CLUSTER_COLORS: Record<string, string> = {
-  quant:   "#00d4ff",   // electric cyan      (R = 0)
-  swe:     "#ff0080",   // hot magenta-pink   (G = 0)
-  analyst: "#aa00ff",   // electric violet    (G = 0)
+  quant:   "#4cf2ff",   // scene cyan    (matches --neon-cyan)
+  swe:     "#ff4cf2",   // scene magenta (matches --neon-magenta)
+  analyst: "#4cf2ff",   // analyst joins quant on cyan
 };
 
 function waveColorForProject(
@@ -1150,7 +1151,7 @@ export function ServerRoom({
     // Slot beams + floor discs + rack body wash: all three layers pulse
     // during the slot's ADSR window. Beam (peak 2.0) descends from
     // ceiling. Disc (peak 1.6) lights the floor + its reflection. Body
-    // wash (peak 5.0) makes the rack itself glow.
+    // wash (peak 3.2) lifts the rack out of the ambient palette.
     //
     // uIntensity is lerped on the hover `k` so layers settle smoothly.
     // uFlash is set directly (no lerp) because the strobe needs to
@@ -1158,11 +1159,13 @@ export function ServerRoom({
     // smear the attack.
     const beamPeak = 2.0;
     const discPeak = 1.6;
-    // Body peak bumped 5 → 9: the rack's base material is dark, so
-    // emissive at 5.0 read as "warmer rack," not "glowing rack." 9.0
-    // pushes the rack body to a luminous wash that clearly dominates
-    // the visual hierarchy when its slot fires.
-    const bodyPeak = 9.0;
+    // Body peak: was 9.0, which flooded the chassis into a flat
+    // saturated wash and obliterated the vertical-LED detail (you
+    // couldn't see the rack was a rack — just a magenta block). 3.2
+    // glows the chassis enough to clearly dominate hierarchy while the
+    // underlying texture still reads through. The beam + disc layers
+    // carry the rest of the "this slot just fired" signal.
+    const bodyPeak = 3.2;
     for (const b of slotBeamsRef.current) {
       let target = 0;
       let flash = 0;
