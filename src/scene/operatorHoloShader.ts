@@ -31,41 +31,46 @@ const fragmentShader = /* glsl */ `
 
   uniform sampler2D uTexture;
   uniform float uTime;
-  uniform vec3 uTint;       // cyan ambient
-  uniform vec3 uCoreTint;   // brighter highlight tint (for face peaks)
+  uniform vec3 uTint;       // dim cyan ambient (mid-tones)
+  uniform vec3 uCoreTint;   // bright cyan-white highlight (peak features)
 
   varying vec2 vUv;
 
   void main() {
     vec4 tex = texture2D(uTexture, vUv);
-    // Luminance for cyan re-tint. Dark regions of the source stay
-    // dark in the additive layer; bright regions (skin highlights)
-    // light up the cyan core.
     float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
 
-    // Contrast push: knock the mid-grey studio backdrop down toward
-    // black so it stops painting a flat cyan rectangle behind the
-    // face. Face highlights still hit 1.0.
-    float keyed = clamp((lum - 0.30) * 1.55, 0.0, 1.0);
+    // INVERTED-LUMINANCE READOUT (X-ray hologram).
+    //
+    // The LinkedIn portrait is dark-subject on a light grey backdrop —
+    // exact opposite of what the previous "key out dark" pass assumed,
+    // which is why the face was disappearing while the backdrop hung
+    // around as a flat cyan rectangle. Inverting gives:
+    //
+    //   bright backdrop (lum ≈ 0.55–0.70)  → low output, backdrop fades
+    //   face mid-tones  (lum ≈ 0.30–0.50)  → moderate cyan
+    //   dark features    (lum ≈ 0.05–0.20) → bright cyan-white
+    //
+    // Reads the way a classic sci-fi hologram does — dark edges of the
+    // subject glow with the projector's light.
+    float subject = pow(1.0 - lum, 0.85);
 
-    // Tint ramp: ambient tint at low luminance → core tint at peak.
-    vec3 col = mix(uTint, uCoreTint, keyed) * keyed;
+    // Tint ramp: ambient tint at low subject values → core tint at the
+    // very brightest features.
+    vec3 col = mix(uTint, uCoreTint, subject) * (subject * 1.4);
 
-    // Horizontal scan lines for CRT feel. Density tuned so they read
-    // as fine but distinct against the face.
+    // Horizontal scan lines for CRT feel; slowly drift with uTime.
     float scan = 0.65 + 0.35 * sin(vUv.y * 220.0 + uTime * 1.4);
     col *= scan;
 
-    // Vignette: fade toward the plane edges so the rectangle's
-    // borders dissolve instead of hard-cutting against the dark
-    // scene. Elliptical because the source is a portrait (taller
-    // than wide).
+    // Elliptical vignette dissolves the rectangle's hard edges into
+    // the dark scene. Aspect-biased because the source is portrait.
     vec2 p = (vUv - 0.5) * 2.0;
     vec2 elliptical = vec2(p.x * 1.15, p.y * 0.85);
     float edge = 1.0 - smoothstep(0.75, 1.05, length(elliptical));
 
-    // Slow flicker — bigger swings on a low-frequency sin, plus a
-    // smaller, faster jitter for the "transmission is alive" feel.
+    // Two-band flicker — slow swell + fast jitter — for "the
+    // transmission is alive."
     float flicker = 0.85 + 0.10 * sin(uTime * 2.3)
                           + 0.05 * sin(uTime * 17.0);
 
