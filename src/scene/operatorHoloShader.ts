@@ -61,12 +61,6 @@ const fragmentShader = /* glsl */ `
     float scan = 0.88 + 0.12 * sin(vUv.y * 140.0 + uTime * 1.4);
     col *= scan;
 
-    // Elliptical vignette dissolves the rectangle's hard edges into
-    // the dark scene. Aspect-biased because the source is portrait.
-    vec2 p = (vUv - 0.5) * 2.0;
-    vec2 elliptical = vec2(p.x * 1.15, p.y * 0.85);
-    float edge = 1.0 - smoothstep(0.75, 1.05, length(elliptical));
-
     // Two-band flicker — slow swell + fast jitter — for "the
     // transmission is alive."
     float flicker = 0.85 + 0.10 * sin(uTime * 2.3)
@@ -77,7 +71,7 @@ const fragmentShader = /* glsl */ `
     // disappearing into the additive blend's zero contribution.
     col += uTint * subjectMask * 0.08;
 
-    col *= edge * flicker;
+    col *= flicker;
     gl_FragColor = vec4(col, 1.0);
   }
 `;
