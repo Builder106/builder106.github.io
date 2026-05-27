@@ -118,18 +118,24 @@ const mime = extname(refPath).toLowerCase() === ".mp3" ? "audio/mpeg" : "audio/w
 const refBlob = new Blob([refBuffer], { type: mime });
 
 const t0 = Date.now();
-const output = await replicate.run(MODEL, {
-  input: {
-    // Names mirror the upstream chatterbox-tts Python API
-    // (`model.generate(text, audio_prompt_path=…, exaggeration=…,
-    // cfg_weight=…)`). If Replicate ever renames them, `--schema` will
-    // surface the live names.
-    prompt: text,
-    audio_prompt: refBlob,
-    exaggeration: args.exaggeration ?? 0.4,
-    cfg_weight: args.cfg ?? 0.6,
-  },
-});
+const input = {
+  // Names mirror the upstream chatterbox-tts Python API
+  // (`model.generate(text, audio_prompt_path=…, exaggeration=…,
+  // cfg_weight=…)`). If Replicate ever renames them, `--schema` will
+  // surface the live names.
+  prompt: text,
+  audio_prompt: refBlob,
+  exaggeration: args.exaggeration ?? 0.4,
+  cfg_weight: args.cfg ?? 0.6,
+};
+// Temperature is optional on the Replicate model (default 0.8). Lower
+// makes the voice more consistent across the clip — useful when the
+// default render "doesn't sound like the reference" since high temp
+// lets the model wander on timbre.
+if (args.temperature !== undefined) input.temperature = args.temperature;
+if (args.seed !== undefined) input.seed = args.seed;
+
+const output = await replicate.run(MODEL, { input });
 const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
 console.error(`[render-remote] prediction completed in ${elapsed} s`);
 
@@ -172,6 +178,8 @@ function parseArgs(argv) {
     else if (a === "--out") out.out = argv[++i];
     else if (a === "--exaggeration") out.exaggeration = Number(argv[++i]);
     else if (a === "--cfg") out.cfg = Number(argv[++i]);
+    else if (a === "--temperature") out.temperature = Number(argv[++i]);
+    else if (a === "--seed") out.seed = Number(argv[++i]);
     else if (a === "--schema") out.schema = true;
     else if (a === "--help" || a === "-h") out.help = true;
     else {
