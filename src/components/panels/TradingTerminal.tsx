@@ -658,7 +658,8 @@ export function TradingTerminal({
         case "make": {
           markSecret("make");
           if (trimmed.toLowerCase() === "make me a sandwich") {
-            return [{ kind: "error", text: "make: *** No rule to make target 'sandwich'. Stop." }];
+            // xkcd 149 — the unprivileged half of the gag.
+            return [{ kind: "system", text: "What? Make it yourself." }];
           }
           return [{ kind: "error", text: `make: *** No rule to make target '${args[0] ?? ""}'. Stop.` }];
         }
