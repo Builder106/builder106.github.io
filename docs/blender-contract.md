@@ -44,14 +44,43 @@ for camera flies and React-panel pinning.
 | `anchor_micromatch`     | SWE     | MicroMatch rack (left wall, landscape).              |
 | `anchor_staija`         | SWE     | STAIJA rack.                                         |
 | `anchor_studysprint`    | SWE     | StudySprint rack.                                    |
-| `anchor_capitol-alpha`  | analyst | CapitolAlpha rack (right wall, landscape).           |
+| `anchor_capitol-alpha`  | analyst | CapitolAlpha rack (left wall, landscape).            |
 | `anchor_datafest-2026`  | analyst | DataFest 2026 rack.                                  |
 | `anchor_linuxbenchhub`  | analyst | LinuxBenchHub rack.                                  |
+| `anchor_clearhash`      | security| ClearHash rack (right wall, landscape).              |
+| `anchor_halberd`        | security| Halberd rack.                                        |
+| `anchor_quarry`         | security| Quarry rack.                                         |
 
 The id after `anchor_` must match a `Project.id` value in
 [src/data/projects.ts](../src/data/projects.ts). When you add a project, add
 both a row there and an `anchor_<id>` Empty in Blender — or set
 `inScene: false` on the project to opt it out of the scene presence check.
+
+#### Security wing — right wall (+X)
+
+The security cluster lives on the **right wall (+X)**, symmetric to the
+left-wall (−X) swe/analyst racks. The three assemblies were authored by
+mirroring left-wall racks across the room centre (a 180° Z-rotation, baked
+into the mesh so normals stay outward), giving each a dedicated wall in the
+landscape composition (quant=back, swe+analyst=left, security=right).
+
+| Anchor             | Rack world pos (Blender) | Cluster  | Project   |
+| ------------------ | ------------------------ | -------- | --------- |
+| `anchor_clearhash` | (6.1, −0.5, 1.3)         | security | ClearHash |
+| `anchor_halberd`   | (6.1,  1.0, 1.3)         | security | Halberd   |
+| `anchor_quarry`    | (6.1,  2.5, 1.3)         | security | Quarry    |
+
+Each has the usual `Rack_<id>` + `Screen_<id>` + 12× `StatusLED_<id>_r{0,1}_c{0..5}`
+meshes; LEDs are recoloured at runtime from the `color` field in projects.ts
+(ClearHash `#39ff14`, Halberd `#e0b341`, Quarry `#ff7a18`). Anchors sit 1.4
+units toward room centre (X=4.7). The wing is live in code: it's in both
+`AISLE_ORDER` copies (portrait), the `slotIndexByKey` `order` tuple +
+landscape `waveSlotCount` (=4), and the `security` wave colour `#4cff8f`.
+
+To re-export after editing the security wing: open
+`blend/server-room.blend`, edit, then **File → Export → glTF 2.0** to
+`public/models/server-room.glb` (GLB, Y-up, apply modifiers, materials with
+images packed — cameras/lights are excluded by exporter default).
 
 Place each Empty **just in front of** the surface it represents (about 1.2
 units of clearance), so when the camera rig flies to `anchor + offset` it

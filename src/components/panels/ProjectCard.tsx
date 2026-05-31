@@ -24,6 +24,9 @@ const AISLE_ORDER = [
   "capitol-alpha",
   "datafest-2026",
   "linuxbenchhub",
+  "clearhash",
+  "halberd",
+  "quarry",
 ] as const;
 
 // Resolve a repo URL → "<owner>/<name>" slug, the same key the

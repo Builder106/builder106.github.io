@@ -30,7 +30,7 @@ export const repoStats: Record<string, RepoStats> = {
   },
   "Builder106/STAIJA": {
     "lang": "TypeScript",
-    "pushed_at": "2026-05-27T04:04:50Z",
+    "pushed_at": "2026-05-27T19:38:43Z",
     "stars": 0
   },
   "Builder106/StudySprint": {
@@ -50,7 +50,22 @@ export const repoStats: Record<string, RepoStats> = {
   },
   "Builder106/LinuxBenchHub": {
     "lang": "JavaScript",
-    "pushed_at": "2026-05-23T18:26:42Z",
+    "pushed_at": "2026-05-31T15:40:07Z",
+    "stars": 0
+  },
+  "Builder106/ClearHash": {
+    "lang": "Rust",
+    "pushed_at": "2026-05-28T03:26:57Z",
+    "stars": 0
+  },
+  "Builder106/Halberd": {
+    "lang": "Go",
+    "pushed_at": "2026-05-28T01:06:38Z",
+    "stars": 0
+  },
+  "Builder106/Quarry": {
+    "lang": "TypeScript",
+    "pushed_at": "2026-05-28T01:06:32Z",
     "stars": 0
   }
 };

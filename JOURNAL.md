@@ -4,6 +4,42 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-05-31 — Security wing authored on the right wall via Blender MCP #milestone #decision
+
+Built the three security racks (ClearHash/Halberd/Quarry) directly into
+`server-room.blend` and re-exported the glb. Technique: mirror three left-wall
+rack assemblies (Rack + Screen + 12 LEDs + anchor) across the room centre with a
+180° Z-rotation baked into the mesh — handles the two vertex conventions in the
+scene uniformly (racks carry a real loc transform; screens/LEDs have geometry
+baked at world coords with identity transform), and a pure rotation keeps normals
+outward (no mirror/flip). Landed them on the previously-empty **right wall (+X)**
+at Y = −0.5 / 1.0 / 2.5, symmetric to the left wall — so security gets its own
+wall in landscape (quant=back, swe+analyst=left, security=right) instead of
+needing the invented "entry wall." glb went 226→268 meshes, 10→13 anchors; LEDs
+auto-recolour from each project's `color`. Flipped the code on: removed
+`inScene:false`, added all three to both `AISLE_ORDER` copies, added `security`
+to the landscape `order` tuple, bumped landscape `waveSlotCount` 3→4.
+
+## 2026-05-31 — Blender MCP venv was orphaned by a vanished uv-managed Python #incident
+
+Hit `ENOENT` spawning `blender-mcp` even though the script existed — its shebang
+pointed at `~/.local/share/uv/python/cpython-3.12.11-.../python3.12`, and that
+entire uv-managed Python store had been cleaned out, leaving a dangling
+interpreter symlink (kernel reports a bad interpreter as ENOENT on the script).
+The Blender addon socket on :9876 was healthy the whole time — only the MCP
+bridge venv was broken. Fix: rebuilt the venv against Homebrew's `python@3.14`
+(`rm -rf .venv && uv venv && uv pip install -e .`), which is far less likely to
+get garbage-collected than a uv-managed toolchain. Lesson: don't build
+long-lived tool venvs against `uv`-managed interpreters.
+
+## 2026-05-31 — Security cluster joins the room #decision
+
+Added the three Cybersecurity-folder projects — ClearHash (Rust supply-chain
+gatekeeper), Halberd (Go MCP firewall), Quarry (TS/Yul MEV engine) — as a new
+`security` cluster. Chose a dedicated cluster over reusing the unused `systems`
+slot or distributing into quant/analyst, and grouped Quarry with security
+despite its MEV/markets nature, to keep the folder's identity intact.
+
 ## 2026-05-27 — sudo make me a sandwich gets the ceremony it deserves #decision #quote
 
 The hidden `sudo make me a sandwich` response was a single `okay.` line.

@@ -149,9 +149,11 @@ function strobeFlash(t: number): number {
 // Project-level accent colours (per projects.ts) are still used for
 // LED variation — those are tiny dots where saturation matters less.
 const WAVE_CLUSTER_COLORS: Record<string, string> = {
-  quant:   "#4cf2ff",   // scene cyan    (matches --neon-cyan)
-  swe:     "#ff4cf2",   // scene magenta (matches --neon-magenta)
-  analyst: "#4cf2ff",   // analyst joins quant on cyan
+  quant:    "#4cf2ff",   // scene cyan    (matches --neon-cyan)
+  swe:      "#ff4cf2",   // scene magenta (matches --neon-magenta)
+  analyst:  "#4cf2ff",   // analyst joins quant on cyan
+  security: "#4cff8f",   // security wing — phosphor green (no rack authored
+                         // yet; used once the security cluster joins the aisle)
 };
 
 function waveColorForProject(
@@ -283,6 +285,9 @@ const AISLE_ORDER = [
   "capitol-alpha",
   "datafest-2026",
   "linuxbenchhub",
+  "clearhash",
+  "halberd",
+  "quarry",
 ] as const;
 
 // Aisle geometry. Racks line both sides of a centre corridor, each pair
@@ -630,12 +635,13 @@ export function ServerRoom({
   // in portrait.
   const WAVE_PULSE_DUR_S = 1.0;
   // Per-slot delay differs by variant:
-  //   portrait  → 9 individual racks, 0.35 s apart (rack-by-rack)
-  //   landscape → 3 cluster groups, 0.70 s apart (3 racks at once)
+  //   portrait  → 12 individual racks, 0.35 s apart (rack-by-rack)
+  //   landscape → 4 cluster groups, 0.70 s apart (a wall at a time)
   // Landscape uses cluster groups because the racks aren't on a line
-  // in 3D — they're on three walls. A rack-by-rack sweep would bounce
-  // around the room; a cluster sweep tells the "three categories of
-  // work" story spatially, since each cluster owns its own wall.
+  // in 3D — they're on the four walls (quant=back, swe+analyst=left,
+  // security=right). A rack-by-rack sweep would bounce around the room;
+  // a cluster sweep tells the "categories of work" story spatially,
+  // since each cluster owns its own wall.
   const WAVE_RACK_DELAY_S = 0.35;
   const WAVE_CLUSTER_DELAY_S = 0.7;
   const lastInteractionRef = useRef<number>(performance.now());
@@ -645,7 +651,7 @@ export function ServerRoom({
   const waveTickCounterRef = useRef<number>(0);
 
   // Variant-aware "which time slot does this rack fire in?" map.
-  // Portrait = 9 slots, one per rack in AISLE_ORDER. Landscape = 3
+  // Portrait = 12 slots, one per rack in AISLE_ORDER. Landscape = 4
   // slots, one per cluster. The terminal counts as quant (slot 0)
   // in landscape so the desk lights up with the first wave step.
   // Keys here MUST match the `hoverKey` format set by hoverKeyForMesh,
@@ -657,7 +663,7 @@ export function ServerRoom({
     if (variant === "portrait") {
       AISLE_ORDER.forEach((id, i) => m.set(`project:${id}`, i));
     } else {
-      const order = ["quant", "swe", "analyst"] as const;
+      const order = ["quant", "swe", "analyst", "security"] as const;
       for (const p of projects) {
         const idx = order.indexOf(p.cluster as typeof order[number]);
         if (idx >= 0) m.set(`project:${p.id}`, idx);
@@ -698,7 +704,7 @@ export function ServerRoom({
 
   const waveSlotDelayS =
     variant === "portrait" ? WAVE_RACK_DELAY_S : WAVE_CLUSTER_DELAY_S;
-  const waveSlotCount = variant === "portrait" ? AISLE_ORDER.length : 3;
+  const waveSlotCount = variant === "portrait" ? AISLE_ORDER.length : 4;
   const WAVE_TOTAL_S =
     waveSlotCount * waveSlotDelayS + WAVE_PULSE_DUR_S + 0.4;
 

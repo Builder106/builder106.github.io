@@ -1,4 +1,4 @@
-export type ProjectCluster = "quant" | "systems" | "swe" | "analyst" | "research";
+export type ProjectCluster = "quant" | "systems" | "swe" | "analyst" | "research" | "security";
 
 // Display label for each cluster, shared by every UI surface (rack
 // callouts, project card section header, SR-only mirror). Keeps the
@@ -9,6 +9,7 @@ export const CLUSTER_DISPLAY: Record<ProjectCluster, string> = {
   swe: "SWE",
   analyst: "analyst",
   research: "research",
+  security: "security",
 };
 
 export interface Project {
@@ -198,5 +199,55 @@ export const projects: Project[] = [
     },
     color: "#cc342d",
     logo: "/img/projects/logos/linuxbenchhub.png",
+  },
+
+  // Security cluster -------------------------------------------------------
+  // Supply-chain, agent-security, and on-chain-economic-security work.
+  // Authored on the right wall (+X) of server-room.glb as the security wing
+  // (Rack_/Screen_/StatusLED_/anchor_ per id), mirrored from the left-wall
+  // racks. LEDs auto-adopt each project's `color` at runtime. Banner/demo/
+  // logo assets live in each project's own repo and aren't copied into
+  // public/img/projects/ yet.
+  {
+    id: "clearhash",
+    name: "ClearHash",
+    cluster: "security",
+    headline: "Source-rebuild gatekeeper · blocks supply-chain tampering",
+    blurb:
+      "A pre-install gatekeeper that answers “is this binary actually a build of the source it claims?” Fetches a package, verifies its SLSA attestation through Sigstore + Rekor, rebuilds it from the attested source commit in an isolated Docker container, and blocks the install if the rebuilt file tree diverges from the registry artifact. Catches the event-stream / ua-parser-js / xz-utils class of attacks.",
+    stack: ["Rust", "Sigstore", "Rekor", "Docker", "Axum"],
+    links: {
+      live: "https://clear-hash.vercel.app",
+      repo: "https://github.com/Builder106/ClearHash",
+    },
+    color: "#39ff14",
+  },
+  {
+    id: "halberd",
+    name: "Halberd",
+    cluster: "security",
+    headline: "MCP firewall · p50 ≤ 200µs · 50k req/s",
+    blurb:
+      "A JSON-RPC firewall that sits between an LLM agent and its Model Context Protocol servers. Every tools/call envelope is parsed, evaluated against a YAML policy bundle, and either forwarded or blocked with a synthetic error before a malicious payload reaches the host — defending against tool poisoning, argument injection, capability creep, and secret exfiltration. The policy engine compiles to WebAssembly for an in-browser playground.",
+    stack: ["Go", "WebAssembly", "Next.js", "JSON-RPC", "MCP"],
+    links: {
+      live: "https://halberd-keep.vercel.app",
+      repo: "https://github.com/Builder106/Halberd",
+    },
+    color: "#e0b341",
+  },
+  {
+    id: "quarry",
+    name: "Quarry",
+    cluster: "security",
+    headline: "188-byte Yul executor · 99.89% arb prediction",
+    blurb:
+      "A bare-metal MEV arbitrage engine scoped to cross-DEX back-running. A TypeScript mempool scanner spots swaps about to land on Uniswap-V2-shaped pools, solves the optimal back-run input against post-victim reserves, and — if profit beats gas — packs calldata for a 188-byte Yul executor funded by an Aave V3 flashloan. No inventory; predatory sandwich and JIT strategies are explicitly out of scope.",
+    stack: ["Solidity", "Yul", "TypeScript", "Foundry", "Bun"],
+    links: {
+      live: "https://quarry-mev.vercel.app",
+      repo: "https://github.com/Builder106/Quarry",
+    },
+    color: "#ff7a18",
   },
 ];
