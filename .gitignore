@@ -62,9 +62,10 @@ playwright-report/
 e2e/demo/output/*.webm
 e2e/demo/output/*.mp4
 e2e/demo/output/*-FAILED.*
-# Chatterbox TTS intermediates — regenerable from e2e/demo/SCRIPT.md
-# via scripts/tts/render.py on ~/CS/content-pipeline. CPU render takes
-# 1–2 h, so the produced WAV is a working file, not a committed asset.
-# The voiced mp4 lives at public/demo.mp4 (og:video).
-e2e/demo/output/narration.wav
+# Narration intermediates — TTS / voice-clone working files (Chatterbox
+# WAVs, ElevenLabs voice-clone takes, remote-render iterations). All
+# regenerable from e2e/demo/SCRIPT.md; the final voiced mp4 lives at
+# public/demo.mp4 (og:video), so the raw audio here is never committed.
+e2e/demo/output/*.wav
+e2e/demo/output/*.mp3
 e2e/demo/output/narration.txt
