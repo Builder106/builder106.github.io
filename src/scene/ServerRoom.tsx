@@ -1351,12 +1351,13 @@ export function ServerRoom({
           a long tube parallel to the aisle. */}
       {variant === "portrait" && (
         <group name="aisle-atmosphere">
-          {/* Overhead fluorescent strips. 16 total on desktop — front
-              10 cover the rack column, trailing 6 fade into the fog.
-              Mobile keeps 10 (just enough to span the visible rack
-              column); the fog-trailing strips are barely visible at
-              the narrow FOV anyway. */}
-          {Array.from({ length: isMobile ? 10 : 16 }).map((_, i) => (
+          {/* Overhead fluorescent strips, spaced ~2.34 m apart down the
+              aisle (−i·AISLE_SPACING·0.9). The count spans the full
+              12-rack corridor to the terminus (≈z−32) so the overhead
+              lighting meets the racks instead of stopping short and
+              leaving a dark band; trailing strips fade into the fog.
+              Mobile runs slightly fewer than desktop. */}
+          {Array.from({ length: isMobile ? 15 : 18 }).map((_, i) => (
             <group key={`fluo-${i}`} position={[0, 6, -i * AISLE_SPACING * 0.9]}>
               {/* Recessed housing — a dark frame the bright panel sits
                   inside, so the fixture reads as a 3D troffer instead of
