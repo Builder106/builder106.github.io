@@ -1432,11 +1432,31 @@ export function ServerRoom({
           {/* Backwall terminus at the end of the corridor — a dim
               wall with a single cyan accent strip. Anchors the aisle
               with a destination instead of fading into pure fog. */}
+          {/* Terminus backdrop — caps the corridor end. Lifted a shade
+              off near-black so it reads as a wall you've arrived at,
+              not just the absence of void. */}
           <mesh position={[0, 5, AISLE_TERMINUS_Z]}>
             <planeGeometry args={[40, 12]} />
-            <meshBasicMaterial color="#0a1422" toneMapped={false} fog />
+            <meshBasicMaterial color="#101b30" toneMapped={false} fog />
           </mesh>
-          <mesh position={[0, 2.6, AISLE_TERMINUS_Z + 0.01]}>
+          {/* Soft backlight halo behind the hologram so the end reads as
+              a lit alcove framing the destination rather than a flat
+              dark wall. Reuses the ceiling glow sprite, additive. */}
+          <mesh position={[0, 2.1, AISLE_TERMINUS_Z + 0.05]}>
+            <planeGeometry args={[10, 8]} />
+            <meshBasicMaterial
+              map={ceilGlowTex}
+              color="#1e3a55"
+              transparent
+              depthWrite={false}
+              blending={AdditiveBlending}
+              side={DoubleSide}
+              toneMapped={false}
+              fog
+            />
+          </mesh>
+          {/* Cyan horizon accent across the end wall. */}
+          <mesh position={[0, 2.6, AISLE_TERMINUS_Z + 0.06]}>
             <planeGeometry args={[16, 0.1]} />
             <meshBasicMaterial color="#4cf2ff" toneMapped={false} fog />
           </mesh>
