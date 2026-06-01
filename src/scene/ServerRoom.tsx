@@ -1309,7 +1309,7 @@ export function ServerRoom({
           out from [18,45] → [24,65] so the floor stays readable in
           the mid-ground instead of crushing to black right past the
           room edge. */}
-      <fog attach="fog" args={["#0a0d18", 24, 65]} />
+      <fog attach="fog" args={["#0a0d18", 32, 70]} />
 
       <primitive
         object={scene}
@@ -1355,12 +1355,14 @@ export function ServerRoom({
           {/* Glowing centre-line strip embedded in the aisle floor.
               Typical data-centre "walking lane" marker. Lays just
               above the reflective floor so its reflection adds to
-              the depth read. */}
+              the depth read. Runs from just ahead of the terminal
+              (z≈+4) all the way to the terminus wall behind the holo,
+              so the runway leads the eye to the destination. */}
           <mesh
-            position={[0, 0.005, -10]}
+            position={[0, 0.005, (4 + AISLE_TERMINUS_Z) / 2]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
-            <planeGeometry args={[0.18, 28]} />
+            <planeGeometry args={[0.18, 4 - AISLE_TERMINUS_Z]} />
             <meshBasicMaterial
               color="#4cf2ff"
               toneMapped={false}
@@ -1575,7 +1577,7 @@ export function ServerRoom({
           16× less fragment work per frame, still enough resolution
           for the perceived-glossy read at the smaller viewport. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <planeGeometry args={[60, 60]} />
+        <planeGeometry args={[60, 80]} />
         <MeshReflectorMaterial
           blur={isMobile ? [200, 60] : [300, 100]}
           mixBlur={1.0}

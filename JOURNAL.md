@@ -4,6 +4,17 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-06-01 — Aisle floor + center-line + fog still sized for the short aisle #incident
+
+After extending the portrait aisle to 12 racks with the holo at z≈−30, three floor
+elements still stopped short of the end: the cyan center-line strip (28u @ z=−10 →
+ended at −24), the reflective floor (60×60 → edge at −30, right at the holo), and
+the fog (near=24, which dimmed the deep aisle floor mid-scroll). Extended the
+center-line to run from +4 to the terminus (−32) so the runway leads the eye to
+the hologram, enlarged the floor to 60×80, and pushed fog near 24→32 so the aisle
+reads to its end before fading. Center-line length now derives from
+`AISLE_TERMINUS_Z`; landscape is unaffected (its room sits well within 24).
+
 ## 2026-05-31 — Cybersec favicons: opaque, then bright (unlit logos lose to HDR racks) #incident
 
 Made the 3 cybersec rack logos opaque (composited onto a dark `#0c1019` tile) on
