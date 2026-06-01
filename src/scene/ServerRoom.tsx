@@ -2,12 +2,15 @@ import { useGLTF, useCursor, useTexture, Html, MeshReflectorMaterial, Grid, Spar
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
+  AdditiveBlending,
   AmbientLight,
   BufferGeometry,
+  CanvasTexture,
   CircleGeometry,
   Color,
   ConeGeometry,
   DirectionalLight,
+  DoubleSide,
   Group,
   HemisphereLight,
   Mesh,
@@ -788,6 +791,24 @@ export function ServerRoom({
     waveStartRef.current = null;
   }, [panelOpen]);
 
+  // Soft radial glow sprite (white → transparent) used additively for
+  // the pool of light each portrait ceiling fixture casts on the
+  // ceiling grid above it. One texture, reused by every fixture.
+  const ceilGlowTex = useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const ctx = c.getContext("2d")!;
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, "rgba(255,255,255,0.85)");
+    g.addColorStop(0.45, "rgba(255,255,255,0.26)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    const tex = new CanvasTexture(c);
+    tex.colorSpace = SRGBColorSpace;
+    return tex;
+  }, []);
+
   // Force-fire hook for the hidden `wave` console command. Lets you
   // verify the visual effect without sitting through the 15 s idle
   // window — useful for both QA and debugging when the timer-based
@@ -1336,21 +1357,38 @@ export function ServerRoom({
               column); the fog-trailing strips are barely visible at
               the narrow FOV anyway. */}
           {Array.from({ length: isMobile ? 10 : 16 }).map((_, i) => (
-            <mesh
-              key={`fluo-${i}`}
-              position={[
-                0,
-                6,
-                -i * AISLE_SPACING * 0.9,
-              ]}
-            >
-              <boxGeometry args={[0.35, 0.06, 1.6]} />
-              <meshBasicMaterial
-                color="#9fe6ff"
-                toneMapped={false}
-                fog
-              />
-            </mesh>
+            <group key={`fluo-${i}`} position={[0, 6, -i * AISLE_SPACING * 0.9]}>
+              {/* Recessed housing — a dark frame the bright panel sits
+                  inside, so the fixture reads as a 3D troffer instead of
+                  a flat glowing rectangle. */}
+              <mesh position={[0, 0.07, 0]}>
+                <boxGeometry args={[0.5, 0.16, 1.85]} />
+                <meshBasicMaterial color="#141a28" fog />
+              </mesh>
+              {/* Bright emissive panel — the lit face. */}
+              <mesh>
+                <boxGeometry args={[0.34, 0.05, 1.62]} />
+                <meshBasicMaterial color="#9fe6ff" toneMapped={false} fog />
+              </mesh>
+              {/* Pool of light on the ceiling grid above the fixture
+                  (additive radial sprite). The bright-under-the-light /
+                  dark-between falloff is what reads as real lit geometry
+                  and gives the overhead depth. Fogs with distance so the
+                  receding pools fade like the strips. */}
+              <mesh position={[0, 0.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[2.4, 3.8]} />
+                <meshBasicMaterial
+                  map={ceilGlowTex}
+                  color="#4cf2ff"
+                  transparent
+                  depthWrite={false}
+                  blending={AdditiveBlending}
+                  side={DoubleSide}
+                  toneMapped={false}
+                  fog
+                />
+              </mesh>
+            </group>
           ))}
 
           {/* Glowing centre-line strip embedded in the aisle floor.

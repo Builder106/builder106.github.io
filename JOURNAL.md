@@ -4,6 +4,18 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-06-01 — Portrait ceiling fixtures: 3D troffers + glow pools #decision
+
+The overhead aisle strips were flat unlit boxes seen face-on — they read as 2D
+rectangles and (since the ceiling grid is an unlit shader) cast no light. Rebuilt
+each as a recessed troffer (dark housing frame + bright inset panel) and added an
+additive radial-gradient sprite as a pool of light on the ceiling grid above each
+fixture. The bright-under-the-light / dark-between falloff is what sells the
+overhead as real lit geometry; can't use actual point lights because the drei
+Grid ceiling is shader-based and unlit, so the glow is faked with a sprite. One
+shared CanvasTexture, fogged so the receding pools fade with the corridor.
+Portrait-only.
+
 ## 2026-06-01 — Portrait "wires in the sky" + pitch-black ceiling #incident
 
 The portrait view reuses the landscape scene but hides the room's walls/ceiling
