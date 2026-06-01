@@ -4,6 +4,21 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-05-31 — Cybersec favicons: opaque, then bright (unlit logos lose to HDR racks) #incident
+
+Made the 3 cybersec rack logos opaque (composited onto a dark `#0c1019` tile) on
+request — but ClearHash and Quarry then washed out at full rack brightness,
+readable only when hovering a *different* rack dimmed this one. Cause: the logo
+planes are unlit `meshBasicMaterial` with `toneMapped={false}` — constant
+brightness, no bloom pass — while the rack LEDs/screens are HDR-emissive; at full
+intensity the bright rack out-shines a dark-tiled logo. Hover lerps this rack's
+lights down but not the constant-brightness logo, so it reads "in shadow."
+Halberd was fine because its tile is a bright blue gradient. Fix: rebuilt
+ClearHash (full brand-gradient square + dark `#`) and Quarry (gold square + dark
+concentric hexes) as bright full-bleed app-icons matching Halberd's luminosity,
+so they hold contrast at every rack brightness. Lesson: a logo competing with
+HDR-emissive geometry needs a luminous fill, not a dark one.
+
 ## 2026-05-31 — Cybersec rack mirror copies misaligned (a 2π quaternion-sync quirk) #incident
 
 The 3 cybersec racks' right-side (mirror) copies landed at x≈0.8 instead of 1.6,
