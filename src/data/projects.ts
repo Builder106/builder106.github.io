@@ -59,7 +59,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/econos.png",
     demo: "/img/projects/demos/econos.webm",
-    color: "#4cf2ff",
+    color: "#36d4ff",
     logo: "/img/projects/logos/econos.png",
   },
   {
@@ -76,7 +76,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/ocaml-lob.png",
     demo: "/img/projects/demos/ocaml-lob.webm",
-    color: "#f29100",
+    color: "#ffab2e",
     logo: "/img/projects/logos/ocaml-lob.png",
   },
   {
@@ -93,7 +93,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/qforge.png",
     demo: "/img/projects/demos/qforge.webm",
-    color: "#ff5b3c",
+    color: "#ff5240",
     logo: "/img/projects/logos/qforge.png",
   },
 
@@ -112,7 +112,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/micromatch.png",
     demo: "/img/projects/demos/micromatch.webm",
-    color: "#ff6f61",
+    color: "#ff6f91",
     logo: "/img/projects/logos/micromatch.png",
   },
   {
@@ -129,7 +129,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/staija.png",
     demo: "/img/projects/demos/staija.webm",
-    color: "#10b981",
+    color: "#1fd99b",
     logo: "/img/projects/logos/staija.png",
   },
   {
@@ -146,7 +146,7 @@ export const projects: Project[] = [
     },
     image: "/img/projects/studysprint.png",
     demo: "/img/projects/demos/studysprint.webm",
-    color: "#84cc16",
+    color: "#a6e22e",
     logo: "/img/projects/logos/studysprint.png",
   },
 
@@ -167,7 +167,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/CapitolAlpha",
     },
     demo: "/img/projects/demos/capitol-alpha.webm",
-    color: "#cc0000",
+    color: "#ff3b5c",
     logo: "/img/projects/logos/capitol-alpha.png",
   },
   {
@@ -183,7 +183,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/datafest-2026",
     },
     demo: "/img/projects/demos/datafest-2026.webm",
-    color: "#276dc3",
+    color: "#3b9bff",
     logo: "/img/projects/logos/datafest-2026.png",
   },
   {
@@ -197,7 +197,7 @@ export const projects: Project[] = [
     links: {
       repo: "https://github.com/Builder106/LinuxBenchHub",
     },
-    color: "#cc342d",
+    color: "#b06bff",
     logo: "/img/projects/logos/linuxbenchhub.png",
   },
 
@@ -220,7 +220,7 @@ export const projects: Project[] = [
       live: "https://clear-hash.vercel.app",
       repo: "https://github.com/Builder106/ClearHash",
     },
-    color: "#39ff14",
+    color: "#3dff6a",
     logo: "/img/projects/logos/clearhash.png",
   },
   {
@@ -235,7 +235,7 @@ export const projects: Project[] = [
       live: "https://halberd-keep.vercel.app",
       repo: "https://github.com/Builder106/Halberd",
     },
-    color: "#e0b341",
+    color: "#f5c542",
     logo: "/img/projects/logos/halberd.png",
   },
   {
@@ -250,7 +250,7 @@ export const projects: Project[] = [
       live: "https://quarry-mev.vercel.app",
       repo: "https://github.com/Builder106/Quarry",
     },
-    color: "#ff7a18",
+    color: "#ff8a1f",
     logo: "/img/projects/logos/quarry.png",
   },
 ];

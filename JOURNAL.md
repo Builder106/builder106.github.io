@@ -4,6 +4,20 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-05-31 — Full-spectrum recolour of idle waves + per-project accents #decision
+
+The four-cluster idle wave was cyan/magenta/cyan/green — analyst shared quant's
+cyan, so two of four clusters were indistinguishable when the wave swept. Moved
+to a full-spectrum palette: quant cyan `#36d4ff`, swe pink `#ff5cc8`, analyst
+gold `#ffc24c`, security mint `#43f0a0` — one hue per cluster at consistent neon
+luminance. Also retuned all 12 per-project accent colours (the floor-glow + LED
+tints, distinct from the cluster wave): brightened the muddy darks (CapitolAlpha
+`#cc0000`→`#ff3b5c`, DataFest blue, LinuxBenchHub), split the two duplicate
+analyst reds by moving LinuxBenchHub to violet `#b06bff`, and kept brand hints
+(OCaml amber, STAIJA emerald, Halberd gold, Quarry orange). Presented A/B swatch
+options; picked B (full-spectrum) + full-accent scope. Verified in the lit scene
+via headless Playwright before shipping.
+
 ## 2026-05-31 — Draco-compressed the glb + security rack logos #decision #milestone
 
 Two follow-ups after the security wing shipped. (1) Rack logos: rasterized the

@@ -141,23 +141,23 @@ function strobeFlash(t: number): number {
   return 1.0 - t / 0.15;
 }
 
-// Per-cluster wave colours, locked to the room's two-tone palette
-// (the ceiling and floor curves use #4cf2ff and #ff4cf2 — same hues).
-// SWE racks pulse magenta; quant + analyst share cyan. The previous
-// rebuild used hot pink + electric violet at ~9× emissive — that read
-// as a flat saturated wash that obliterated the rack's vertical-LED
-// detail. Reining the hues back into the existing scene palette plus
-// dropping bodyPeak (see below) makes the wave feel like "the room's
-// neon system reacting" rather than "the rack chassis painted pink."
+// Per-cluster wave colours — one distinct hue per cluster so the idle
+// wave reads as a category sweep, not a wash. Earlier these were locked
+// to the room's two-tone cyan/magenta, which forced analyst to share
+// quant's cyan (two of four clusters indistinguishable). Now full-
+// spectrum: each cluster owns a hue, tuned to a consistent neon
+// luminance so none dominates. The cyan/magenta cables still anchor the
+// room; quant + swe stay near them, analyst takes a warm gold and
+// security a mint green to spread the four apart.
 //
-// Project-level accent colours (per projects.ts) are still used for
-// LED variation — those are tiny dots where saturation matters less.
+// Project-level accent colours (per projects.ts) are separate — they
+// drive each rack's floor-glow + LED tint for per-project identity,
+// independent of the cluster wave.
 const WAVE_CLUSTER_COLORS: Record<string, string> = {
-  quant:    "#4cf2ff",   // scene cyan    (matches --neon-cyan)
-  swe:      "#ff4cf2",   // scene magenta (matches --neon-magenta)
-  analyst:  "#4cf2ff",   // analyst joins quant on cyan
-  security: "#4cff8f",   // security wing — phosphor green (no rack authored
-                         // yet; used once the security cluster joins the aisle)
+  quant:    "#36d4ff",   // cyan
+  swe:      "#ff5cc8",   // pink
+  analyst:  "#ffc24c",   // gold  (was cyan — broke the quant collision)
+  security: "#43f0a0",   // mint green — security wing
 };
 
 function waveColorForProject(
