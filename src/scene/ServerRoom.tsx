@@ -157,7 +157,7 @@ const WAVE_CLUSTER_COLORS: Record<string, string> = {
   quant:    "#36d4ff",   // cyan
   swe:      "#ff5cc8",   // pink
   analyst:  "#ffc24c",   // gold  (was cyan — broke the quant collision)
-  security: "#43f0a0",   // mint green — security wing
+  security: "#46e85c",   // emerald green — kept clear of quant's blue-cyan
 };
 
 function waveColorForProject(
@@ -650,9 +650,6 @@ export function ServerRoom({
   const WAVE_CLUSTER_DELAY_S = 0.7;
   const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
-  // Frame counter for the ~1 Hz idle-tick diagnostic. Resets to 0 in
-  // useFrame each time it reaches 60.
-  const waveTickCounterRef = useRef<number>(0);
 
   // Variant-aware "which time slot does this rack fire in?" map.
   // Portrait = 12 slots, one per rack in AISLE_ORDER. Landscape = 4
@@ -1112,37 +1109,6 @@ export function ServerRoom({
       now - lastInteractionRef.current > IDLE_BEFORE_WAVE_MS;
     if (idleEnoughForWave) {
       waveStartRef.current = now;
-      // Diagnostic: print to the browser console whenever the wave
-      // actually fires from the idle gate, plus to the on-page event
-      // bus so the idle-debug HUD (HUD.tsx wave indicator) shows the
-      // fire event. Lets us tell apart "idle timer never elapsed" vs
-      // "wave fired but rendered invisibly".
-      if (typeof console !== "undefined") {
-        // eslint-disable-next-line no-console
-        console.log("[wave] idle gate elapsed → firing wave", {
-          idleMs: Math.round(now - lastInteractionRef.current),
-          variant,
-          interactivesCount: interactivesRef.current.length,
-        });
-      }
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("ov-wave-fired"));
-      }
-    }
-    // Diagnostic: every 60 frames (~1 s) emit an "idle tick" with
-    // the current gap so the HUD indicator can display it.
-    waveTickCounterRef.current += 1;
-    if (waveTickCounterRef.current >= 60 && typeof window !== "undefined") {
-      waveTickCounterRef.current = 0;
-      window.dispatchEvent(
-        new CustomEvent("ov-idle-tick", {
-          detail: {
-            idleMs: Math.round(now - lastInteractionRef.current),
-            waveActive: waveStartRef.current !== null,
-            panelOpen,
-          },
-        }),
-      );
     }
     let waveElapsedS = 0;
     let waveActive = false;
