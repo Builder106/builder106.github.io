@@ -4,6 +4,22 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-05-31 — Cybersec rack mirror copies misaligned (a 2π quaternion-sync quirk) #incident
+
+The 3 cybersec racks' right-side (mirror) copies landed at x≈0.8 instead of 1.6,
+so the right rack row didn't line up with the rest of the aisle. The portrait
+reparent mirrors each rack with `group.clone(true)` then `mirror.rotation.y =
+leftAngle + π`. Cybersec is the only **right-wall** cluster (normal −X) →
+leftAngle = π → the mirror angle is *exactly* 2π. clone() had copied the group's
+`Ry(π)` quaternion, and assigning `rotation.y` to exactly 2π didn't re-sync the
+quaternion off that value — the stale `Ry(π)` stuck, so the mirror kept a 180°
+spin and the rack's −0.4 lateral offset flipped inward (1.2 − 0.4 = 0.8 instead
+of 1.2 + 0.4 = 1.6). Diagnosed by logging each rack's post-layout world position
+under a headless mobile viewport. Fix: normalise the mirror angle into [0, 2π)
+(2π → 0) via `rotation.set()`, forcing the Euler→quaternion sync. Back/left-wall
+racks are unaffected (their π and 3π/2 angles are unchanged). Cleaned up leftover
+`[wave] reset by …` console spam in the same pass.
+
 ## 2026-05-31 — Portrait scroll capped before cybersec; holo moved to the aisle end #incident #decision
 
 Two portrait/mobile fixes after the cybersec wing landed. (1) **Scroll cap:** the

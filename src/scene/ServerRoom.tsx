@@ -457,7 +457,14 @@ function applyAisleLayout(scene: Object3D): void {
     const mirror = group.clone(true);
     scene.add(mirror);
     mirror.position.set(AISLE_HALF_WIDTH, origPivot.y, targetZ);
-    mirror.rotation.y = leftAngle + Math.PI;
+    // Normalise into [0, 2π): a right-wall rack gives leftAngle = π, so the
+    // naive leftAngle + π = 2π. clone() copied the group's Ry(π) quaternion,
+    // and assigning rotation.y to *exactly* 2π fails to re-sync the
+    // quaternion off that value, leaving the stale Ry(π) — which dropped the
+    // mirror to x≈0.8 instead of 1.6. Wrapping 2π → 0 forces a real change
+    // and a clean identity rotation. set() (not `.y =`) guarantees the
+    // Euler→quaternion sync fires.
+    mirror.rotation.set(0, (leftAngle + Math.PI) % (2 * Math.PI), 0);
 
     // Strip anchor names from the mirror so collectAnchors finds only
     // the original — one label per project, anchored off the left side.
@@ -750,19 +757,15 @@ export function ServerRoom({
   // a runaway reset (e.g. a synth event firing every frame) when the
   // wave never elapses despite no apparent user input.
   useEffect(() => {
-    const reset = (source: string) => {
+    const reset = () => {
       lastInteractionRef.current = performance.now();
       waveStartRef.current = null;
-      if (typeof console !== "undefined") {
-        // eslint-disable-next-line no-console
-        console.log("[wave] reset by", source);
-      }
     };
-    const onPointer = () => reset("pointerdown");
-    const onTouch = () => reset("touchstart");
-    const onKey = () => reset("keydown");
-    const onWheel = () => reset("wheel");
-    const onScrollProgress = () => reset("aisleScroll");
+    const onPointer = () => reset();
+    const onTouch = () => reset();
+    const onKey = () => reset();
+    const onWheel = () => reset();
+    const onScrollProgress = () => reset();
     document.addEventListener("pointerdown", onPointer);
     document.addEventListener("touchstart", onTouch, { passive: true });
     document.addEventListener("keydown", onKey);
@@ -782,10 +785,6 @@ export function ServerRoom({
   useEffect(() => {
     lastInteractionRef.current = performance.now();
     waveStartRef.current = null;
-    if (typeof console !== "undefined") {
-      // eslint-disable-next-line no-console
-      console.log("[wave] reset by panelOpen change →", panelOpen);
-    }
   }, [panelOpen]);
 
   // Force-fire hook for the hidden `wave` console command. Lets you
