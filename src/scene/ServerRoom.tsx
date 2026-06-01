@@ -335,12 +335,13 @@ function isRackMesh(name: string, id: string): boolean {
 // void rather than inside the four-walled landscape room, so anything
 // not in the whitelist would float in place of a missing wall.
 //
-// Cable_* meshes are the neon cyan/magenta data-cable runs that arc
-// across the ceiling, floor, and back/left walls of the landscape
-// composition. They're authored at the original landscape coordinates;
-// keeping them on portrait paints them as cables stretched *around*
-// the relocated aisle (above and behind the racks), which matches the
-// desktop wire feel.
+// Cable_* meshes are the neon cyan/magenta data-cable runs authored at
+// the landscape room's coordinates. The floor + riser runs stay (they
+// read as grounded cabling near the entrance), but the *ceiling* runs
+// (Cable_Ceil*) are hidden in portrait: with the room's ceiling gone
+// they hang at their old height with nothing behind them and read as
+// wires floating in the void rather than ceiling-mounted runs. The
+// dim ceiling grid (see <Grid> below) now provides the overhead read.
 //
 // Keyboard_* — the desk keyboard has ~80 individual <Mesh> children
 // (one per key + body). Each is a separate draw call on mobile GPUs,
@@ -353,7 +354,7 @@ function isPortraitKeepMesh(name: string): boolean {
     name.startsWith("Screen_") ||
     name.startsWith("StatusLED_") ||
     name.startsWith("BackgroundTower_") ||
-    name.startsWith("Cable_") ||
+    (name.startsWith("Cable_") && !name.startsWith("Cable_Ceil")) ||
     name.startsWith("DeskNameplate_") ||
     name === "Monitor" ||
     name === "OperatorHolo" ||
@@ -1615,6 +1616,30 @@ export function ServerRoom({
         infiniteGrid
         side={2}
       />
+
+      {/* Portrait-only ceiling grid. The portrait view hides the room's
+          walls/ceiling, so above the racks there's only the dark
+          background — which read as a "pitch-black ceiling" with the
+          (now-removed) cables floating in it. A dim grid at the
+          fluorescent-strip height closes the corridor overhead and
+          mirrors the floor, so the aisle reads as an enclosed data hall.
+          Deliberately darker than the floor grid so it recedes as a
+          ceiling rather than competing with it. */}
+      {variant === "portrait" && (
+        <Grid
+          position={[0, 6.2, 0]}
+          cellSize={1}
+          cellThickness={0.5}
+          cellColor="#23283c"
+          sectionSize={4}
+          sectionThickness={0.9}
+          sectionColor="#363c58"
+          fadeDistance={80}
+          fadeStrength={1.1}
+          infiniteGrid
+          side={2}
+        />
+      )}
 
       {/* Distant data-center skyline: rack-shaped templates authored
           in Blender, instanced ~80x in a 22–50m ring around the room.

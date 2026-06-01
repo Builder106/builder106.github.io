@@ -4,6 +4,20 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-06-01 — Portrait "wires in the sky" + pitch-black ceiling #incident
+
+The portrait view reuses the landscape scene but hides the room's walls/ceiling
+and relocates the racks into the aisle. Two artifacts surfaced: the kept
+`Cable_Ceil*` runs stayed pinned at their old ceiling height with nothing behind
+them, reading as neon wires floating in the void; and with no ceiling geometry at
+all, the area above the racks was the bare dark background ("pitch-black
+ceiling"). Hid the ceiling cables in portrait (the floor + riser runs stay —
+they read as grounded cabling near the entrance) and added a dim ceiling grid at
+the fluorescent-strip height, mirroring the floor, so the corridor reads as an
+enclosed data hall top and bottom. Both changes are portrait-gated; the landscape
+composition (where the cables arc across an implied room and read fine) is
+unchanged.
+
 ## 2026-06-01 — Aisle floor + center-line + fog still sized for the short aisle #incident
 
 After extending the portrait aisle to 12 racks with the holo at z≈−30, three floor
