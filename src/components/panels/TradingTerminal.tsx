@@ -7,7 +7,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { projects } from "@/data/projects";
+import { projects, CLUSTER_DISPLAY, type ProjectCluster } from "@/data/projects";
 import { repoStats } from "@/data/repoStats.generated";
 import { aisleScroll } from "@/scene/aisleScroll";
 import type { ActivePanel } from "@/scene/activePanel";
@@ -762,16 +762,23 @@ export function TradingTerminal({
           return [{ kind: "output", text: pick }];
         }
 
-        case "stats":
+        case "stats": {
           markSecret("stats");
+          const clusterOrder: ProjectCluster[] = ["quant", "swe", "analyst", "security"];
+          const split = clusterOrder
+            .map((c) => ({ c, n: projects.filter((p) => p.cluster === c).length }))
+            .filter((x) => x.n > 0)
+            .map((x) => `${x.n} ${CLUSTER_DISPLAY[x.c]}`)
+            .join(" · ");
           return [
             { kind: "output", text: `projects deployed: ${projects.length}` },
-            { kind: "output", text: "cluster split:     3 quant · 3 swe · 3 analyst" },
+            { kind: "output", text: `cluster split:     ${split}` },
             { kind: "output", text: `build:             ${SHORT_SHA} · ${relativeTime(BUILD_TIMESTAMP)}` },
             { kind: "output", text: "frame budget:      16.6 ms (60 fps target)" },
             { kind: "output", text: "node_modules/:     yes" },
             { kind: "output", text: "coffee consumed:   NaN ml" },
           ];
+        }
 
         case "credits":
           markSecret("credits");

@@ -9,7 +9,7 @@ export const CLUSTER_DISPLAY: Record<ProjectCluster, string> = {
   swe: "SWE",
   analyst: "analyst",
   research: "research",
-  security: "security",
+  security: "cybersec",
 };
 
 export interface Project {
