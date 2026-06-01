@@ -1411,6 +1411,25 @@ export function ServerRoom({
         color="#dde4f5"
       />
 
+      {/* Portrait aisle face-lighting. In portrait the racks are
+          relocated into a long −Z corridor, but the key sources (the
+          ceiling grid) sit at the landscape room's fixed z = ±3.5 — and
+          are skipped entirely on mobile — so the corridor-facing rack
+          faces deep in the aisle caught only grazing top-down light and
+          read murky. A symmetric pair of near-horizontal directionals
+          (parallel rays travelling −X and +X) rakes both walls' faces
+          uniformly down the whole corridor with no distance falloff,
+          for the cost of two lights. Symmetric so the reflective floor
+          mirrors them evenly — a lone side cast is what got the HDRI
+          environment removed (see below). Keyed to the portrait layout
+          so it also lifts narrow-desktop, not just mobile. */}
+      {variant === "portrait" && (
+        <>
+          <directionalLight position={[10, 9, 0]} intensity={6.0} color="#e6ecf8" />
+          <directionalLight position={[-10, 9, 0]} intensity={6.0} color="#e6ecf8" />
+        </>
+      )}
+
       {/* 2x2 ceiling-panel grid for additional local highlights.
           Skipped on mobile — every fragment shader iterates all
           lights, so 4 extra point lights compound across 161 mesh

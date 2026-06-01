@@ -4,6 +4,20 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-05-31 — Mobile rack faces were murky: portrait moves racks off the fixed lights #incident
+
+Racks read dark in the portrait/mobile aisle. Root cause was a layout↔lighting
+interaction: the portrait pass relocates every rack into a long −Z corridor, but
+the key ceiling-grid lights stay pinned at the landscape room's `z = ±3.5` (and
+are skipped entirely on mobile for perf). So a rack deep in the corridor saw only
+the uniform top-down directional — which grazes the *vertical, corridor-facing*
+rack faces at ~90° (cosine ≈ 0). Compounded by the wave system nulling the racks'
+baked emissive map, so at idle the body is pure base-colour-under-light. Fix: a
+symmetric pair of near-horizontal directionals (rays travelling ∓X) that rake
+both aisle walls' faces uniformly down the whole corridor — 2 lights, no falloff,
+portrait-only. Pushed to intensity 6.0 because the rack base colour is near-black;
+the emissive LEDs/screens are unaffected so they don't blow out.
+
 ## 2026-05-31 — Full-spectrum recolour of idle waves + per-project accents #decision
 
 The four-cluster idle wave was cyan/magenta/cyan/green — analyst shared quant's
