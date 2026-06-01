@@ -1595,11 +1595,13 @@ export function ServerRoom({
       </mesh>
 
       {/* Infinite floor-tile grid. Renders over the reflective floor
-          inside the room and extends out into the fogged void, so the
-          eye reads it as a vast data hall. Mobile fades the grid out
-          at 35 m instead of 55 m so fewer tiles paint per frame at the
-          narrower viewport — visually nearly identical because the
-          fog at [24, 65] already swallows the far cells anyway. */}
+          and extends into the fogged void so the eye reads it as a vast
+          data hall. fadeDistance is generous (80) so the tiles stay
+          solid the full length of the extended portrait aisle — to the
+          holo at z≈−30 — rather than dissolving partway; the scene fog
+          [32, 70] does the actual atmospheric recede beyond that. It's
+          a single shader plane (fade is an alpha falloff, not per-tile
+          geometry), so the larger distance is essentially free. */}
       <Grid
         position={[0, 0.005, 0]}
         cellSize={1}
@@ -1608,8 +1610,8 @@ export function ServerRoom({
         sectionSize={4}
         sectionThickness={1.1}
         sectionColor="#727a9c"
-        fadeDistance={isMobile ? 35 : 55}
-        fadeStrength={1.2}
+        fadeDistance={80}
+        fadeStrength={1.0}
         infiniteGrid
         side={2}
       />
