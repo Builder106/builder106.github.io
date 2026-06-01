@@ -1432,12 +1432,12 @@ export function ServerRoom({
           {/* Backwall terminus at the end of the corridor — a dim
               wall with a single cyan accent strip. Anchors the aisle
               with a destination instead of fading into pure fog. */}
-          <mesh position={[0, 1.8, AISLE_TERMINUS_Z]}>
-            <planeGeometry args={[6, 3.6]} />
+          <mesh position={[0, 5, AISLE_TERMINUS_Z]}>
+            <planeGeometry args={[40, 12]} />
             <meshBasicMaterial color="#0a1422" toneMapped={false} fog />
           </mesh>
           <mesh position={[0, 2.6, AISLE_TERMINUS_Z + 0.01]}>
-            <planeGeometry args={[4.4, 0.06]} />
+            <planeGeometry args={[16, 0.1]} />
             <meshBasicMaterial color="#4cf2ff" toneMapped={false} fog />
           </mesh>
 
