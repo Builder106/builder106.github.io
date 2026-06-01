@@ -1805,16 +1805,21 @@ export function ServerRoom({
         // label reads as "the rack I'm walking past" rather than
         // "the rack far down the aisle."
         //
-        //   ahead < 3.7      → 0  (rack body off-screen lateral)
-        //   ahead in [3.7, 5] → fade in 0 → 1
-        //   ahead in [5, 9]   → peak
-        //   ahead in [9, 14]  → fade out 1 → 0
-        //   ahead > 14        → 0  (too far)
+        //   ahead < 3.7        → 0  (rack body off-screen lateral)
+        //   ahead in [3.7, 4.7] → fade in 0 → 1
+        //   ahead in [4.7, 6.0] → peak (narrow — one label dominates)
+        //   ahead in [6.0, 8.0] → fade out 1 → 0
+        //   ahead > 8.0        → 0
+        // Tightened from a wide [5,9] peak: with racks 2.6 m apart, the
+        // old window held ~3 labels at full strength, and since portrait
+        // labels all sit at x=0 they stacked into a centred cluster. The
+        // narrow peak leaves the rack the camera is passing dominant and
+        // at most one faint neighbour handing off.
         const portraitOpacityForAhead = (ahead: number): number => {
           if (ahead < 3.7) return 0;
-          if (ahead < 5) return (ahead - 3.7) / 1.3;
-          if (ahead < 9) return 1;
-          if (ahead < 14) return (14 - ahead) / 5;
+          if (ahead < 4.7) return ahead - 3.7;          // fade in over 1.0 m
+          if (ahead < 6.0) return 1;                    // narrow peak
+          if (ahead < 8.0) return (8.0 - ahead) / 2.0;  // fade out over 2.0 m
           return 0;
         };
         // Both opacity and label render-position reference the *rack
@@ -1892,12 +1897,18 @@ export function ServerRoom({
         // just above the rack top so it reads as a nameplate for the
         // rack pair, not as a balloon floating in mid-air over it).
         const labelY = anchor.position.y + (isPortrait ? 1.1 : 1.7);
+        // Depth hierarchy (#2): couple label size to its depth-opacity so
+        // the dominant (passing) label reads full-size while a fading
+        // neighbour shrinks back, on top of the distanceFactor's natural
+        // nearer-is-bigger scaling. Landscape opacity is always 1, so the
+        // factor is a no-op there.
+        const rackLabelDistance = labelDistance * (0.72 + 0.28 * labelOpacity);
         return (
           <Html
             key={id}
             position={[labelX, labelY, labelZ]}
             center
-            distanceFactor={labelDistance}
+            distanceFactor={rackLabelDistance}
             style={{
               userSelect: "none",
               opacity: labelOpacity,
