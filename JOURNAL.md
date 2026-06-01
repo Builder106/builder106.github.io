@@ -4,6 +4,22 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-05-31 — Draco-compressed the glb + security rack logos #decision #milestone
+
+Two follow-ups after the security wing shipped. (1) Rack logos: rasterized the
+ClearHash + Halberd `favicon.svg` to 256² transparent PNGs and extracted Quarry's
+concentric-hexagon mark from its banner SVG into a standalone logo; wired via the
+existing `logo` field (runtime R3F textured planes, no Blender change). (2) Perf:
+the glb was geometry-dominated (594 KB geometry vs 49 KB textures), so Draco — not
+texture compression — was the lever. Re-exported with Draco mesh compression:
+**856 KB → 367 KB (−57%)**. Self-hosted the decoder at `public/draco/` (not the
+gstatic CDN) and pointed `useGLTF(url, "/draco/")` at it. Verified end-to-end with
+headless Playwright (WebGL via SwiftShader): scene renders, zero Draco/GLTF errors,
+glb + decoder both 200. Note: the desktop Lighthouse 0.60 is a known no-GPU CI
+artifact (software WebGL blocks the main thread) and is `warn`-only by design —
+the real gate is mobile (passing), and the glb loads lazily post-LCP, so Draco is a
+real-user transfer/scene-ready win rather than a CI-score mover.
+
 ## 2026-05-31 — Security wing authored on the right wall via Blender MCP #milestone #decision
 
 Built the three security racks (ClearHash/Halberd/Quarry) directly into

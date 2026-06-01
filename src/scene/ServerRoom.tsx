@@ -31,7 +31,11 @@ import { CLUSTER_DISPLAY, projects } from "@/data/projects";
 
 // Preload the one glb both variants now resolve to (portrait used to
 // load a separate amphitheater file — retired, see sceneVariant.ts).
-useGLTF.preload(MODEL_URLS.landscape);
+// Second arg = self-hosted Draco decoder path (public/draco/); the glb
+// ships KHR_draco_mesh_compression, so the decoder must be available or
+// the scene won't parse. Self-hosted (not the gstatic CDN) to keep the
+// site free of third-party runtime dependencies.
+useGLTF.preload(MODEL_URLS.landscape, "/draco/");
 
 // Materials whose emission should bypass ACES tonemapping.
 function isUntonedMaterial(name: string): boolean {
@@ -515,7 +519,7 @@ export function ServerRoom({
   isMobile = false,
   variant = "landscape",
 }: ServerRoomProps) {
-  const { scene: originalScene } = useGLTF(MODEL_URLS[variant]);
+  const { scene: originalScene } = useGLTF(MODEL_URLS[variant], "/draco/");
   // Portrait viewports get a procedural aisle layout (racks repositioned
   // into a single -Z column with the desk pulled forward) baked onto a
   // cloned scene. Landscape uses the authored geometry unchanged. Clone

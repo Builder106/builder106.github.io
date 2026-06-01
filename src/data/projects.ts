@@ -221,6 +221,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/ClearHash",
     },
     color: "#39ff14",
+    logo: "/img/projects/logos/clearhash.png",
   },
   {
     id: "halberd",
@@ -235,6 +236,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/Halberd",
     },
     color: "#e0b341",
+    logo: "/img/projects/logos/halberd.png",
   },
   {
     id: "quarry",
@@ -249,5 +251,6 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/Quarry",
     },
     color: "#ff7a18",
+    logo: "/img/projects/logos/quarry.png",
   },
 ];

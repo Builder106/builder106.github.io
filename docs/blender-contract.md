@@ -80,7 +80,12 @@ landscape `waveSlotCount` (=4), and the `security` wave colour `#4cff8f`.
 To re-export after editing the security wing: open
 `blend/server-room.blend`, edit, then **File → Export → glTF 2.0** to
 `public/models/server-room.glb` (GLB, Y-up, apply modifiers, materials with
-images packed — cameras/lights are excluded by exporter default).
+images packed — cameras/lights are excluded by exporter default). **Enable
+Draco mesh compression** under the Geometry → Compression panel (the geometry
+is the bulk of the file; Draco cuts it ~57%). The loader points
+`useGLTF(url, "/draco/")` at a self-hosted decoder in `public/draco/`, so a
+Draco glb is expected — a non-Draco export still loads (DRACOLoader no-ops on
+uncompressed primitives) but forfeits the size win.
 
 Place each Empty **just in front of** the surface it represents (about 1.2
 units of clearance), so when the camera rig flies to `anchor + offset` it
