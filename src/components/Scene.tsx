@@ -98,17 +98,17 @@ function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
 // the 35° vertical half-FOV. z=8.5 drops the lateral angle to ~19° so
 // the desk reads as a foreground element under the racks.
 const SCROLL_CAMERA_START = new Vector3(0, 3.4, 8.5);
-// End camera sits between rack 7 (datafest, z=-17.2) and rack 8
-// (linuxbenchhub, z=-19.8). The rack labels are centred at x=0 (not
-// at the rack bodies' x=±1.5), so even though the *body* of the rack
-// pair the camera is currently next to swings to lateral angles
-// outside the narrow portrait FOV, the *labels* stay anchored in
-// frame. Net result: the user can scroll through the entire 9-rack
-// column instead of being capped after rack 5; each analyst label
-// gets its turn as the dominant on-screen label.
-const SCROLL_CAMERA_END = new Vector3(0, 1.6, -16.0);
+// End camera reaches deep into the corridor so the full 12-rack column
+// is walkable — including the cybersec wing (slots 9–11, z ≈ −22.4 to
+// −27.6) and the operator hologram parked at the aisle end (z ≈ −30).
+// Was z=−16, sized for the original 9 racks, which capped the scroll
+// before the cybersec racks were reachable. Rack labels are centred at
+// x=0, so the camera can sit close to a pair and the label still reads
+// even as the bodies swing past the narrow portrait FOV. The target
+// looks toward the hologram at the end.
+const SCROLL_CAMERA_END = new Vector3(0, 1.6, -23.0);
 const SCROLL_TARGET_START = new Vector3(0, 0.4, -8.0);
-const SCROLL_TARGET_END = new Vector3(0, 1.5, -22.0);
+const SCROLL_TARGET_END = new Vector3(0, 1.5, -30.0);
 
 // Frame-rate-independent smoothing toward the scroll target. At 60 fps
 // with SMOOTHING=0.001 the camera reaches ~95 % of the target distance

@@ -4,6 +4,22 @@
 > things happen — retrospectives need this raw material to land. Reverse
 > chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-05-31 — Portrait scroll capped before cybersec; holo moved to the aisle end #incident #decision
+
+Two portrait/mobile fixes after the cybersec wing landed. (1) **Scroll cap:** the
+aisle camera stopped at z=−16 — sized for the original 9 racks — so the 3 cybersec
+racks (z −22.4 to −27.6) were unreachable. Extended `SCROLL_CAMERA_END` to −23
+(target −30, and the label-opacity `camZ` in sync). Compounding it, the backwall
+terminus was pinned at z=−22, so even on reaching them the wall *occluded* the
+cybersec racks and everything beyond (the camera just saw a dark wall with the DOM
+labels on top) — moved the terminus to behind the new corridor end, derived from
+the rack count. (2) **Holo:** relocated the operator hologram + pedestal from the
+front desk to the corridor end (z −30.2) facing +Z, as the walk's destination.
+Gotcha: the portrait is a flat sheet (1.1×1.48) authored facing −Y (down) so the
+*elevated* landscape orbit camera could read it; in the horizontal aisle that's
+edge-on/invisible. Stood it upright with Rx(90°) (geometry normal +Y → +Z). The
+LinkedIn click target still resolves — names preserved.
+
 ## 2026-05-31 — Mobile rack faces were murky: portrait moves racks off the fixed lights #incident
 
 Racks read dark in the portrait/mobile aisle. Root cause was a layout↔lighting

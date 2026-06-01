@@ -304,6 +304,11 @@ const AISLE_ORDER = [
 const AISLE_SPACING = 2.6;
 const AISLE_Z_START = 1.0;
 const AISLE_TERMINAL_Z = 4.2;
+// Operator hologram parks just past the last rack, at the end of the
+// corridor, facing back up the aisle (+Z) as the walk's destination.
+// The backwall terminus sits behind it, capping the corridor.
+const AISLE_HOLO_Z = AISLE_Z_START - AISLE_ORDER.length * AISLE_SPACING;
+const AISLE_TERMINUS_Z = AISLE_HOLO_Z - 1.8;
 // 1.2 m half-width (2.4 m aisle) keeps the rack bodies inside the
 // narrow ~18° portrait horizontal half-FOV until the camera is within
 // ~3.7 m of them, instead of dropping off at ~4.6 m with the original
@@ -491,6 +496,33 @@ function applyAisleLayout(scene: Object3D): void {
     termGroup.attach(terminalAnchor);
     for (const m of termMeshes) termGroup.attach(m);
     termGroup.position.set(0, termPivot.y, AISLE_TERMINAL_Z);
+  }
+
+  // Park the operator hologram at the far end of the corridor, facing
+  // back up the aisle (+Z) so it greets the user as the destination
+  // rather than riding the desk to the front. OperatorHolo + HoloPedestal
+  // are authored as children of Desk, so they were pulled forward with
+  // the terminal group above; lift them into their own pivot, drop it at
+  // the aisle end, and spin it so the portrait faces the approaching
+  // camera. Names are preserved, so the LinkedIn click target still
+  // resolves (clickResolver walks up to OperatorHolo / HoloPedestal).
+  const holo = scene.getObjectByName("OperatorHolo");
+  const pedestal = scene.getObjectByName("HoloPedestal");
+  if (holo && pedestal) {
+    pedestal.getWorldPosition(tmpWorld);
+    const holoGroup = new Group();
+    holoGroup.position.copy(tmpWorld); // pivot at the pedestal base
+    scene.add(holoGroup);
+    holoGroup.attach(holo);
+    holoGroup.attach(pedestal);
+    holoGroup.position.set(0, tmpWorld.y, AISLE_HOLO_Z);
+    // The portrait is a flat sheet (1.1 × 1.48) authored facing −Y (down)
+    // so the elevated landscape orbit camera could read it; in the
+    // horizontal aisle that is edge-on/invisible. holoGroup carries no
+    // rotation, so a clean Rx(90°) stands the sheet upright — its +Y
+    // geometry normal rotates to +Z — facing back up the corridor toward
+    // the approaching user.
+    holo.rotation.set(Math.PI / 2, 0, 0);
   }
 
   // Hide everything not in the keep-list. Run *after* the rack
@@ -1359,11 +1391,11 @@ export function ServerRoom({
           {/* Backwall terminus at the end of the corridor — a dim
               wall with a single cyan accent strip. Anchors the aisle
               with a destination instead of fading into pure fog. */}
-          <mesh position={[0, 1.8, -22]}>
+          <mesh position={[0, 1.8, AISLE_TERMINUS_Z]}>
             <planeGeometry args={[6, 3.6]} />
             <meshBasicMaterial color="#0a1422" toneMapped={false} fog />
           </mesh>
-          <mesh position={[0, 2.6, -21.99]}>
+          <mesh position={[0, 2.6, AISLE_TERMINUS_Z + 0.01]}>
             <planeGeometry args={[4.4, 0.06]} />
             <meshBasicMaterial color="#4cf2ff" toneMapped={false} fog />
           </mesh>
@@ -1664,7 +1696,7 @@ export function ServerRoom({
         // Camera Z lerped across the scroll progress, used by both
         // rack-label and terminal-label opacity. Hoisted here so both
         // branches below can use it without recomputing.
-        const camZ = 8.5 + (-16 - 8.5) * scrollProgress;
+        const camZ = 8.5 + (-23 - 8.5) * scrollProgress;
         // Portrait label-opacity rule. ahead = cameraZ − rackBodyZ;
         // positive when the rack is in front of the camera, negative
         // when the camera has scrolled past it.
