@@ -1,8 +1,9 @@
 # JOURNAL — Olayinka Vaughan portfolio
 
 > Dated log of decisions, pivots, incidents, and quotes. Add entries as
-> things happen — retrospectives need this raw material to land. Reverse
-> chronological. Tags: #decision #pivot #incident #quote #feedback #milestone.
+> things happen — retrospectives need this raw material to land.
+> Reverse-chronological; one paragraph max per entry.
+> Tags: #decision #pivot #incident #quote #feedback #milestone.
 
 ## 2026-06-01 — Portrait ceiling fixtures: 3D troffers + glow pools #decision
 
@@ -226,6 +227,127 @@ camera per viewport. `applyAisleLayout()` does the runtime reparenting
 that turns the wall-mounted landscape composition into a single corridor
 for portrait.
 
-<!-- Add new entries above this line. Older entries (initial scaffolding,
-     first 3D scene, terminal rebuild, etc.) can be backfilled here when
-     human-context worth capturing surfaces. -->
+## 2026-05-20 — Demo suite built on Playwright BDD, fighting drei's re-portaling #decision #incident
+
+Added the Gherkin demo recorder from the CLAUDE.md baseline — but two
+drei-specific things broke the obvious approach. The rack-label CSS animation
+never stops translating, so Playwright's actionability check on a clickable
+element timed out forever; the hooks now freeze that animation pre-mount.
+Worse, drei's `<Html>` re-portals on every animation frame, so `.click()` kept
+hitting "element is detached." Worked around it by dispatching a synthetic
+`MouseEvent` via `.evaluate()` instead of clicking. Shipped the demo suite
+only (single worker, slowMo 1000, two warmup scenarios to absorb the known
+0-byte-first-video bug); the QA suite can fold in later. The hero walkthrough
+is a ~2-min recruiter path: boot → click a rack → close → open the terminal →
+ping.
+
+## 2026-05-19 — First docs baseline + the amphitheater portrait experiment #decision
+
+Backfilled the repo storefront — MIT LICENSE at root (so GitHub's sidebar chip
+detects it), README with the light/dark SVG banner, shields.io badges, and a
+Mermaid sequence diagram of the click→panel flow; CONTRIBUTING with the glTF
+export contract and perf budget as explicit guardrails. Same day, took a first
+swing at narrow viewports: a separate tiered-amphitheater glb
+(`server-room-portrait.glb`) with quant racks in front, swe behind rotated −90°
+so the faces point camera-side, plus eight pulsing background tower
+silhouettes. `useSceneVariant` watches `matchMedia` and loads the matching
+scene. Both glbs share the same `anchor_<id>` / `Rack_<id>` naming so the click
+resolver and camera rig don't care which one loaded. The amphitheater didn't
+survive contact with a real phone — see the 2026-05-22 retirement.
+
+## 2026-05-17 — Placeholder projects swapped for the real six builds #decision #milestone
+
+The six rack slots had been carrying names from an early planning conversation
+(imc-prosperity, capitol-alpha, naijatank…). Repointed them at the actual
+completed projects in CS/Projects/Quant and SWE — EconOS, OCaml LOB, qforge on
+the back wall; MicroMatch, STAIJA, StudySprint on the left — each with a working
+live demo and verified repo link. Dropped gdrive-office-mcp because the user
+filtered for "completed" only. The non-mechanical part was renaming every
+per-project object inside `server-room.blend` (Rack_, Screen_, anchor_,
+StatusLED_, the bake materials) via a Blender CLI script and re-exporting, so
+the click resolver and anchor lookup kept resolving against the new ids without
+any React change. SSR semantic content and the rack callout labels both rebuild
+from `projects.ts`, so they picked up the new names for free.
+
+## 2026-05-13 — Made the 3D scene legible to machines (SSR + a real OG card) #decision
+
+The whole site was one WebGL canvas, which meant Googlebot, ChatGPT browsing,
+Slack unfurls, and screen readers all saw essentially nothing. Fixed it in
+layers: a screen-reader-only `<main>` carrying the full portfolio as semantic
+HTML, a Person JSON-LD block in `index.html`, then SSR'd the lot at build time
+via a Vite `transformIndexHtml` plugin (`semanticHtml.ts` is a pure string
+generator off `projects.ts` + `experience.ts`) so JS-disabled crawlers get
+everything at first byte — `dist/index.html` went 0.99 KB → 8.54 KB. Dropped
+the client-side `<SemanticContent>` component to avoid a double-DOM/hydration
+mismatch; the build-time injection is the single source. Also rendered the
+first real OG card: a headless Blender script (`render_og.py`) opens the
+.blend, shoots 1200×630 Eevee, and writes the social card — no more pointing
+`og:image` at the favicon.
+
+## 2026-05-09 — The click chain didn't work because Three.js strips dots from node names #incident
+
+Racks were unclickable and the camera never flew. Root cause: GLTFLoader strips
+`.` from node names because it reserves dots for animation property paths
+(`THREE.PropertyBinding`), so Blender's `anchor.imc-prosperity` arrived in the
+browser as `anchorimc-prosperity`. The `anchor.` prefix match returned an empty
+Map and the `^(Rack|Screen)\.(.+)$` regex never fired — only `Monitor` worked,
+because it has no separator. Switched the whole naming convention from dot to
+underscore (`Rack_foo`, `anchor_foo`), renamed the objects in the .blend in
+place, and wrote the gotcha into `docs/blender-contract.md` so a future export
+doesn't regress it. This is the commit where the portfolio first became
+navigable: `clickResolver` walks up to the nearest meaningful ancestor and
+`CameraRig` lerps the camera to the anchor while orbit is locked.
+
+## 2026-05-09 — First real Blender geometry + keeping cyan cyan under ACES #decision #milestone
+
+Replaced the procedural stand-in racks with the first real `server-room.glb`
+(21 KB) modeled through the Blender Lab MCP — floor, central terminal desk with
+a tilted monitor, three racks on the back wall and three on the left, each
+carrying an emissive screen and an `anchor_<id>` Empty. The .blend stays on
+disk (binary, gitignored); only the exported glb is committed. Hit the first
+real rendering gotcha immediately: the emissive screens rendered pastel because
+Filmic/ACES tonemapping desaturates strong chroma even at strength 1.0. Rather
+than reach for a postprocessing pass, set `toneMapped = false` on just the
+`M_Screen` / `M_Monitor` materials after load — ACES keeps its cinematic grip on
+the rack bodies and floor, while the screens display their literal `#4cf2ff`.
+Smallest possible fix. (The curved monitor's GLSL data-swarm shader landed the
+same day — a 5-octave domain-warped FBM particle field, also `toneMapped:
+false` so the peaks survive.)
+
+## 2026-05-09 — Tore down the static site and rebuilt as a 3D server room #pivot #decision
+
+Archived the entire 2024 static portfolio under `archive/` and scaffolded a
+Vite + React 18 + R3F rebuild — the "High-Frequency Server Room" concept, where
+the whole site is a single 3D scene framed by a terminal boot loader and a HUD,
+and each rack is a project. The key early decision was to exercise the Blender
+export pipeline end-to-end before any .glb existed: the stand-in geometry
+already carried `anchor.<id>` Empties matching `Project.anchor`, and
+`docs/blender-contract.md` pinned the export contract (anchor naming, axis
+convention, lighting bake, geometry budget) up front. Kept the CNAME, favicon,
+and resume at the root so the live domain didn't blink during the rewrite.
+
+## 2025-08-28 — Last update to the static site: STAIJA experience #milestone
+
+Added a STAIJA work-experience section to the old static portfolio, refreshed
+project images, and tuned the responsive/hover CSS. This turned out to be the
+final commit to the carousel-based site — eight months later it got archived
+for the 3D rebuild. Worth noting the long quiet stretch on either side: the
+static site was effectively "done" and only got touched when something real
+changed (a new role, a project link).
+
+## 2025-06-10 — Domain switched from naijatank.me to yinkavaughan.me #decision
+
+The site originally shipped on `naijatank.me` (the handle behind the early
+projects). Deleted that CNAME in May, then re-pointed at `yinkavaughan.me` —
+moving the personal site under the actual name rather than a project handle.
+The domain has survived every rebuild since; the 2026 R3F scaffold deliberately
+kept the CNAME at the root so the switch never had to happen twice.
+
+## 2024-12-13 — The original static portfolio #milestone
+
+First version of the site: a hand-written HTML/CSS/vanilla-JS portfolio titled
+"Olayinka's Portfolio." Over its first two days it grew a project carousel
+(tags linked to project sections), a dark-mode toggle with hue-rotated SVG
+icons, social/contact links with clipboard-copy, and a favicon. A clean,
+conventional developer portfolio — and the baseline the 2026 server-room
+concept was a deliberate reaction against.
