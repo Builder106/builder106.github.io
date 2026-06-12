@@ -279,6 +279,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/Enclave",
     },
     color: "#15c39a",
+    logo: "/img/projects/logos/enclave.png",
   },
   {
     id: "helm",
@@ -293,6 +294,7 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/Helm",
     },
     color: "#4f8cff",
+    logo: "/img/projects/logos/helm.png",
   },
   {
     id: "tradetell",
@@ -307,5 +309,6 @@ export const projects: Project[] = [
       repo: "https://github.com/Builder106/IMC_Prosperity",
     },
     color: "#ff4b4b",
+    logo: "/img/projects/logos/tradetell.png",
   },
 ];

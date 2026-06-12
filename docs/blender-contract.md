@@ -88,20 +88,26 @@ racks (econos/ocaml-lob/qforge) across room centre — a 180° Z rotation about
 the world origin — exactly as the security wing mirrored the left wall. The
 mirror preserves each rack's baked UVs, so the relocated racks reuse the
 quant bake (`M_Bake_Rack_econos`/`-ocaml-lob`/`-qforge`) and stay consistently
-lit without a re-bake.
+lit without a re-bake. Unlike the other walls, the AI/ML racks are then turned
+180° about each rack's own vertical axis so their **screen/LED face points at
+the entrance camera (+Z in Three.js)** rather than into the room — the front
+wall is the one wall the default vantage views from outside, so facing inward
+would hide the screen + brand badge. Their anchors therefore sit on the
+entrance side (Y=−7.5 in Blender → z=+7.5 in Three.js), in front of the screen.
 
-| Anchor             | Rack world pos (Blender) | Cluster | Project   |
-| ------------------ | ------------------------ | ------- | --------- |
-| `anchor_enclave`   | (1.5, −6.1, 1.3)         | ml      | Enclave   |
-| `anchor_helm`      | (0, −6.1, 1.3)           | ml      | Helm      |
-| `anchor_tradetell` | (−1.5, −6.1, 1.3)        | ml      | TradeTell |
+| Anchor             | Rack world pos (Blender) | Anchor (Blender)   | Cluster | Project   |
+| ------------------ | ------------------------ | ------------------ | ------- | --------- |
+| `anchor_enclave`   | (1.5, −6.1, 1.3)         | (1.5, −7.5, 1.3)   | ml      | Enclave   |
+| `anchor_helm`      | (0, −6.1, 1.3)           | (0, −7.5, 1.3)     | ml      | Helm      |
+| `anchor_tradetell` | (−1.5, −6.1, 1.3)        | (−1.5, −7.5, 1.3)  | ml      | TradeTell |
 
-Anchors sit 1.4 units toward room centre (Y=−4.7). LEDs recolour at runtime
-(Enclave `#15c39a`, Helm `#4f8cff`, TradeTell `#ff4b4b`). The wing is live in
-code: `AISLE_ORDER` (portrait, 15 racks), the `slotIndexByKey` `order` tuple
-+ landscape `waveSlotCount` (=5), the `ml` wave colour `#a06bff`, and the
-**front-wall case in `wallNormalFor`** (returns `(0,0,−1)` for anchors near
-Three.js z=+4.7, so the portrait aisle layout orients them correctly).
+LEDs recolour at runtime (Enclave `#15c39a`, Helm `#4f8cff`, TradeTell
+`#ff4b4b`). The wing is live in code: `AISLE_ORDER` (portrait, 15 racks), the
+`slotIndexByKey` `order` tuple + landscape `waveSlotCount` (=5), the `ml` wave
+colour `#a06bff`, the `wallNormalFor` / logo-placement front-plane handling
+(both treat z≈+7.5 anchors as +Z-facing, like the back wall), and the
+`projectCameraTarget` front-wing case (camera approaches from +Z so a click-fly
+frames the screen, not its back).
 
 To re-export after editing the security wing: open
 `blend/server-room.blend`, edit, then **File → Export → glTF 2.0** to

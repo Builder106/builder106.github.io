@@ -387,8 +387,10 @@ function wallNormalFor(anchorPos: Vector3): Vector3 {
   const minDist = Math.min(distToLeft, distToRight, distToBack, distToFront);
   if (minDist === distToLeft)  return new Vector3(1, 0, 0);   // left wall faces +X
   if (minDist === distToRight) return new Vector3(-1, 0, 0);  // right wall faces -X
-  if (minDist === distToFront) return new Vector3(0, 0, -1);  // front wall faces -Z (AI/ML wing)
-  return new Vector3(0, 0, 1);                                 // back wall faces +Z
+  // Back wall AND the AI/ML front wing both face +Z (the front-wing racks are
+  // turned to face the entrance camera), so both fall through to +Z. distToFront
+  // is kept in the min only so a front anchor isn't misread as a side wall.
+  return new Vector3(0, 0, 1);
 }
 
 // Apply the portrait aisle layout to a *cloned* scene. Mutates the scene
@@ -1605,23 +1607,27 @@ export function ServerRoom({
         // planes X=±4.7 or Z=±4.7; pick the closest. A naïve |z|>=|x|
         // dominance check breaks down when a rack sits deep on a side
         // wall (e.g. analyst at X=-4.7, Z=-6.5: |z| wins but the rack
-        // is still on the left wall, not the back).
+        // is still on the left wall, not the back). The AI/ML wing on the
+        // front (+Z) plane faces the entrance camera just like the back
+        // wall does, so it falls through to the same +Z-facing case — but
+        // distToFront must be in the min so it isn't mistaken for a side wall.
         const ax = anchor.position.x;
         const az = anchor.position.z;
         const ANCHOR_PLANE = 4.7;
         const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
         const distToRight = Math.abs(ax - ANCHOR_PLANE);
         const distToBack  = Math.abs(az + ANCHOR_PLANE);
-        const minDist = Math.min(distToLeft, distToRight, distToBack);
+        const distToFront = Math.abs(az - ANCHOR_PLANE);
+        const minDist = Math.min(distToLeft, distToRight, distToBack, distToFront);
+        const FACE_OFFSET = 0.99;
         let nx: number, nz: number;
         if (minDist === distToLeft) {
-          nx = 1; nz = 0;
+          nx = 1; nz = 0;          // left wall, face +X
         } else if (minDist === distToRight) {
-          nx = -1; nz = 0;
+          nx = -1; nz = 0;         // right wall, face -X
         } else {
-          nx = 0; nz = 1;
+          nx = 0; nz = 1;          // back OR front wall, face +Z (toward camera)
         }
-        const FACE_OFFSET = 0.99;
         const x = anchor.position.x - nx * FACE_OFFSET;
         const z = anchor.position.z - nz * FACE_OFFSET;
         const ry = Math.atan2(nx, nz);

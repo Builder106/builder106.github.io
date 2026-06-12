@@ -80,7 +80,7 @@ export const repoStats: Record<string, RepoStats> = {
   },
   "Builder106/IMC_Prosperity": {
     "lang": "Python",
-    "pushed_at": "2026-06-10T22:55:20Z",
+    "pushed_at": "2026-06-12T19:19:00Z",
     "stars": 0
   }
 };

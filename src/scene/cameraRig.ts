@@ -8,8 +8,8 @@ import { type SceneVariant } from "./sceneVariant";
 // further out on +Z and a little higher than the original (8,6,8): the
 // extra height tilts the view down so the front-wall racks read in the
 // lower foreground while quant (back) + the side wings stay in frame.
-export const DEFAULT_CAMERA_POSITION = new Vector3(7.5, 6, 9);
-export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0.6);
+export const DEFAULT_CAMERA_POSITION = new Vector3(7, 6, 13);
+export const DEFAULT_CAMERA_TARGET = new Vector3(0.3, 1.1, 0);
 
 // Portrait variant: the scene is procedurally re-laid into a two-row
 // aisle by ServerRoom.applyAisleLayout — each project rack on the left
@@ -63,6 +63,11 @@ export function projectCameraTarget(
 ): CameraTarget {
   let interiorDir: Vector3;
   if (variant === "portrait") {
+    interiorDir = new Vector3(0, 0, 1);
+  } else if (anchor.position.z > 4.7) {
+    // AI/ML front-wing racks face the entrance (+Z) rather than the room
+    // interior, so the camera must approach from OUTSIDE (+Z) to frame the
+    // rack face — stepping toward room centre would land it behind the screen.
     interiorDir = new Vector3(0, 0, 1);
   } else {
     interiorDir = new Vector3(-anchor.position.x, 0, -anchor.position.z)
