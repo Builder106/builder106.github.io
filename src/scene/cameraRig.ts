@@ -3,11 +3,13 @@ import { type SceneAnchor } from "./anchors";
 import { type SceneVariant } from "./sceneVariant";
 
 // Default isometric vantage. Looking at the origin from the front-right,
-// pulled back enough to fit a ~14x14 unit room. Y is up (Three.js space).
-// The analyst cluster lives on the left wall's back half so all nine
-// racks fit inside the 35° vertical FOV at this distance.
-export const DEFAULT_CAMERA_POSITION = new Vector3(8, 6, 8);
-export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0);
+// pulled back + up enough to fit the full four-wall room. Y is up (Three.js
+// space). The +Z front wall now holds the AI/ML wing, so the camera sits
+// further out on +Z and a little higher than the original (8,6,8): the
+// extra height tilts the view down so the front-wall racks read in the
+// lower foreground while quant (back) + the side wings stay in frame.
+export const DEFAULT_CAMERA_POSITION = new Vector3(7.5, 6, 9);
+export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 0.6);
 
 // Portrait variant: the scene is procedurally re-laid into a two-row
 // aisle by ServerRoom.applyAisleLayout — each project rack on the left

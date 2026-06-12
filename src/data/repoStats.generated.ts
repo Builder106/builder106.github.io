@@ -10,62 +10,77 @@ export interface RepoStats {
 export const repoStats: Record<string, RepoStats> = {
   "Builder106/EconOS": {
     "lang": "JavaScript",
-    "pushed_at": "2026-05-22T10:25:52Z",
+    "pushed_at": "2026-06-03T23:59:49Z",
     "stars": 0
   },
   "Builder106/ocaml_limit": {
     "lang": "OCaml",
-    "pushed_at": "2026-05-22T10:25:57Z",
-    "stars": 1
+    "pushed_at": "2026-06-03T23:57:39Z",
+    "stars": 2
   },
   "Builder106/qforge": {
     "lang": "C",
-    "pushed_at": "2026-05-22T10:26:03Z",
+    "pushed_at": "2026-06-03T23:57:36Z",
     "stars": 0
   },
   "Builder106/MicroMatch": {
     "lang": "Svelte",
-    "pushed_at": "2026-05-18T21:42:36Z",
+    "pushed_at": "2026-06-03T23:59:52Z",
     "stars": 0
   },
   "Builder106/STAIJA": {
     "lang": "TypeScript",
-    "pushed_at": "2026-05-27T19:38:43Z",
+    "pushed_at": "2026-06-03T23:59:53Z",
     "stars": 0
   },
   "Builder106/StudySprint": {
     "lang": "TypeScript",
-    "pushed_at": "2026-05-18T21:42:46Z",
+    "pushed_at": "2026-06-03T23:59:55Z",
     "stars": 0
   },
   "Builder106/CapitolAlpha": {
     "lang": "Jupyter Notebook",
-    "pushed_at": "2026-05-22T10:25:40Z",
+    "pushed_at": "2026-06-03T23:59:40Z",
     "stars": 0
   },
   "Builder106/datafest-2026": {
     "lang": "R",
-    "pushed_at": "2026-05-22T10:25:45Z",
+    "pushed_at": "2026-06-03T23:59:41Z",
     "stars": 0
   },
   "Builder106/LinuxBenchHub": {
     "lang": "JavaScript",
-    "pushed_at": "2026-05-31T17:25:39Z",
+    "pushed_at": "2026-06-12T15:49:00Z",
     "stars": 0
   },
   "Builder106/ClearHash": {
     "lang": "Rust",
-    "pushed_at": "2026-05-28T03:26:57Z",
+    "pushed_at": "2026-06-03T23:59:45Z",
     "stars": 0
   },
   "Builder106/Halberd": {
     "lang": "Go",
-    "pushed_at": "2026-05-28T01:06:38Z",
+    "pushed_at": "2026-06-03T23:59:46Z",
     "stars": 0
   },
   "Builder106/Quarry": {
     "lang": "TypeScript",
-    "pushed_at": "2026-05-28T01:06:32Z",
+    "pushed_at": "2026-06-03T23:59:48Z",
+    "stars": 0
+  },
+  "Builder106/Enclave": {
+    "lang": "TypeScript",
+    "pushed_at": "2026-06-12T17:47:12Z",
+    "stars": 0
+  },
+  "Builder106/Helm": {
+    "lang": "HTML",
+    "pushed_at": "2026-06-08T11:10:33Z",
+    "stars": 0
+  },
+  "Builder106/IMC_Prosperity": {
+    "lang": "Python",
+    "pushed_at": "2026-06-10T22:55:20Z",
     "stars": 0
   }
 };

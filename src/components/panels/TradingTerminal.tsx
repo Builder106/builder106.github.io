@@ -46,6 +46,12 @@ const AISLE_ORDER = [
   "capitol-alpha",
   "datafest-2026",
   "linuxbenchhub",
+  "clearhash",
+  "halberd",
+  "quarry",
+  "enclave",
+  "helm",
+  "tradetell",
 ] as const;
 
 const AISLE_SPACING = 2.6;
@@ -492,7 +498,7 @@ export function TradingTerminal({
         case "about":
           return [
             { kind: "output", text: "Olayinka David Vaughan — software engineer." },
-            { kind: "output", text: "Quant systems, SWE, and analyst projects on a 3D rack-by-rack tour." },
+            { kind: "output", text: "Quant, SWE, analyst, security, and AI/ML projects on a 3D rack-by-rack tour." },
             { kind: "output", text: "github @Builder106 · linkedin /in/yinka-vaughan/" },
           ];
         case "open":
@@ -560,16 +566,29 @@ export function TradingTerminal({
           return [{ kind: "output", text: "ov · software engineer · level 1 · github.com/Builder106" }];
 
         case "ls":
-        case "dir":
+        case "dir": {
           markSecret("ls");
+          // Group the aisle ids by their project cluster so the listing
+          // stays correct as clusters are added (was hardcoded slices).
+          const lsOrder: ProjectCluster[] = ["quant", "swe", "analyst", "security", "ml"];
+          const byCluster = lsOrder
+            .map((c) => ({
+              c,
+              ids: AISLE_ORDER.filter(
+                (id) => projects.find((p) => p.id === id)?.cluster === c,
+              ),
+            }))
+            .filter((g) => g.ids.length > 0);
           return [
             { kind: "output", text: "projects/" },
-            { kind: "output", text: "  " + AISLE_ORDER.slice(0, 3).join("   ") + "    [quant]" },
-            { kind: "output", text: "  " + AISLE_ORDER.slice(3, 6).join("   ") + "  [swe]" },
-            { kind: "output", text: "  " + AISLE_ORDER.slice(6).join("   ") + "  [analyst]" },
+            ...byCluster.map((g) => ({
+              kind: "output" as const,
+              text: `  ${g.ids.join("   ")}   [${CLUSTER_DISPLAY[g.c]}]`,
+            })),
             { kind: "output", text: "" },
             { kind: "output", text: "use 'open <id>' to view." },
           ];
+        }
 
         case "pwd":
           markSecret("pwd");
@@ -764,7 +783,7 @@ export function TradingTerminal({
 
         case "stats": {
           markSecret("stats");
-          const clusterOrder: ProjectCluster[] = ["quant", "swe", "analyst", "security"];
+          const clusterOrder: ProjectCluster[] = ["quant", "swe", "analyst", "security", "ml"];
           const split = clusterOrder
             .map((c) => ({ c, n: projects.filter((p) => p.cluster === c).length }))
             .filter((x) => x.n > 0)

@@ -161,6 +161,7 @@ const WAVE_CLUSTER_COLORS: Record<string, string> = {
   swe:      "#ff5cc8",   // pink
   analyst:  "#ffc24c",   // gold  (was cyan — broke the quant collision)
   security: "#46e85c",   // emerald green — kept clear of quant's blue-cyan
+  ml:       "#a06bff",   // violet — AI/ML wing, clear of the other four hues
 };
 
 function waveColorForProject(
@@ -280,8 +281,8 @@ function DistantRacks({
 // Project ids in the order they should appear down the portrait aisle —
 // closest to camera first, receding into the fog. Quant cluster anchors
 // the front because OCaml LOB / qforge are the strongest "headline" tech
-// surfaces; swe + analyst clusters follow in cluster groupings so the
-// colour-coding reads as you walk.
+// surfaces; swe + analyst + security + AI/ML clusters follow in cluster
+// groupings so the colour-coding reads as you walk.
 const AISLE_ORDER = [
   "ocaml-lob",
   "qforge",
@@ -295,6 +296,9 @@ const AISLE_ORDER = [
   "clearhash",
   "halberd",
   "quarry",
+  "enclave",
+  "helm",
+  "tradetell",
 ] as const;
 
 // Aisle geometry. Racks line both sides of a centre corridor, each pair
@@ -379,9 +383,11 @@ function wallNormalFor(anchorPos: Vector3): Vector3 {
   const distToLeft  = Math.abs(anchorPos.x + ANCHOR_PLANE);
   const distToRight = Math.abs(anchorPos.x - ANCHOR_PLANE);
   const distToBack  = Math.abs(anchorPos.z + ANCHOR_PLANE);
-  const minDist = Math.min(distToLeft, distToRight, distToBack);
+  const distToFront = Math.abs(anchorPos.z - ANCHOR_PLANE);
+  const minDist = Math.min(distToLeft, distToRight, distToBack, distToFront);
   if (minDist === distToLeft)  return new Vector3(1, 0, 0);   // left wall faces +X
   if (minDist === distToRight) return new Vector3(-1, 0, 0);  // right wall faces -X
+  if (minDist === distToFront) return new Vector3(0, 0, -1);  // front wall faces -Z (AI/ML wing)
   return new Vector3(0, 0, 1);                                 // back wall faces +Z
 }
 
@@ -682,20 +688,20 @@ export function ServerRoom({
   // in portrait.
   const WAVE_PULSE_DUR_S = 1.0;
   // Per-slot delay differs by variant:
-  //   portrait  → 12 individual racks, 0.35 s apart (rack-by-rack)
-  //   landscape → 4 cluster groups, 0.70 s apart (a wall at a time)
+  //   portrait  → 15 individual racks, 0.35 s apart (rack-by-rack)
+  //   landscape → 5 cluster groups, 0.70 s apart (a wall at a time)
   // Landscape uses cluster groups because the racks aren't on a line
   // in 3D — they're on the four walls (quant=back, swe+analyst=left,
-  // security=right). A rack-by-rack sweep would bounce around the room;
-  // a cluster sweep tells the "categories of work" story spatially,
-  // since each cluster owns its own wall.
+  // security=right, AI/ML=front). A rack-by-rack sweep would bounce
+  // around the room; a cluster sweep tells the "categories of work"
+  // story spatially, since each cluster owns its own wall.
   const WAVE_RACK_DELAY_S = 0.35;
   const WAVE_CLUSTER_DELAY_S = 0.7;
   const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
 
   // Variant-aware "which time slot does this rack fire in?" map.
-  // Portrait = 12 slots, one per rack in AISLE_ORDER. Landscape = 4
+  // Portrait = 15 slots, one per rack in AISLE_ORDER. Landscape = 5
   // slots, one per cluster. The terminal counts as quant (slot 0)
   // in landscape so the desk lights up with the first wave step.
   // Keys here MUST match the `hoverKey` format set by hoverKeyForMesh,
@@ -707,7 +713,7 @@ export function ServerRoom({
     if (variant === "portrait") {
       AISLE_ORDER.forEach((id, i) => m.set(`project:${id}`, i));
     } else {
-      const order = ["quant", "swe", "analyst", "security"] as const;
+      const order = ["quant", "swe", "analyst", "security", "ml"] as const;
       for (const p of projects) {
         const idx = order.indexOf(p.cluster as typeof order[number]);
         if (idx >= 0) m.set(`project:${p.id}`, idx);
@@ -748,7 +754,7 @@ export function ServerRoom({
 
   const waveSlotDelayS =
     variant === "portrait" ? WAVE_RACK_DELAY_S : WAVE_CLUSTER_DELAY_S;
-  const waveSlotCount = variant === "portrait" ? AISLE_ORDER.length : 4;
+  const waveSlotCount = variant === "portrait" ? AISLE_ORDER.length : 5;
   const WAVE_TOTAL_S =
     waveSlotCount * waveSlotDelayS + WAVE_PULSE_DUR_S + 0.4;
 

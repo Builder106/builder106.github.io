@@ -5,6 +5,29 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-06-12 — AI/ML wing on the front wall: 3 applied-LLM racks #milestone #decision
+
+Added a fifth cluster, `ml`, with Enclave (privacy-measured clinical-doc
+extraction), Helm (Gemini + MCP back-office co-pilot), and TradeTell (RAG
+trading assistant) — the three AI/ML projects. The room's other four walls were
+already taken (quant=back, swe+analyst=left, security=right), so the AI/ML wing
+went on the empty front (−Y) wall. Rather than re-bake, I point-mirrored the
+three quant back-wall racks across room centre (180° about Z, world origin) —
+the exact trick the security wing used on the left wall — so each new rack reuses
+the quant bake (`M_Bake_Rack_econos/-ocaml-lob/-qforge`) with UVs intact and
+stays consistently lit. Forty-five objects (3× Rack + Screen + 12 LEDs + anchor)
+duplicated, re-exported to a Draco GLB (+7 KB only, thanks to shared mesh data).
+Both scene variants resolve to the one landscape GLB, so no portrait file to
+touch. Code: new `ml` cluster type + "AI/ML" display label + violet wave colour
+`#a06bff`, a front-wall case in `wallNormalFor` (returns `(0,0,−1)`), the 3 ids
+appended to both `AISLE_ORDER` copies (the terminal's duplicate was *also* stale
+— missing the whole security wing — so fixed that drift too), `slotIndexByKey`
+order tuple + landscape `waveSlotCount` 4→5, and cluster-aware `ls`/`stats` in
+the terminal. Live smoke test: scene loads clean (only the localhost Cloudflare
+analytics CORS noise), all three racks render on the front wall with `// ai/ml`
+callouts. Projects also flow into the SEO/screen-reader mirror, JSON-LD, and
+build-time repo-stats.
+
 ## 2026-06-01 — Portrait ceiling fixtures: 3D troffers + glow pools #decision
 
 The overhead aisle strips were flat unlit boxes seen face-on — they read as 2D

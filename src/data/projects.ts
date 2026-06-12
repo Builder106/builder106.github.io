@@ -1,4 +1,4 @@
-export type ProjectCluster = "quant" | "systems" | "swe" | "analyst" | "research" | "security";
+export type ProjectCluster = "quant" | "systems" | "swe" | "analyst" | "research" | "security" | "ml";
 
 // Display label for each cluster, shared by every UI surface (rack
 // callouts, project card section header, SR-only mirror). Keeps the
@@ -10,6 +10,7 @@ export const CLUSTER_DISPLAY: Record<ProjectCluster, string> = {
   analyst: "analyst",
   research: "research",
   security: "cybersec",
+  ml: "AI/ML",
 };
 
 export interface Project {
@@ -252,5 +253,59 @@ export const projects: Project[] = [
     },
     color: "#ff8a1f",
     logo: "/img/projects/logos/quarry.png",
+  },
+
+  // AI/ML cluster ----------------------------------------------------------
+  // Applied-LLM / measured-evaluation work: each project ships a defensible
+  // cost+accuracy number from a real run over held-out synthetic data, not a
+  // model-zoo demo. Authored on the **front wall (+Z)** of server-room.glb as
+  // the AI/ML wing — the three quant back-wall racks point-mirrored across
+  // room centre (180° about Z), the same technique the security wing used, so
+  // the shared bake stays consistent. Each has the usual `Rack_<id>` +
+  // `Screen_<id>` + 12× `StatusLED_<id>_*` meshes and an `anchor_<id>` Empty.
+  // Live in code: AISLE_ORDER (portrait), the slotIndexByKey `order` tuple +
+  // landscape `waveSlotCount` (=5), the `ml` wave colour `#a06bff`, and the
+  // front-wall case in `wallNormalFor`. LEDs recolour at runtime from `color`.
+  {
+    id: "enclave",
+    name: "Enclave",
+    cluster: "ml",
+    headline: "0 B egress on-device · privacy measured per run",
+    blurb:
+      "An interactive workbench for clinical-document extraction that never phones home. Load a synthetic superbill, pick an extractor — a deterministic rules parser, a local on-device model (qwen2.5:3b via Ollama), or a hosted cloud model (Groq) — and watch a structured record fill in field-by-field against ground truth while a live gauge measures whether the document's bytes stayed on-device (0 B) or crossed to the cloud. Privacy isn't asserted, it's measured per run over 50 held-out synthetic superbills.",
+    stack: ["Next.js 16", "AI SDK 5", "Ollama", "Groq", "TypeScript"],
+    links: {
+      live: "https://enclave-iota.vercel.app",
+      repo: "https://github.com/Builder106/Enclave",
+    },
+    color: "#15c39a",
+  },
+  {
+    id: "helm",
+    name: "Helm",
+    cluster: "ml",
+    headline: "99% invoice OCR · $0.0003/invoice · 15.4× faster",
+    blurb:
+      "A Gemini 3.1 Flash Lite + MCP executive co-pilot for small-business operations. Four back-office workflows — AP-invoice OCR, creator-payout reconciliation, Tier-1 customer-service responses, and cross-company KPI Q&A — run end-to-end with measured cost and accuracy per task. AP-invoice OCR hits 99% parse / 91.9% field accuracy at $0.0003 per invoice (15.4× faster than a 6-min manual baseline); the payout reconciler exposes where an LLM reasons badly about multi-step arithmetic, so a deterministic re-computer disposes what the model proposes.",
+    stack: ["React 19", "Gemini 3.1 Flash Lite", "MCP", "libSQL", "Node"],
+    links: {
+      live: "https://helm-bridge.vercel.app",
+      repo: "https://github.com/Builder106/Helm",
+    },
+    color: "#4f8cff",
+  },
+  {
+    id: "tradetell",
+    name: "TradeTell",
+    cluster: "ml",
+    headline: "RAG over wiki + Discord + market data · writes Trader classes",
+    blurb:
+      "A retrieval-augmented assistant for the IMC Prosperity trading competition. Ensemble retrieval over three weighted vector stores — competition wiki, community Discord exports, and historical market data — grounds answers about products, position limits, and strategy, and generates complete, ready-to-run Trader classes. Groq-backed generation (llama-3.3-70b-versatile) keeps inference fast inside a Streamlit chat UI that cites its sources per answer.",
+    stack: ["Python", "Streamlit", "Groq", "RAG", "vector search"],
+    links: {
+      live: "https://tradetell.streamlit.app",
+      repo: "https://github.com/Builder106/IMC_Prosperity",
+    },
+    color: "#ff4b4b",
   },
 ];
