@@ -8,8 +8,8 @@ import { type SceneVariant } from "./sceneVariant";
 // further out on +Z and a little higher than the original (8,6,8): the
 // extra height tilts the view down so the front-wall racks read in the
 // lower foreground while quant (back) + the side wings stay in frame.
-export const DEFAULT_CAMERA_POSITION = new Vector3(7, 6, 13);
-export const DEFAULT_CAMERA_TARGET = new Vector3(0.3, 1.1, 0);
+export const DEFAULT_CAMERA_POSITION = new Vector3(6.5, 7.5, 15);
+export const DEFAULT_CAMERA_TARGET = new Vector3(0, 1, 2);
 
 // Portrait variant: the scene is procedurally re-laid into a two-row
 // aisle by ServerRoom.applyAisleLayout — each project rack on the left
