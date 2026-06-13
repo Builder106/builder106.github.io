@@ -57,7 +57,9 @@ const AISLE_ORDER = [
 const AISLE_SPACING = 2.6;
 const AISLE_Z_START = 1.0;
 const SCROLL_CAM_Z_START = 8.5;
-const SCROLL_CAM_Z_END = -16.0;
+// Mirror Scene.tsx's SCROLL_CAMERA_END.z (= AISLE_HOLO_Z + 7.2) so the
+// "you are here" rack indicator stays accurate to the full aisle length.
+const SCROLL_CAM_Z_END = AISLE_Z_START - AISLE_ORDER.length * AISLE_SPACING + 7.2;
 
 // Map a scroll progress (0..1) to the closest rack the user can
 // currently see in the aisle. Uses the same "ahead > 3.7" visibility

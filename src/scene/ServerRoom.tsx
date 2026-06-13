@@ -314,7 +314,11 @@ const AISLE_TERMINAL_Z = 4.2;
 // Operator hologram parks just past the last rack, at the end of the
 // corridor, facing back up the aisle (+Z) as the walk's destination.
 // The backwall terminus sits behind it, capping the corridor.
-const AISLE_HOLO_Z = AISLE_Z_START - AISLE_ORDER.length * AISLE_SPACING;
+// Exported so the scroll-camera end (Scene.tsx) derives its reach from the
+// actual aisle length — adding racks to AISLE_ORDER must not strand the tail
+// of the corridor beyond where the scroll can travel (it did: the AI/ML wing
+// past the cybersec racks became unreachable on mobile).
+export const AISLE_HOLO_Z = AISLE_Z_START - AISLE_ORDER.length * AISLE_SPACING;
 const AISLE_TERMINUS_Z = AISLE_HOLO_Z - 1.8;
 // 1.2 m half-width (2.4 m aisle) keeps the rack bodies inside the
 // narrow ~18° portrait horizontal half-FOV until the camera is within

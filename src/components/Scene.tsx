@@ -3,7 +3,7 @@ import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { MathUtils, Vector3 } from "three";
-import { ServerRoom } from "@/scene/ServerRoom";
+import { ServerRoom, AISLE_HOLO_Z } from "@/scene/ServerRoom";
 import {
   DEFAULT_CAMERA_POSITION,
   DEFAULT_CAMERA_TARGET,
@@ -98,17 +98,18 @@ function ResponsiveCamera({ variant }: { variant: SceneVariant }) {
 // the 35° vertical half-FOV. z=8.5 drops the lateral angle to ~19° so
 // the desk reads as a foreground element under the racks.
 const SCROLL_CAMERA_START = new Vector3(0, 3.4, 8.5);
-// End camera reaches deep into the corridor so the full 12-rack column
-// is walkable — including the cybersec wing (slots 9–11, z ≈ −22.4 to
-// −27.6) and the operator hologram parked at the aisle end (z ≈ −30).
-// Was z=−16, sized for the original 9 racks, which capped the scroll
-// before the cybersec racks were reachable. Rack labels are centred at
-// x=0, so the camera can sit close to a pair and the label still reads
-// even as the bodies swing past the narrow portrait FOV. The target
-// looks toward the hologram at the end.
-const SCROLL_CAMERA_END = new Vector3(0, 1.6, -23.0);
+// End camera reaches deep into the corridor so the WHOLE rack column is
+// walkable, whatever its length. Derived from AISLE_HOLO_Z (the aisle's far
+// end, = AISLE_Z_START − AISLE_ORDER.length · AISLE_SPACING) so adding racks
+// can never again strand the tail past the scroll's reach — the original
+// hardcoded ends (−16 for 9 racks, then −23 for 12) each broke when the
+// aisle grew. The camera stops ~7 units short of the end hologram so the
+// last rack pair + holo read ahead; the target looks at the hologram.
+// Rack labels are centred at x=0, so the camera can sit close to a pair and
+// the label still reads even as the bodies swing past the narrow portrait FOV.
+const SCROLL_CAMERA_END = new Vector3(0, 1.6, AISLE_HOLO_Z + 7.2);
 const SCROLL_TARGET_START = new Vector3(0, 0.4, -8.0);
-const SCROLL_TARGET_END = new Vector3(0, 1.5, -30.0);
+const SCROLL_TARGET_END = new Vector3(0, 1.5, AISLE_HOLO_Z);
 
 // Frame-rate-independent smoothing toward the scroll target. At 60 fps
 // with SMOOTHING=0.001 the camera reaches ~95 % of the target distance
