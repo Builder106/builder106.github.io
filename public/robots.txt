@@ -1,4 +1,29 @@
 User-agent: *
 Allow: /
 
+# This site is built to be read by AI agents. See /llms.txt for a
+# curated, machine-readable summary of the 3D portfolio. The explicit
+# per-bot blocks below are an intent signal — the wildcard above already
+# allows them; this just makes the welcome unambiguous.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
 Sitemap: https://yinkavaughan.me/sitemap.xml

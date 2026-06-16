@@ -42,10 +42,11 @@ const ContactPing = lazy(() =>
     default: m.ContactPing,
   })),
 );
-// SemanticContent is now injected as static HTML by the Vite plugin
-// in vite.config.ts — see src/utils/semanticHtml.ts. React doesn't
-// render it on the client; non-JS crawlers see the full content at
-// first byte.
+// The semantic text mirror is generated at build time by
+// buildSemanticContentHTML() in src/utils/semanticHtml.ts and injected
+// into index.html by the Vite plugin in vite.config.ts as a sibling of
+// #root — never rendered by React. Non-JS crawlers, LLM agents, and
+// screen readers get the full portfolio at first byte.
 import type { ClickTarget } from "./scene/clickResolver";
 import { useSceneVariant } from "./scene/sceneVariant";
 import { projects } from "./data/projects";

@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import {
+  buildLlmsTxt,
   buildSemanticContentHTML,
   buildStructuredDataJSON,
 } from "./src/utils/semanticHtml";
@@ -67,7 +68,7 @@ function injectStructuredData(): Plugin {
         return (
           html.slice(0, start + open.length) +
           "\n" +
-          buildStructuredDataJSON() +
+          buildStructuredDataJSON(BUILD_META.timestamp) +
           "\n    " +
           html.slice(end)
         );
@@ -76,8 +77,41 @@ function injectStructuredData(): Plugin {
   };
 }
 
+// Emit /llms.txt (llmstxt.org convention) from projects.ts at build time,
+// and serve it during `vite dev`. Unlike the semantic-mirror and JSON-LD
+// plugins (which rewrite index.html via transformIndexHtml), llms.txt is a
+// standalone file — so it needs emitFile in generateBundle for the build
+// output AND a configureServer middleware to resolve at /llms.txt locally.
+function emitLlmsTxt(): Plugin {
+  return {
+    name: "emit-llms-txt",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url === "/llms.txt") {
+          res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+          res.end(buildLlmsTxt());
+          return;
+        }
+        next();
+      });
+    },
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "llms.txt",
+        source: buildLlmsTxt(),
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), injectSemanticContent(), injectStructuredData()],
+  plugins: [
+    react(),
+    injectSemanticContent(),
+    injectStructuredData(),
+    emitLlmsTxt(),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),

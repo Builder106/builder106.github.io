@@ -406,6 +406,19 @@ export function Scene({ active, onSelect }: SceneProps) {
       gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
       style={{ background: "var(--bg-deep)" }}
       onPointerMissed={() => onSelect(null)}
+      onCreated={({ gl }) => {
+        // The WebGL surface is opaque to assistive tech and crawlers; the
+        // real, machine-readable portfolio lives in the sr-only <main>
+        // mirror (build-injected from src/utils/semanticHtml.ts). Pull the
+        // canvas out of the accessibility tree so screen readers and LLM
+        // crawlers don't announce/parse an empty graphics node that
+        // competes with the mirror. (Set on gl.domElement, not as a
+        // <Canvas> prop — R3F v8 forwards unknown props to the wrapper
+        // div, not the inner <canvas>.) The wrapper stays in the tree so
+        // the focusable rack-label buttons remain keyboard-reachable.
+        gl.domElement.setAttribute("aria-hidden", "true");
+        gl.domElement.setAttribute("role", "presentation");
+      }}
     >
       <ResponsiveCamera variant={variant} />
       <Suspense fallback={null}>

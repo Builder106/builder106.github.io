@@ -5,6 +5,33 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-06-16 — AI-discoverability layer: llms.txt, richer JSON-LD, cluster-grouped mirror #decision
+
+Hardened the machine-readable side of the site after a Gemini "I can't view
+your portfolio" thread made concrete how little of the 3D scene survives for a
+text/vision crawler. The canvas is unreadable by design, so the fix is parallel
+representations, not canvas parsing. Added a third build-time generator,
+`buildLlmsTxt()`, emitted as `/llms.txt` by a new `emitLlmsTxt()` Vite plugin
+(`generateBundle` emitFile + a `configureServer` middleware so it also resolves
+in dev — `transformIndexHtml` can't serve a non-HTML route). Upgraded
+`buildStructuredDataJSON()` from a flat Person + 15 generic CreativeWork to an
+@graph of ProfilePage (its `description` states the server-farm-clustered-by-
+discipline metaphor as a structured fact) + Person (now with `knowsAbout`) +
+ItemList (fixes project order) + 15 SoftwareSourceCode nodes — multi-typed
+SoftwareApplication when there's a live URL, `programmingLanguage` derived from
+a curated stack allowlist so infra like "Docker" never leaks in as a language,
+cluster carried as an `about`/DefinedTerm. The sr-only mirror now opens with a
+scene-description paragraph and groups projects under their five cluster
+headings instead of a flat list. Pulled the WebGL `<canvas>` out of the a11y
+tree (`aria-hidden` + `role=presentation` via `onCreated`) so screen readers and
+crawlers stop announcing an empty graphics node that competes with the mirror.
+Everything still derives from `projects.ts` — one source, three representations.
+Gated by two adversarial review passes (a 4-lens design audit, a 2-lens
+schema/fidelity verify) plus a 40-check deterministic validator on the built
+output; the one open item is a pre-existing duplicate `<h1>` in the `<noscript>`
+fallback. The long-retired `SemanticContent.tsx` is still on disk — a `git rm`
+away.
+
 ## 2026-06-12 — AI/ML wing on the front wall: 3 applied-LLM racks #milestone #decision
 
 Added a fifth cluster, `ml`, with Enclave (privacy-measured clinical-doc

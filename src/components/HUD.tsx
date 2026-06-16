@@ -17,7 +17,7 @@ interface HUDProps {
 // right: audio mute + "ping" button (contact entry point).
 export function HUD({ onPing, audioEnabled, onToggleAudio, hasExplored }: HUDProps) {
   return (
-    <div className={`hud ${hasExplored ? "hud--explored" : ""}`} aria-hidden={false}>
+    <div className={`hud ${hasExplored ? "hud--explored" : ""}`}>
       <div className="hud__corner hud__corner--tl">
         <div className="hud__mark">&lt;OV /&gt;</div>
         <div className="hud__sub">Olayinka David Vaughan</div>
