@@ -5,6 +5,25 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-06-16 — Strict schema.org validator caught a 16× range error Google missed #incident
+
+validator.schema.org flagged 16 errors on the JSON-LD that Google's Rich
+Results Test had passed clean an hour earlier. Root cause: `ItemList` is
+`Thing > Intangible > ItemList` — NOT a `CreativeWork` — yet the @graph pointed
+`hasPart` (ProfilePage → #projects-list, ×1) and `isPartOf` (each of the 15
+works → #projects-list) at it, and both properties have a `CreativeWork` range.
+1 + 15 = the 16 errors, exactly. The design-audit subagent had asserted
+"ItemList is a CreativeWork, hasPart's range is CreativeWork" — wrong on the
+first clause — and it shipped because Google's parser tolerates out-of-range
+references while the strict schema.org validator doesn't. Fix: dropped the
+page→list `hasPart` (the ItemList stays a standalone ordered index in the
+@graph — it needs no inbound ref) and repointed each work's `isPartOf` at
+`#webpage`, the ProfilePage, a real CreativeWork. Rebuilt; a local range-checker
+encoding the verified schema.org ranges reports zero violations across all 63
+references. Lesson: Google Rich Results ≠ schema.org conformance — run
+validator.schema.org too, and never trust an LLM's confident claim about a type
+hierarchy without checking schema.org itself.
+
 ## 2026-06-16 — AI-discoverability layer: llms.txt, richer JSON-LD, cluster-grouped mirror #decision
 
 Hardened the machine-readable side of the site after a Gemini "I can't view

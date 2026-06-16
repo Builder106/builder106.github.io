@@ -265,7 +265,11 @@ export function buildStructuredDataJSON(dateModified?: string): string {
       width: 1200,
       height: 630,
     },
-    hasPart: { "@id": `${SITE_URL}/#projects-list` },
+    // NB: no `hasPart` -> ItemList here. hasPart's range is CreativeWork,
+    // and ItemList is an Intangible (Thing > Intangible > ItemList), not a
+    // CreativeWork — pointing hasPart/isPartOf at it is a strict schema.org
+    // range error. The ItemList (#projects-list) stays in the @graph as a
+    // standalone ordered index; it needs no inbound reference.
     description:
       `An interactive 3D WebGL portfolio rendered as a server farm: each of ` +
       `${projects.length} projects is a server rack, and the racks are grouped into ` +
@@ -312,7 +316,10 @@ export function buildStructuredDataJSON(dateModified?: string): string {
       },
       author: { "@id": person["@id"] },
       creator: { "@id": person["@id"] },
-      isPartOf: { "@id": `${SITE_URL}/#projects-list` },
+      // Part of the portfolio page. Points at the ProfilePage (#webpage, a
+      // CreativeWork) — NOT the ItemList, which is an Intangible and outside
+      // isPartOf's CreativeWork/URL range.
+      isPartOf: { "@id": `${SITE_URL}/#webpage` },
       dateModified: BUILD_TIMESTAMP,
     };
     if (langs.length > 0) work.programmingLanguage = langs;
