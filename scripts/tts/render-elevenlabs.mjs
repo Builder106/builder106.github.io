@@ -19,8 +19,9 @@
 // Defaults to MP3 output since Starter-tier accounts can't request
 // PCM/WAV. demo:mux handles both transparently (ffmpeg).
 
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
 import { existsSync, createReadStream } from "node:fs";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, basename } from "node:path";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
@@ -141,31 +142,93 @@ console.error(
   JSON.stringify(voiceSettings),
 );
 
-const t0 = Date.now();
-const audioStream = await client.textToSpeech.convert(voiceId, {
-  text,
-  modelId: args.model ?? DEFAULT_MODEL,
-  voiceSettings,
-  outputFormat: args.outputFormat ?? DEFAULT_OUTPUT_FORMAT,
-});
-const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-console.error(`[elevenlabs] response in ${elapsed} s`);
+// Render paragraph-by-paragraph. An ElevenLabs voice clone drifts off the
+// reference over a long single generation — it "starts like you, then goes
+// robotic" after ~15-20 s. Splitting the script into short requests
+// re-anchors the voice on each one; previousText / nextText feed the
+// neighbouring lines as context (not synthesised, not billed) so prosody
+// still flows across the joins instead of sounding stitched. Segments are
+// then concatenated with a short pause between paragraphs. --no-chunk
+// falls back to the old single-shot behaviour.
+const segments = args.noChunk
+  ? [text]
+  : text.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
 
-// audioStream is a ReadableStream<Uint8Array>. Buffer + write.
-const chunks = [];
-const reader = audioStream.getReader();
-let bytes = 0;
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) break;
-  chunks.push(value);
-  bytes += value.byteLength;
+const tmpDir = resolve(repoRoot, "e2e/demo/output/.eleven-chunks");
+await mkdir(tmpDir, { recursive: true });
+
+const t0 = Date.now();
+const segFiles = [];
+for (let i = 0; i < segments.length; i++) {
+  const stream = await client.textToSpeech.convert(voiceId, {
+    text: segments[i],
+    modelId: args.model ?? DEFAULT_MODEL,
+    voiceSettings,
+    outputFormat: args.outputFormat ?? DEFAULT_OUTPUT_FORMAT,
+    previousText: segments[i - 1],
+    nextText: segments[i + 1],
+  });
+  const buf = await streamToBuffer(stream);
+  const segFile = resolve(tmpDir, `seg-${String(i).padStart(2, "0")}.mp3`);
+  await writeFile(segFile, buf);
+  segFiles.push(segFile);
+  console.error(
+    `[elevenlabs]   segment ${i + 1}/${segments.length}` +
+      ` (${segments[i].length} chars, ${(buf.byteLength / 1024).toFixed(0)} KB)`,
+  );
 }
-const buffer = Buffer.concat(chunks.map((c) => Buffer.from(c)));
-await writeFile(outPath, buffer);
+
+if (segFiles.length === 1) {
+  await copyFile(segFiles[0], outPath);
+} else {
+  // 0.5 s pause between paragraphs, then concat. Re-encode (not -c copy)
+  // so the generated silence and the ElevenLabs MP3s share one clean
+  // stream — concat-copy glitches on mismatched frame headers.
+  const silence = resolve(tmpDir, "silence.mp3");
+  await runFfmpeg([
+    "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", "0.5", "-q:a", "9", "-y", silence,
+  ]);
+  const listPath = resolve(tmpDir, "concat.txt");
+  const lines = [];
+  segFiles.forEach((f, i) => {
+    lines.push(`file '${f}'`);
+    if (i < segFiles.length - 1) lines.push(`file '${silence}'`);
+  });
+  await writeFile(listPath, lines.join("\n") + "\n");
+  await runFfmpeg([
+    "-f", "concat", "-safe", "0", "-i", listPath,
+    "-c:a", "libmp3lame", "-b:a", "128k", "-y", outPath,
+  ]);
+}
+const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
 console.error(
-  `[elevenlabs] wrote ${outPath} (${(bytes / 1024).toFixed(0)} KB)`,
+  `[elevenlabs] wrote ${outPath} — ${segFiles.length} segment(s) in ${elapsed} s`,
 );
+
+// ── helpers ─────────────────────────────────────────────────────────────────
+
+async function streamToBuffer(stream) {
+  const chunks = [];
+  const reader = stream.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(Buffer.from(value));
+  }
+  return Buffer.concat(chunks);
+}
+
+function runFfmpeg(ffArgs) {
+  return new Promise((res, rej) => {
+    const p = spawn("ffmpeg", ["-hide_banner", "-loglevel", "error", ...ffArgs], {
+      stdio: "inherit",
+    });
+    p.on("error", rej);
+    p.on("close", (code) =>
+      code === 0 ? res() : rej(new Error(`ffmpeg exited ${code}`)),
+    );
+  });
+}
 
 // ── args ──────────────────────────────────────────────────────────────────
 
@@ -185,6 +248,7 @@ function parseArgs(argv) {
     else if (a === "--speed") out.speed = Number(argv[++i]);
     else if (a === "--output-format") out.outputFormat = argv[++i];
     else if (a === "--create-voice") out.createVoice = true;
+    else if (a === "--no-chunk") out.noChunk = true;
     else if (a === "--help" || a === "-h") out.help = true;
     else {
       console.error(`[elevenlabs] unknown flag: ${a}`);
@@ -209,6 +273,9 @@ Usage:
   --similarity 0-1         similarityBoost (default: 0.85)
   --style 0-1              style exaggeration (default: 0.0)
   --speed 0.5-2.0          playback speed (default: 1.0)
+  --no-chunk               render the whole script in one request (legacy;
+                           the clone drifts robotic on long single clips —
+                           default renders per paragraph and concatenates)
   --output-format CODEC    e.g. mp3_44100_192 (Creator+), pcm_44100 (Pro+)
 `);
 }

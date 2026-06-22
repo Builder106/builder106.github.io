@@ -69,3 +69,7 @@ e2e/demo/output/*-FAILED.*
 e2e/demo/output/*.wav
 e2e/demo/output/*.mp3
 e2e/demo/output/narration.txt
+e2e/demo/output/.eleven-chunks/
+# Voice-training reading corpus — scripts to read aloud for PVC training.
+# Working material for building the voice clone, not part of the shipped site.
+e2e/demo/voice-training/
