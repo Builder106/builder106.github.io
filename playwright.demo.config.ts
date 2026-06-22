@@ -37,7 +37,13 @@ export default defineConfig({
   ],
   use: {
     baseURL: process.env.DEMO_BASE_URL ?? "http://localhost:5173",
-    headless: true,
+    // Record HEADED so the WebGL server-room scene renders on the GPU.
+    // Headless Chromium software-renders WebGL (SwiftShader); once the scene
+    // grew to the 12-rack / AI-ML-wing layout, software-GL + 1080p video
+    // capture saturated the browser and each step took 30-70 s, blowing past
+    // `timeout` (the recording "hung"). Headed (GPU) keeps steps at ~1-2 s.
+    // Set DEMO_HEADLESS=1 to force headless (only viable on a GPU-backed host).
+    headless: process.env.DEMO_HEADLESS === "1",
     viewport: { width: 1920, height: 1080 },
     video: {
       mode: "on",
