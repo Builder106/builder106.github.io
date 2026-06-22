@@ -280,6 +280,7 @@ export const projects: Project[] = [
     },
     color: "#15c39a",
     logo: "/img/projects/logos/enclave.png",
+    demo: "/img/projects/demos/enclave.webm",
   },
   {
     id: "helm",
