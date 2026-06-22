@@ -15,8 +15,8 @@ final alignment happens in the muxing pass.
 
 ## Act 1 VO
 
-> Eight projects, laid out as a server room. Each rack is a build —
-> quant, software engineering, analyst — colour-coded by cluster.
+> Twelve projects, laid out as a server room. Each rack is a build —
+> quant, software, analyst, security — colour-coded by cluster.
 >
 > After fifteen seconds of idle, a wave sweeps the room, one rack at a
 > time.
@@ -36,7 +36,7 @@ final alignment happens in the muxing pass.
 
 | Start | Line                                                                       | On-screen                                               |
 | ----- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
-| 0:00  | "Eight projects, laid out as a server room…"                               | Boot finishes, scene reveals                            |
+| 0:00  | "Twelve projects, laid out as a server room…"                              | Boot finishes, scene reveals                            |
 | 0:08  | "After fifteen seconds of idle, a wave sweeps the room…"                   | Wave begins firing on slot 0                            |
 | 0:24  | "Click a rack and its dossier opens…"                                      | EconOS panel slides in                                  |
 | 0:32  | "The central console is the room's control panel…"                         | Trading terminal panel + dashboard widgets              |
