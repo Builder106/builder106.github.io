@@ -22,14 +22,20 @@
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.965);
   width: min(720px, 92vw);
   max-height: 80vh;
   font-family: var(--font-mono);
   color: var(--text-primary);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 200ms ease-out;
+  /* Delay the whole entrance ~280ms so the CameraRig push-in to the rack
+     lands and holds before the panel reveals over it (otherwise the panel
+     covers the very rack the camera flew to). The scale + overshoot
+     cubic-bezier makes the panel spring/morph into place, not flat-fade. */
+  transition:
+    opacity 260ms ease-out 280ms,
+    transform 460ms cubic-bezier(0.34, 1.4, 0.5, 1) 280ms;
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -40,6 +46,7 @@
 
 .panel--open {
   opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
   pointer-events: auto;
 }
 
@@ -56,8 +63,8 @@
   flex-direction: column;
   overflow: hidden;
   transition:
-    border-color 220ms ease-out 180ms,
-    box-shadow 280ms ease-out 180ms;
+    border-color 220ms ease-out 460ms,
+    box-shadow 280ms ease-out 460ms;
 }
 
 .panel--open .panel__inner {
@@ -94,10 +101,10 @@
   opacity: 1;
   transform: scale(1);
 }
-.panel--open .panel__bracket--tl { transition-delay: 0ms; }
-.panel--open .panel__bracket--tr { transition-delay: 50ms; }
-.panel--open .panel__bracket--bl { transition-delay: 100ms; }
-.panel--open .panel__bracket--br { transition-delay: 150ms; }
+.panel--open .panel__bracket--tl { transition-delay: 280ms; }
+.panel--open .panel__bracket--tr { transition-delay: 330ms; }
+.panel--open .panel__bracket--bl { transition-delay: 380ms; }
+.panel--open .panel__bracket--br { transition-delay: 430ms; }
 
 /* Scan line — a thin cyan beam that starts at the top of the panel
  * and sweeps down. Off-canvas in the resting state; the keyframe
@@ -123,7 +130,7 @@
 }
 
 .panel--open .panel__scan {
-  animation: panel-scan-sweep 480ms cubic-bezier(0.4, 0, 0.2, 1) 240ms forwards;
+  animation: panel-scan-sweep 480ms cubic-bezier(0.4, 0, 0.2, 1) 520ms forwards;
 }
 
 @keyframes panel-scan-sweep {
@@ -140,7 +147,7 @@
 .panel__header,
 .panel__body {
   clip-path: inset(0 0 100% 0);
-  transition: clip-path 480ms cubic-bezier(0.4, 0, 0.2, 1) 240ms;
+  transition: clip-path 480ms cubic-bezier(0.4, 0, 0.2, 1) 520ms;
 }
 
 .panel--open .panel__header,
