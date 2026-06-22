@@ -73,3 +73,7 @@ e2e/demo/output/.eleven-chunks/
 # Voice-training reading corpus — scripts to read aloud for PVC training.
 # Working material for building the voice clone, not part of the shipped site.
 e2e/demo/voice-training/
+
+# Local debug scratch — root-level Playwright/one-off probes (underscore
+# prefix). Kept locally while debugging the scene; never part of the site.
+/_*.mjs
