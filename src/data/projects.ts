@@ -296,6 +296,7 @@ export const projects: Project[] = [
     },
     color: "#4f8cff",
     logo: "/img/projects/logos/helm.png",
+    demo: "/img/projects/demos/helm.webm",
   },
   {
     id: "tradetell",
@@ -311,5 +312,6 @@ export const projects: Project[] = [
     },
     color: "#ff4b4b",
     logo: "/img/projects/logos/tradetell.png",
+    demo: "/img/projects/demos/tradetell.webm",
   },
 ];
