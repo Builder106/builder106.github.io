@@ -1,12 +1,23 @@
 // Custom demo recorder for TradeTell.
 //
-// Streamlit apps go to sleep on idle, and the standard scroll-capture
-// script would record the "Zzzz" sleep screen. This script:
-//   1. Wakes the app without recording (phase 1)
-//   2. Opens a fresh recording context, navigates, and interacts with
-//      the chat UI — clicking a pre-built suggestion and capturing the
-//      RAG response streaming in (phase 2)
-//   3. Trims + encodes to VP9 WebM with ffmpeg
+// Two problems make the generic scroll-capture script unusable here:
+//
+//   1. Streamlit Community Cloud apps sleep on idle. The generic script
+//      would record the "Zzzz, wake this app up?" screen.
+//   2. Streamlit's default layout (left sidebar + a max-width-constrained
+//      centre column inside a 1440px viewport) shrinks to microscopic text
+//      once the recording is letterboxed into the ~720×360 ProjectCard hero.
+//
+// This script fixes both:
+//   - Phase 1 wakes the app in a throwaway context (no recording), so the
+//     startup spinner never reaches the video.
+//   - Phase 2 records at 1440×720 — exactly the 2:1 aspect of the card's
+//     hero box, so object-fit:contain doesn't letterbox. Before recording
+//     the interaction it injects CSS into the Streamlit iframe that hides
+//     the sidebar, lets the conversation use the full width, and zooms the
+//     content 2× so text stays legible after the card scales it down. The
+//     demo submits a question and slow-scrolls through the grounded answer
+//     to the "N source document(s)" citation row.
 //
 // Usage: node scripts/record-demos/record-tradetell.mjs
 
@@ -25,18 +36,33 @@ const APP_URL = "https://tradetell.streamlit.app";
 // The Streamlit content lives in an iframe at this sub-path.
 const FRAME_URL_PATTERN = /\/~\/\+\//;
 const CHAT_PLACEHOLDER = "Ask a question, or request a trading algorithm…";
-// Question to type into the chat input for the demo.
+// Question submitted for the demo.
 const QUESTION = "What products and position limits are in Round 1?";
 
-// 768px width — below Streamlit's responsive breakpoint so the sidebar
-// auto-collapses, giving the chat content the full viewport width.
-// This is the main reason text was unreadably small at 1440px: the sidebar
-// consumed ~250px and the content column was max-width constrained, leaving
-// the chat response in a narrow band that appeared tiny at card display size.
-const VIDEO_W = 768;
-const VIDEO_H = 900;
+// 1440×720 = 2:1, the exact aspect of the ProjectCard hero box (it renders
+// ~720×360 CSS px). Matching it means object-fit:contain shows the whole
+// frame with no wasted letterbox. 1440 wide is 2× the card's 720 CSS width,
+// so it stays sharp on retina.
+const VIDEO_W = 1440;
+const VIDEO_H = 720;
 const VIDEO_FPS = 24;
-const VIDEO_BITRATE = "300k";
+const VIDEO_BITRATE = "320k";
+
+// CSS injected into the Streamlit iframe so the conversation reads large.
+// Hides the sidebar (the demo submits via the textarea, so its suggestion
+// buttons aren't needed), lets the centre column span the full width, and
+// zooms everything 2× for legibility once the card scales the video down.
+const LEGIBILITY_CSS = `
+  [data-testid="stSidebar"],
+  [data-testid="stSidebarCollapsedControl"],
+  [data-testid="collapsedControl"],
+  [data-testid="stSidebarCollapseButton"] { display: none !important; }
+  section.main .block-container,
+  [data-testid="stMainBlockContainer"],
+  .block-container { max-width: 100% !important; padding: 1rem 2.5rem 7rem !important; }
+  [data-testid="stAppViewContainer"] { left: 0 !important; }
+  html { zoom: 2 !important; }
+`;
 
 // Returns the app iframe Frame once the chat textarea is visible inside it.
 async function waitForChatReady(page, timeoutMs = 120_000) {
@@ -55,6 +81,20 @@ async function waitForChatReady(page, timeoutMs = 120_000) {
     await page.waitForTimeout(3_000);
   }
   throw new Error("chat input never became visible within the timeout");
+}
+
+// Idempotently (re)inject the legibility CSS. Streamlit re-renders its
+// <head> on rerun, so call this again after the answer settles.
+async function injectLegibilityCss(appFrame) {
+  await appFrame.evaluate((css) => {
+    let el = document.getElementById("tt-demo-css");
+    if (!el) {
+      el = document.createElement("style");
+      el.id = "tt-demo-css";
+      document.head.appendChild(el);
+    }
+    el.textContent = css;
+  }, LEGIBILITY_CSS);
 }
 
 // Phase 1 — wake without recording so the startup spinner is not in
@@ -81,6 +121,23 @@ async function wakeApp() {
   await browser.close();
 }
 
+// Smoothly scroll the iframe document from top to bottom over `durationMs`,
+// so the viewer can read the whole grounded answer.
+async function slowScrollThrough(appFrame, page, durationMs) {
+  const steps = 70;
+  const stepMs = Math.max(40, Math.floor(durationMs / steps));
+  for (let i = 1; i <= steps; i++) {
+    await appFrame.evaluate((frac) => {
+      const max = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+      ) - window.innerHeight;
+      window.scrollTo({ top: max * frac, behavior: "instant" });
+    }, i / steps);
+    await page.waitForTimeout(stepMs);
+  }
+}
+
 // Phase 2 — record the actual chat interaction.
 async function recordDemo() {
   const workdir = mkdtempSync(path.join(tmpdir(), "demo-tradetell-"));
@@ -92,7 +149,24 @@ async function recordDemo() {
     recordVideo: { dir: workdir, size: { width: VIDEO_W, height: VIDEO_H } },
   });
 
+  // Pin a dark background in every frame (outer shell + the Streamlit
+  // iframe) before any script runs, so the recording never opens on the
+  // white pre-theme flash.
+  await ctx.addInitScript(() => {
+    const apply = () => {
+      const s = document.createElement("style");
+      s.textContent = "html,body{background:#0e1117 !important;}";
+      (document.head || document.documentElement).appendChild(s);
+    };
+    if (document.head || document.documentElement) apply();
+    else document.addEventListener("DOMContentLoaded", apply);
+  });
+
   const page = await ctx.newPage();
+  // Video recording begins roughly when the page is created. Timestamp it so
+  // we can trim the variable iframe-reconnect lead-in to exactly the moment
+  // content first paints (see leadSec below).
+  const tStart = Date.now();
 
   await page.goto(APP_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
   await page.waitForTimeout(2_000);
@@ -106,17 +180,25 @@ async function recordDemo() {
   const appFrame = await waitForChatReady(page);
   console.log("[tradetell] chat ready in recording context");
 
-  // Hold on the loaded UI so the viewer can read the interface.
-  await page.waitForTimeout(2_500);
+  await injectLegibilityCss(appFrame);
+  await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  // Confirm the header heading has actually painted before we treat the
+  // recording as "content has started" — this is the trim point.
+  await appFrame.getByText(/IMC Prosperity Trading Assistant/i).first()
+    .waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
+  // Everything recorded before now is the empty-dark reconnect lead-in.
+  // Keep ~0.4s of it so the open isn't an abrupt hard cut.
+  const leadSec = Math.max(0, (Date.now() - tStart) / 1000 - 0.4);
+  console.log(`[tradetell] trimming ${leadSec.toFixed(1)}s lead-in`);
+  // Beat 1: hold on the header / intro so the viewer reads what this is.
+  await page.waitForTimeout(3_000);
 
-  // Type the question character-by-character so the viewer can read it.
+  // Beat 2: submit the question. The user bubble appearing is the visible
+  // interaction (the fixed textarea sits below the zoomed viewport, so we
+  // drive it programmatically rather than showing the cursor in it).
   const chatInput = appFrame.locator(`textarea[placeholder="${CHAT_PLACEHOLDER}"]`);
-  await chatInput.click();
-  for (const char of QUESTION) {
-    await appFrame.type(`textarea[placeholder="${CHAT_PLACEHOLDER}"]`, char);
-    await page.waitForTimeout(55);
-  }
-  await page.waitForTimeout(600);
+  await chatInput.fill(QUESTION);
+  await page.waitForTimeout(500);
   await chatInput.press("Enter");
   console.log(`[tradetell] submitted: "${QUESTION}"`);
 
@@ -127,11 +209,19 @@ async function recordDemo() {
   );
   console.log("[tradetell] response streaming...");
 
-  // Poll until the response stops growing (streaming complete).
+  // Submitting reruns the Streamlit app, which rebuilds <head> and drops
+  // our injected CSS — and Streamlit auto-scrolls to the (empty) bottom by
+  // the input. So while the answer streams, tick every ~350ms to re-apply
+  // the legibility CSS and pin the scroll to the top, where the question
+  // bubble sits and the answer grows in. This keeps the streaming footage
+  // zoomed and full of content instead of an empty, unzoomed void.
   let prevLen = 0;
   let stableRuns = 0;
-  for (let i = 0; i < 30; i++) {
-    await page.waitForTimeout(2_000);
+  for (let i = 0; i < 170; i++) {
+    await injectLegibilityCss(appFrame);
+    await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForTimeout(350);
+    if (i % 6 !== 0) continue; // measure length ~every 2.1s
     const len = await appFrame.evaluate(() =>
       [...document.querySelectorAll('[data-testid="stChatMessage"]')]
         .map((m) => m.textContent?.length ?? 0)
@@ -147,8 +237,24 @@ async function recordDemo() {
     prevLen = len;
   }
 
-  // Hold the final state before closing.
-  await page.waitForTimeout(3_000);
+  // Reveal the source-document citations so the read-through ends on the
+  // proof the answer is grounded.
+  await injectLegibilityCss(appFrame);
+  const sourcesToggle = appFrame.getByText(/source document\(s\)/i).first();
+  if (await sourcesToggle.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    await sourcesToggle.click().catch(() => {});
+  }
+  await page.waitForTimeout(600);
+
+  // Slow read-through: from the top of the conversation down to the
+  // citations, re-applying CSS along the way in case of a late rerun.
+  await injectLegibilityCss(appFrame);
+  await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await page.waitForTimeout(1_500);
+  await slowScrollThrough(appFrame, page, 11_000);
+
+  // Hold the final state (citations in view) before closing.
+  await page.waitForTimeout(2_500);
 
   await ctx.close();
   await browser.close();
@@ -163,12 +269,10 @@ async function recordDemo() {
   const finalPath = path.join(OUT_DIR, "tradetell.webm");
   const passLogPrefix = path.join(workdir, "vp9pass");
   const common = [
+    "-ss", leadSec.toFixed(2),
     "-c:v", "libvpx-vp9", "-b:v", VIDEO_BITRATE,
     "-deadline", "good", "-cpu-used", "2", "-row-mt", "1",
-    // Keep natural dimensions — the card scales the video to fit its width
-    // regardless of resolution. Forcing 1440×900 here would just upscale
-    // a 768-wide capture and add blur without benefiting legibility.
-    "-vf", `fps=${VIDEO_FPS}`,
+    "-vf", `scale=${VIDEO_W}:${VIDEO_H}:flags=lanczos,fps=${VIDEO_FPS}`,
     "-an", "-passlogfile", passLogPrefix,
   ];
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", recorded, ...common, "-pass", "1", "-f", "null", "/dev/null"], { stdio: "inherit" });
