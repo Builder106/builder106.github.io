@@ -51,7 +51,7 @@ const TARGETS = [
   { id: "capitol-alpha",  url: "https://capitolalpha.vercel.app",     durationMs: 16_000 },
   { id: "datafest-2026",  url: "https://datafest-2026.vercel.app/",   durationMs: 18_000 },
   { id: "helm",           url: "https://helm-bridge.vercel.app",      durationMs: 16_000 },
-  { id: "tradetell",      url: "https://tradetell.streamlit.app",     durationMs: 14_000 },
+  // tradetell uses a custom script — see scripts/record-demos/record-tradetell.mjs
 ];
 
 async function recordOne(target) {
