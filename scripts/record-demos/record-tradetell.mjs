@@ -52,17 +52,31 @@ const VIDEO_BITRATE = "320k";
 // Hides the sidebar (the demo submits via the textarea, so its suggestion
 // buttons aren't needed), lets the centre column span the full width, and
 // zooms everything 2× for legibility once the card scales the video down.
-const LEGIBILITY_CSS = `
-  [data-testid="stSidebar"],
-  [data-testid="stSidebarCollapsedControl"],
-  [data-testid="collapsedControl"],
-  [data-testid="stSidebarCollapseButton"] { display: none !important; }
-  section.main .block-container,
-  [data-testid="stMainBlockContainer"],
-  .block-container { max-width: 100% !important; padding: 1rem 2.5rem 7rem !important; }
-  [data-testid="stAppViewContainer"] { left: 0 !important; }
-  html { zoom: 2 !important; }
-`;
+// Legibility CSS. `hideChrome` strips the fixed chat-input bar and the
+// Streamlit viewer badges for the read-through, so the frame is filled with
+// conversation text instead of a floating input over empty dark space.
+function legibilityCss({ hideChrome }) {
+  return `
+    [data-testid="stSidebar"],
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapseButton"] { display: none !important; }
+    section.main .block-container,
+    [data-testid="stMainBlockContainer"],
+    .block-container { max-width: 100% !important; padding: 2.5rem 2.5rem 1.5rem !important; }
+    [data-testid="stAppViewContainer"] { left: 0 !important; }
+    [data-testid="stStatusWidget"],
+    [class*="viewerBadge"],
+    [data-testid="stDecoration"],
+    a[href*="streamlit.io"] { display: none !important; }
+    ${hideChrome ? `
+      [data-testid="stChatInput"],
+      [data-testid="stBottomBlockContainer"],
+      [data-testid="stBottom"] { display: none !important; }
+    ` : ""}
+    html { zoom: 2 !important; }
+  `;
+}
 
 // Returns the app iframe Frame once the chat textarea is visible inside it.
 async function waitForChatReady(page, timeoutMs = 120_000) {
@@ -85,7 +99,7 @@ async function waitForChatReady(page, timeoutMs = 120_000) {
 
 // Idempotently (re)inject the legibility CSS. Streamlit re-renders its
 // <head> on rerun, so call this again after the answer settles.
-async function injectLegibilityCss(appFrame) {
+async function injectLegibilityCss(appFrame, { hideChrome = false } = {}) {
   await appFrame.evaluate((css) => {
     let el = document.getElementById("tt-demo-css");
     if (!el) {
@@ -94,7 +108,7 @@ async function injectLegibilityCss(appFrame) {
       document.head.appendChild(el);
     }
     el.textContent = css;
-  }, LEGIBILITY_CSS);
+  }, legibilityCss({ hideChrome }));
 }
 
 // Phase 1 — wake without recording so the startup spinner is not in
@@ -121,8 +135,10 @@ async function wakeApp() {
   await browser.close();
 }
 
-// Smoothly scroll the iframe document from top to bottom over `durationMs`,
-// so the viewer can read the whole grounded answer.
+// Smoothly scroll from the top of the conversation to the bottom over
+// `durationMs`. Called only after the chat input + badges are hidden and the
+// bottom padding is minimal, so the document is just the conversation — every
+// frame stays full of text with no empty padding or floating input at the end.
 async function slowScrollThrough(appFrame, page, durationMs) {
   const steps = 70;
   const stepMs = Math.max(40, Math.floor(durationMs / steps));
@@ -179,6 +195,12 @@ async function recordDemo() {
 
   const appFrame = await waitForChatReady(page);
   console.log("[tradetell] chat ready in recording context");
+
+  // The "Hosted with Streamlit" kite badge lives in the OUTER shell page,
+  // outside the iframe, so the iframe CSS can't reach it — hide it here.
+  await page.addStyleTag({
+    content: `a[href*="streamlit.io"], [class*="viewerBadge"], [data-testid="stStatusWidget"] { display: none !important; }`,
+  }).catch(() => {});
 
   await injectLegibilityCss(appFrame);
   await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
@@ -237,23 +259,16 @@ async function recordDemo() {
     prevLen = len;
   }
 
-  // Reveal the source-document citations so the read-through ends on the
-  // proof the answer is grounded.
-  await injectLegibilityCss(appFrame);
-  const sourcesToggle = appFrame.getByText(/source document\(s\)/i).first();
-  if (await sourcesToggle.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await sourcesToggle.click().catch(() => {});
-  }
-  await page.waitForTimeout(600);
-
-  // Slow read-through: from the top of the conversation down to the
-  // citations, re-applying CSS along the way in case of a late rerun.
-  await injectLegibilityCss(appFrame);
+  // Read-through phase: now hide the fixed chat-input bar and Streamlit
+  // badges and drop the bottom padding, so the document is just the
+  // conversation — no floating input over empty dark space (the "9 source
+  // document(s)" pill at the end already proves the answer is grounded).
+  await injectLegibilityCss(appFrame, { hideChrome: true });
   await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   await page.waitForTimeout(1_500);
   await slowScrollThrough(appFrame, page, 11_000);
 
-  // Hold the final state (citations in view) before closing.
+  // Hold the final state (sources pill in view) before closing.
   await page.waitForTimeout(2_500);
 
   await ctx.close();
