@@ -25,10 +25,15 @@ const APP_URL = "https://tradetell.streamlit.app";
 // The Streamlit content lives in an iframe at this sub-path.
 const FRAME_URL_PATTERN = /\/~\/\+\//;
 const CHAT_PLACEHOLDER = "Ask a question, or request a trading algorithm…";
-// One of the pre-built suggestion chips visible in the UI.
-const SUGGESTION = "What products and position limits are introduced in Round 1?";
+// Question to type into the chat input for the demo.
+const QUESTION = "What products and position limits are in Round 1?";
 
-const VIDEO_W = 1440;
+// 768px width — below Streamlit's responsive breakpoint so the sidebar
+// auto-collapses, giving the chat content the full viewport width.
+// This is the main reason text was unreadably small at 1440px: the sidebar
+// consumed ~250px and the content column was max-width constrained, leaving
+// the chat response in a narrow band that appeared tiny at card display size.
+const VIDEO_W = 768;
 const VIDEO_H = 900;
 const VIDEO_FPS = 24;
 const VIDEO_BITRATE = "300k";
@@ -86,6 +91,7 @@ async function recordDemo() {
     viewport: { width: VIDEO_W, height: VIDEO_H },
     recordVideo: { dir: workdir, size: { width: VIDEO_W, height: VIDEO_H } },
   });
+
   const page = await ctx.newPage();
 
   await page.goto(APP_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
@@ -103,10 +109,16 @@ async function recordDemo() {
   // Hold on the loaded UI so the viewer can read the interface.
   await page.waitForTimeout(2_500);
 
-  // Click the pre-built suggestion chip.
-  const chip = appFrame.getByRole("button", { name: SUGGESTION, exact: true });
-  await chip.click();
-  console.log(`[tradetell] clicked suggestion: "${SUGGESTION}"`);
+  // Type the question character-by-character so the viewer can read it.
+  const chatInput = appFrame.locator(`textarea[placeholder="${CHAT_PLACEHOLDER}"]`);
+  await chatInput.click();
+  for (const char of QUESTION) {
+    await appFrame.type(`textarea[placeholder="${CHAT_PLACEHOLDER}"]`, char);
+    await page.waitForTimeout(55);
+  }
+  await page.waitForTimeout(600);
+  await chatInput.press("Enter");
+  console.log(`[tradetell] submitted: "${QUESTION}"`);
 
   // Wait for the assistant message to start appearing.
   await appFrame.waitForFunction(
@@ -153,7 +165,10 @@ async function recordDemo() {
   const common = [
     "-c:v", "libvpx-vp9", "-b:v", VIDEO_BITRATE,
     "-deadline", "good", "-cpu-used", "2", "-row-mt", "1",
-    "-vf", `scale=${VIDEO_W}:${VIDEO_H}:flags=lanczos,fps=${VIDEO_FPS}`,
+    // Keep natural dimensions — the card scales the video to fit its width
+    // regardless of resolution. Forcing 1440×900 here would just upscale
+    // a 768-wide capture and add blur without benefiting legibility.
+    "-vf", `fps=${VIDEO_FPS}`,
     "-an", "-passlogfile", passLogPrefix,
   ];
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", recorded, ...common, "-pass", "1", "-f", "null", "/dev/null"], { stdio: "inherit" });
