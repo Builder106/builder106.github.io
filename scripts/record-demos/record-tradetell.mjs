@@ -52,9 +52,11 @@ const VIDEO_BITRATE = "320k";
 // Hides the sidebar (the demo submits via the textarea, so its suggestion
 // buttons aren't needed), lets the centre column span the full width, and
 // zooms everything 2× for legibility once the card scales the video down.
-// Legibility CSS. `hideChrome` strips the fixed chat-input bar and the
-// Streamlit viewer badges for the read-through, so the frame is filled with
-// conversation text instead of a floating input over empty dark space.
+// `hideChrome` strips the fixed chat-input bar and the Streamlit viewer
+// badges for the read-through, so the frame is filled with conversation text
+// instead of a floating input over empty dark space.
+// pre/code get white-space:pre-wrap so long code lines wrap rather than clip
+// at the right edge of the viewport.
 function legibilityCss({ hideChrome }) {
   return `
     [data-testid="stSidebar"],
@@ -69,6 +71,11 @@ function legibilityCss({ hideChrome }) {
     [class*="viewerBadge"],
     [data-testid="stDecoration"],
     a[href*="streamlit.io"] { display: none !important; }
+    pre, code, [data-testid="stCode"] * {
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      overflow-x: hidden !important;
+    }
     ${hideChrome ? `
       [data-testid="stChatInput"],
       [data-testid="stBottomBlockContainer"],
@@ -111,6 +118,22 @@ async function injectLegibilityCss(appFrame, { hideChrome = false } = {}) {
   }, legibilityCss({ hideChrome }));
 }
 
+// Scroll the Streamlit content to a given pixel offset.
+// Streamlit's scrollable element is [data-testid="stAppViewContainer"], not
+// window — using window.scrollTo on the iframe has no visible effect.
+async function scrollAppTo(appFrame, top) {
+  await appFrame.evaluate((scrollTop) => {
+    const el =
+      document.querySelector('[data-testid="stAppViewContainer"]') ||
+      document.querySelector(".main") ||
+      document.scrollingElement ||
+      document.body;
+    el.scrollTop = scrollTop;
+    // belt-and-suspenders: also reset window scroll
+    window.scrollTo({ top: scrollTop, behavior: "instant" });
+  }, top);
+}
+
 // Phase 1 — wake without recording so the startup spinner is not in
 // the final video.
 async function wakeApp() {
@@ -136,19 +159,20 @@ async function wakeApp() {
 }
 
 // Smoothly scroll from the top of the conversation to the bottom over
-// `durationMs`. Called only after the chat input + badges are hidden and the
-// bottom padding is minimal, so the document is just the conversation — every
-// frame stays full of text with no empty padding or floating input at the end.
+// `durationMs`. Uses the Streamlit scroll container directly — window.scrollTo
+// on the iframe element has no visible effect on the page content.
 async function slowScrollThrough(appFrame, page, durationMs) {
   const steps = 70;
   const stepMs = Math.max(40, Math.floor(durationMs / steps));
   for (let i = 1; i <= steps; i++) {
     await appFrame.evaluate((frac) => {
-      const max = Math.max(
-        document.body.scrollHeight,
-        document.documentElement.scrollHeight,
-      ) - window.innerHeight;
-      window.scrollTo({ top: max * frac, behavior: "instant" });
+      const el =
+        document.querySelector('[data-testid="stAppViewContainer"]') ||
+        document.querySelector(".main") ||
+        document.scrollingElement ||
+        document.body;
+      const max = el.scrollHeight - el.clientHeight;
+      el.scrollTop = max * frac;
     }, i / steps);
     await page.waitForTimeout(stepMs);
   }
@@ -203,7 +227,11 @@ async function recordDemo() {
   }).catch(() => {});
 
   await injectLegibilityCss(appFrame);
-  await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await scrollAppTo(appFrame, 0);
+  // Wait a full second for the zoom:2 CSS to repaint before we mark the trim
+  // point — without this the heading is detected at unzoomed size and the
+  // first frames of the output look small.
+  await page.waitForTimeout(1_000);
   // Confirm the header heading has actually painted before we treat the
   // recording as "content has started" — this is the trim point.
   await appFrame.getByText(/IMC Prosperity Trading Assistant/i).first()
@@ -231,17 +259,16 @@ async function recordDemo() {
   );
   console.log("[tradetell] response streaming...");
 
-  // Submitting reruns the Streamlit app, which rebuilds <head> and drops
-  // our injected CSS — and Streamlit auto-scrolls to the (empty) bottom by
-  // the input. So while the answer streams, tick every ~350ms to re-apply
-  // the legibility CSS and pin the scroll to the top, where the question
-  // bubble sits and the answer grows in. This keeps the streaming footage
-  // zoomed and full of content instead of an empty, unzoomed void.
+  // Submitting reruns the Streamlit app, which rebuilds <head> and drops our
+  // injected CSS — and Streamlit auto-scrolls its container to the bottom.
+  // Tick every ~350ms to re-apply legibility CSS and pin the Streamlit scroll
+  // container back to the top, so the streaming footage shows content growing
+  // in rather than an empty void above the input bar.
   let prevLen = 0;
   let stableRuns = 0;
   for (let i = 0; i < 170; i++) {
     await injectLegibilityCss(appFrame);
-    await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await scrollAppTo(appFrame, 0);
     await page.waitForTimeout(350);
     if (i % 6 !== 0) continue; // measure length ~every 2.1s
     const len = await appFrame.evaluate(() =>
@@ -261,10 +288,9 @@ async function recordDemo() {
 
   // Read-through phase: now hide the fixed chat-input bar and Streamlit
   // badges and drop the bottom padding, so the document is just the
-  // conversation — no floating input over empty dark space (the "9 source
-  // document(s)" pill at the end already proves the answer is grounded).
+  // conversation — no floating input over empty dark space.
   await injectLegibilityCss(appFrame, { hideChrome: true });
-  await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await scrollAppTo(appFrame, 0);
   await page.waitForTimeout(1_500);
   await slowScrollThrough(appFrame, page, 11_000);
 
