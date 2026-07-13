@@ -20,23 +20,23 @@
     "demo:mux:eleven": "ffmpeg -y -hide_banner -loglevel error -i e2e/demo/output/01-hero-master-tour.mp4 -i e2e/demo/output/narration-eleven.mp3 -filter_complex \"[1:a]silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,adelay=3000,apad[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -b:a 192k -shortest e2e/demo/output/01-hero-master-tour-narrated.mp4 && cp e2e/demo/output/01-hero-master-tour-narrated.mp4 public/demo.mp4"
   },
   "dependencies": {
-    "@react-three/drei": "^9.114.0",
-    "@react-three/fiber": "^8.17.10",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "three": "^0.170.0"
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "three": "^0.185.1"
   },
   "devDependencies": {
-    "@elevenlabs/elevenlabs-js": "^2.49.1",
-    "@playwright/test": "^1.60.0",
-    "@types/node": "^25.6.2",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@types/three": "^0.170.0",
-    "@vitejs/plugin-react": "^4.3.3",
-    "playwright-bdd": "^8.5.1",
+    "@elevenlabs/elevenlabs-js": "^2.58.0",
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.185.1",
+    "@vitejs/plugin-react": "^6.0.3",
+    "playwright-bdd": "^9.2.0",
     "replicate": "^1.4.0",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.10"
+    "typescript": "^7.0.2",
+    "vite": "^8.1.4"
   }
 }
