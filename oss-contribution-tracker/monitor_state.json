@@ -138,32 +138,52 @@
   "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452": {
     "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 14,
+    "last_comment": {
+      "author": "phikai",
+      "created_at": "2026-06-23T15:59:49.824Z",
+      "first_line": "@ahmed.hemdan I think @brendan777 will be back in a day or so, I'll tag him in. Thanks!"
+    }
   },
   "https://gitlab.com/gitlab-org/cli/-/merge_requests/3444": {
     "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3444",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 9,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-06-22T18:35:19.056Z",
+      "first_line": "Thanks @phikai ! Good point on the volume. The intent (per #8332) was discoverability \u2014 folks hitting config-location co"
+    }
   },
   "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/241671": {
     "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/241671",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 9,
+    "last_comment": {
+      "author": "gitlab-bot",
+      "created_at": "2026-06-26T09:43:01.707Z",
+      "first_line": "<!-- triage-serverless PipelineTierTransitions -->"
+    }
   },
   "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/228354": {
     "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/228354",
     "state": "closed",
-    "comments": 0,
-    "last_comment": null
+    "comments": 6,
+    "last_comment": {
+      "author": "gitlab-bot",
+      "created_at": "2026-04-22T00:16:27.058Z",
+      "first_line": "@Builder106, it seems we're waiting on an action from you for [approximately two weeks](https://handbook.gitlab.com/job-"
+    }
   },
   "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/225571": {
     "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/225571",
     "state": "merged",
-    "comments": 0,
-    "last_comment": null
+    "comments": 8,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-03-18T15:03:24.159Z",
+      "first_line": "@gitlab-bot Help."
+    }
   },
   "https://github.com/WordPress/ai/pull/858": {
     "url": "https://github.com/WordPress/ai/pull/858",
@@ -211,22 +231,6 @@
       "first_line": "Ready for review."
     }
   },
-  "https://github.com/CineQua/celestial-sanctum/pull/18": {
-    "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
-    "state": "merged",
-    "comments": 1,
-    "last_comment": {
-      "author": "vercel[bot]",
-      "created_at": "2026-06-13T12:58:14Z",
-      "first_line": "[vc]: #SIMneRhECycbW+LfmZ0PPImss5Q3cY2qRR22wbrG3eU=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5h"
-    }
-  },
-  "https://github.com/CineQua/celestial-sanctum/pull/17": {
-    "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
-    "state": "merged",
-    "comments": 0,
-    "last_comment": null
-  },
   "https://github.com/ArunNGun/openTeleprompt/pull/6": {
     "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
     "state": "open",
@@ -244,5 +248,21 @@
     "state": "open",
     "comments": 0,
     "last_comment": null
+  },
+  "https://github.com/tradingeconomics/tradingeconomics-python/pull/5": {
+    "url": "https://github.com/tradingeconomics/tradingeconomics-python/pull/5",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://github.com/OpenSourceEconomics/dags/pull/85": {
+    "url": "https://github.com/OpenSourceEconomics/dags/pull/85",
+    "state": "open",
+    "comments": 1,
+    "last_comment": {
+      "author": "review-notebook-app[bot]",
+      "created_at": "2026-05-30T17:46:40Z",
+      "first_line": "Check out this pull request on&nbsp; <a href=\"https://app.reviewnb.com/OpenSourceEconomics/dags/pull/85\"><img align=\"abs"
+    }
   }
 }
