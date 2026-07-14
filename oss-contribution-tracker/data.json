@@ -247,22 +247,6 @@
       "date": "2026-06-17"
     },
     {
-      "repo": "CineQua/celestial-sanctum",
-      "n": 18,
-      "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
-      "state": "merged",
-      "title": "deps: bump Angular to 22 + typescript to ~6.0",
-      "date": "2026-06-13"
-    },
-    {
-      "repo": "CineQua/celestial-sanctum",
-      "n": 17,
-      "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
-      "state": "merged",
-      "title": "deps: bump the dev-tooling group (jsdom 29.1.1, vitest 4.1.8)",
-      "date": "2026-06-13"
-    },
-    {
       "repo": "ArunNGun/openTeleprompt",
       "n": 6,
       "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
@@ -285,6 +269,22 @@
       "state": "open",
       "title": "Add Claude Code CLI as an LLM provider",
       "date": "2026-06-10"
+    },
+    {
+      "repo": "tradingeconomics/tradingeconomics-python",
+      "n": 5,
+      "url": "https://github.com/tradingeconomics/tradingeconomics-python/pull/5",
+      "state": "open",
+      "title": "Fix broken function-call examples in docstrings",
+      "date": "2026-05-30"
+    },
+    {
+      "repo": "OpenSourceEconomics/dags",
+      "n": 85,
+      "url": "https://github.com/OpenSourceEconomics/dags/pull/85",
+      "state": "open",
+      "title": "Fix docs: non-string annotations are converted, not rejected",
+      "date": "2026-05-30"
     }
   ]
 }
