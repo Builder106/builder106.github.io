@@ -3,10 +3,14 @@ name: Deploy
 on:
   push:
     branches: [main]
+  schedule:
+    # Keeps the OSS Ledger subpage's live counts fresh even on days with no
+    # portfolio commits. Matches the tracker's old standalone-repo cadence.
+    - cron: "17 6 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,6 +28,22 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Refresh OSS Ledger subpage
+        run: python3 oss-contribution-tracker/refresh.py
+        env:
+          # Needs `gh` (issues/PRs) and `curl` (Blender's Gitea API).
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit refreshed OSS Ledger data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add oss-contribution-tracker/data.json
+          if git diff --cached --quiet; then
+            echo "no changes"
+          else
+            git commit -m "oss-ledger: refresh data [skip ci]"
+            git push
+          fi
       - run: npm run build
         env:
           # `prebuild` calls `gh api` to refresh public repo stats

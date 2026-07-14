@@ -1,0 +1,290 @@
+{
+  "as_of": "2026-07-14",
+  "author": "Builder106",
+  "repos": [
+    {
+      "key": "gltf",
+      "name": "glTF-Blender-IO",
+      "host": "github",
+      "color": "#87C540",
+      "logo": "gltf-blender-io.svg",
+      "issues": [
+        {
+          "n": 2725,
+          "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2725",
+          "state": "closed",
+          "title": "Export crashes: bpy.utils.resource_path('SYSTEM_LIBS') raises ValueError on Blender 5.1 (any export, any scene)"
+        },
+        {
+          "n": 2726,
+          "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2726",
+          "state": "open",
+          "title": "Metaball objects export as empty geometry (missing from CURVE/SURFACE/FONT mesh-conversion list)"
+        },
+        {
+          "n": 2727,
+          "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2727",
+          "state": "open",
+          "title": "Animated Emission Strength: KHR_materials_emissive_strength extension left empty when initial value is <= 1.0"
+        },
+        {
+          "n": 2728,
+          "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2728",
+          "state": "open",
+          "title": "Shape key custom slider range (slider_min/slider_max) is lost on export/reimport"
+        }
+      ],
+      "prs": [
+        {
+          "n": 2710,
+          "url": "https://github.com/KhronosGroup/glTF-Blender-IO/pull/2710",
+          "state": "open",
+          "title": "Fix #2492: normalize image path before existence check"
+        },
+        {
+          "n": 2711,
+          "url": "https://github.com/KhronosGroup/glTF-Blender-IO/pull/2711",
+          "state": "open",
+          "title": "Fix #2691: keep image name suffixes like \".001\" on export"
+        },
+        {
+          "n": 2712,
+          "url": "https://github.com/KhronosGroup/glTF-Blender-IO/pull/2712",
+          "state": "open",
+          "title": "Fix #2592: avoid export recursion when an ancestor is bone-parented to the skinning armature"
+        },
+        {
+          "n": 2724,
+          "url": "https://github.com/KhronosGroup/glTF-Blender-IO/pull/2724",
+          "state": "open",
+          "title": "Fix #2579: keep blender_idxs in sync with dots_edges dedup"
+        }
+      ]
+    },
+    {
+      "key": "blender",
+      "name": "blender/blender",
+      "host": "gitea",
+      "color": "#E87D0D",
+      "logo": "blender.svg",
+      "issues": [
+        {
+          "n": 161272,
+          "url": "https://projects.blender.org/blender/blender/issues/161272",
+          "state": "open",
+          "title": "Vertex Groups on Library Overridden Grease Pencil objects aren't saved (same root cause as #127683)"
+        },
+        {
+          "n": 161270,
+          "url": "https://projects.blender.org/blender/blender/issues/161270",
+          "state": "open",
+          "title": "Vertex Groups on Library Overridden lattice objects aren't saved (same root cause as #127683)"
+        }
+      ],
+      "prs": [
+        {
+          "n": 161146,
+          "url": "https://projects.blender.org/blender/blender/pulls/161146",
+          "state": "open",
+          "title": "Fix #127683: Vertex groups lost when parenting mesh to armature with linked data"
+        },
+        {
+          "n": 160429,
+          "url": "https://projects.blender.org/blender/blender/pulls/160429",
+          "state": "open",
+          "title": "Fix #146649: to_mesh ignores Library Override materials"
+        },
+        {
+          "n": 160359,
+          "url": "https://projects.blender.org/blender/blender/pulls/160359",
+          "state": "open",
+          "title": "PyDoc: Document the undo argument when calling operators"
+        }
+      ]
+    },
+    {
+      "key": "cpython",
+      "name": "python/cpython",
+      "host": "github",
+      "color": "#3776AB",
+      "logo": "cpython.svg",
+      "issues": [
+        {
+          "n": 151769,
+          "url": "https://github.com/python/cpython/issues/151769",
+          "state": "open",
+          "title": "IPv6Address ordering is scope-id-blind, breaking trichotomy and making sorted()/min()/max() non-deterministic for scoped addresses"
+        }
+      ],
+      "prs": [
+        {
+          "n": 151750,
+          "url": "https://github.com/python/cpython/pull/151750",
+          "state": "open",
+          "title": "gh-139140: Document that reading __annotations__ via __dict__ is unre\u2026"
+        },
+        {
+          "n": 151772,
+          "url": "https://github.com/python/cpython/pull/151772",
+          "state": "open",
+          "title": "gh-151769: Make IPv6Address ordering scope_id-aware"
+        },
+        {
+          "n": 151811,
+          "url": "https://github.com/python/cpython/pull/151811",
+          "state": "open",
+          "title": "gh-140665: Substitute PEP 696 defaults referencing other parameters"
+        }
+      ]
+    },
+    {
+      "key": "pwndbg",
+      "name": "pwndbg",
+      "host": "github",
+      "color": "#8F2BF5",
+      "logo": null,
+      "issues": [
+        {
+          "n": 3998,
+          "url": "https://github.com/pwndbg/pwndbg/issues/3998",
+          "state": "open",
+          "title": "track-heap: uncaught exception when realloc() returns NULL"
+        }
+      ],
+      "prs": [
+        {
+          "n": 3986,
+          "url": "https://github.com/pwndbg/pwndbg/pull/3986",
+          "state": "open",
+          "title": "feat(heap-tracker): annotate alloc/realloc/free events with calling symbol (--where)"
+        },
+        {
+          "n": 3997,
+          "url": "https://github.com/pwndbg/pwndbg/pull/3997",
+          "state": "merged",
+          "title": "fix(heap-tracker): remove dead duplicate loop in Tracker.malloc"
+        }
+      ]
+    },
+    {
+      "key": "neovim",
+      "name": "neovim/neovim",
+      "host": "github",
+      "color": "#57A143",
+      "logo": "neovim.svg",
+      "issues": [],
+      "prs": [
+        {
+          "n": 40682,
+          "url": "https://github.com/neovim/neovim/pull/40682",
+          "state": "closed",
+          "title": "fix: note nil is valid in vim.validate() optional-arg errors"
+        }
+      ]
+    }
+  ],
+  "gh_comments": {
+    "KhronosGroup/glTF-Blender-IO": 2,
+    "python/cpython": 2,
+    "pwndbg/pwndbg": 2,
+    "neovim/neovim": 0
+  },
+  "gh_reviews": {
+    "KhronosGroup/glTF-Blender-IO": 0,
+    "python/cpython": 0,
+    "pwndbg/pwndbg": 0,
+    "neovim/neovim": 0
+  },
+  "gh_discussions": {
+    "KhronosGroup/glTF-Blender-IO": 0,
+    "python/cpython": 0,
+    "pwndbg/pwndbg": 0,
+    "neovim/neovim": 0
+  },
+  "discourse": {
+    "cpython": null
+  },
+  "log": {},
+  "misc": [
+    {
+      "repo": "WordPress/ai",
+      "n": 858,
+      "url": "https://github.com/WordPress/ai/pull/858",
+      "state": "open",
+      "title": "Abilities API: add core/read-nav-menus ability",
+      "date": "2026-07-11"
+    },
+    {
+      "repo": "MLH-Fellowship/pe-portfolio-site",
+      "n": 5,
+      "url": "https://github.com/MLH-Fellowship/pe-portfolio-site/pull/5",
+      "state": "closed",
+      "title": "Add carbon-screenshot.sh for documentation screenshots",
+      "date": "2026-07-11"
+    },
+    {
+      "repo": "MLH-Fellowship/pe-portfolio-site",
+      "n": 4,
+      "url": "https://github.com/MLH-Fellowship/pe-portfolio-site/pull/4",
+      "state": "closed",
+      "title": "Add redeploy-site.sh for one-command VPS redeployment",
+      "date": "2026-07-03"
+    },
+    {
+      "repo": "MLH-Fellowship/pe-portfolio-site",
+      "n": 3,
+      "url": "https://github.com/MLH-Fellowship/pe-portfolio-site/pull/3",
+      "state": "closed",
+      "title": "chore: modernize Flask runtime so it runs locally",
+      "date": "2026-06-18"
+    },
+    {
+      "repo": "spdx/tools-python",
+      "n": 895,
+      "url": "https://github.com/spdx/tools-python/pull/895",
+      "state": "open",
+      "title": "Add the py.typed marker to the spdx3 package",
+      "date": "2026-06-17"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 18,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
+      "state": "merged",
+      "title": "deps: bump Angular to 22 + typescript to ~6.0",
+      "date": "2026-06-13"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 17,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
+      "state": "merged",
+      "title": "deps: bump the dev-tooling group (jsdom 29.1.1, vitest 4.1.8)",
+      "date": "2026-06-13"
+    },
+    {
+      "repo": "ArunNGun/openTeleprompt",
+      "n": 6,
+      "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
+      "state": "open",
+      "title": "chore(lint): add ESLint flat config + CI lint/build gate",
+      "date": "2026-06-10"
+    },
+    {
+      "repo": "ArunNGun/openTeleprompt",
+      "n": 5,
+      "url": "https://github.com/ArunNGun/openTeleprompt/pull/5",
+      "state": "open",
+      "title": "feat(editor): add image support to scripts (paste, drop, file picker)",
+      "date": "2026-06-10"
+    },
+    {
+      "repo": "Pickle-Pixel/ApplyPilot",
+      "n": 64,
+      "url": "https://github.com/Pickle-Pixel/ApplyPilot/pull/64",
+      "state": "open",
+      "title": "Add Claude Code CLI as an LLM provider",
+      "date": "2026-06-10"
+    }
+  ]
+}

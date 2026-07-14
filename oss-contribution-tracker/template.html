@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSS Ledger · Builder106</title>
+<meta name="description" content="A double-entry ledger of open-source standing: 3 open issues + 3 open PRs kept on the books per repo across Blender, CPython, pwndbg, and Neovim.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='13'%3E%E2%9C%92%3C/text%3E%3C/svg%3E">
+<style>/*STYLE*/</style>
+</head>
+<body>
+<main class="book">
+
+  <header class="masthead">
+    <div class="masthead__title">
+      <p class="colophon">GSoC 2027 &middot; contribution account book</p>
+      <h1>The OSS Ledger</h1>
+      <p class="subtitle">A running account of upstream standing, kept by double entry: three open issues and three open pull requests carried on the books for every project, at all times. When one clears, a fresh entry is posted to hold the balance.</p>
+    </div>
+    <div class="masthead__stamp">
+      <span class="stamp__line">statement of</span>
+      <span class="stamp__name"><!--AUTHOR--></span>
+      <span class="stamp__line">as of <!--ASOF--></span>
+    </div>
+  </header>
+
+  <section class="trial" aria-label="Trial balance">
+    <h2 class="trial__head">Trial balance</h2>
+    <p class="trial__statement">
+      <b class="trial__fig"><!--TB_POSTED--></b> of <!--TB_CAP--> positions posted
+      <span class="trial__sep">&mdash;</span>
+      <b class="trial__red"><!--TB_TOFILL--></b> to fill.
+      Issues <span class="trial__num"><!--TB_ISSUES-->&#8202;/&#8202;<!--TB_CAPHALF--></span>,
+      pull requests <span class="trial__num"><!--TB_PRS-->&#8202;/&#8202;<!--TB_CAPHALF--></span>.
+      <!--TB_MERGED--> merged and struck since opening the book.
+    </p>
+    <div class="trial__ledger" role="table" aria-label="Per-project balances">
+      <div class="tb__row tb__row--head" role="row">
+        <span class="tb__acct">Account</span>
+        <span class="tb__cell">Issues</span>
+        <span class="tb__cell">PRs</span>
+      </div>
+      <!--TRIAL_ROWS-->
+    </div>
+  </section>
+
+  <section class="ledger" aria-label="Accounts">
+    <h2 class="section__label">Accounts</h2>
+    <p class="section__note">Only open entries carry toward each 3&#8202;/&#8202;3 balance. Cleared items (merged or closed) drop off the balance and are listed beneath it, marked for reposting. Figures are pulled live from GitHub and the Gitea API at projects.blender.org.</p>
+    <!--ACCOUNTS-->
+  </section>
+
+  <section class="supp" aria-label="Supplementary record">
+    <h2 class="section__label">Supplementary record</h2>
+    <p class="section__note">Work that no merge count captures: triage, review, meeting attendance, and community answers.</p>
+    <ul class="legend">
+      <li><span class="supp__mark audit--verified">&#9679;</span> verified &mdash; a public API (GitHub, or a forum's own) can confirm the count.</li>
+      <li><span class="supp__mark audit--self">&#9675;</span> self-reported &mdash; an evidence-linked line in <code>CONTRIBUTIONS_LOG.md</code>, including as a fallback when a normally-queryable count is temporarily unavailable.</li>
+    </ul>
+    <div class="supp__grid"><!--SUPPLEMENTARY--></div>
+  </section>
+
+  <section class="misc" aria-label="Other contributions">
+    <h2 class="section__label">Other contributions</h2>
+    <p class="section__note">One-off pull requests outside the GSoC target repos and outside my own, with no standing balance kept &mdash; just what shipped, newest first. <a href="https://github.com/pulls?q=is%3Apr+author%3ABuilder106" target="_blank" rel="noopener noreferrer">Full history on GitHub &rarr;</a></p>
+    <div class="misc__list"><!--MISC--></div>
+
+    <details class="refs">
+      <summary>Posting instructions</summary>
+      <pre><code><span class="c"># Repost the whole book (needs an authenticated gh + curl)</span>
+python3 refresh.py
+
+<span class="c"># Open entries on GitHub (glTF, cpython, pwndbg, neovim)</span>
+gh search issues <span class="a">--author</span> Builder106 <span class="a">--repo</span> KhronosGroup/glTF-Blender-IO \
+  <span class="a">--repo</span> python/cpython <span class="a">--repo</span> pwndbg/pwndbg <span class="a">--repo</span> neovim/neovim
+
+<span class="c"># Open entries on Blender (Gitea, not GitHub)</span>
+curl -s <span class="a">"https://projects.blender.org/api/v1/repos/blender/blender/issues?type=pulls&state=all&created_by=Builder106"</span>
+
+<span class="c"># Verified supplementary lines</span>
+gh search issues <span class="a">--commenter</span> Builder106 <span class="a">--repo</span> pwndbg/pwndbg <span class="a">--repo</span> neovim/neovim
+gh search prs    <span class="a">--reviewed-by</span> Builder106 <span class="a">--repo</span> pwndbg/pwndbg <span class="a">--repo</span> neovim/neovim
+
+<span class="c"># GitHub Discussions answered (gh search doesn't cover Discussions, so this goes via GraphQL)</span>
+gh api graphql <span class="a">-f</span> query<span class="a">='query($search:String!){ search(query:$search, type: DISCUSSION, first: 1) { discussionCount } }'</span> \
+  <span class="a">-f</span> search<span class="a">="repo:pwndbg/pwndbg commenter:Builder106"</span>
+
+<span class="c"># Python Discourse posts (public API, but returns 404 while my profile is private)</span>
+curl -s <span class="a">"https://discuss.python.org/u/Builder106/summary.json"</span>
+
+<span class="c"># Other contributions (everything else, minus own repos and the above)</span>
+gh search prs <span class="a">--author</span> Builder106 <span class="a">--json</span> repository,title,state,url,number,createdAt <span class="a">--limit</span> 100</code></pre>
+    </details>
+  </section>
+
+  <footer class="foot">
+    <span class="foot__rule" aria-hidden="true"></span>
+    Balance to maintain: three open issues and three open pull requests per project, at all times. A cleared entry is posted anew, not banked. Supplementary cadence is a floor, not a ceiling.<br>
+    Figures pulled <!--ASOF--> from GitHub (gh) and projects.blender.org (Gitea API). The book reposts itself daily.
+  </footer>
+
+</main>
+
+<script>
+  (function () {
+    try {
+      var pref = localStorage.getItem("theme");
+      if (pref) document.documentElement.setAttribute("data-theme", pref);
+    } catch (e) {}
+  })();
+</script>
+</body>
+</html>
