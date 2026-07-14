@@ -1,0 +1,13 @@
+[warm] Twelve builds, one room. Every rack here is a project I shipped, and I built the room to hold them.
+
+[relaxed] Left idle, a wave sweeps through, one rack at a time. The colors are the clusters.
+
+[curious] I open one and the dossier comes up — readme, repo activity, build status. This one's a learning-agent economy.
+
+[impressed] The order book matches around eighteen million orders a second.
+
+[matter-of-fact] The console in the middle is the room itself — uptime, the build it's on, repo telemetry, a few tracks on rotation.
+
+[warm] Ping reaches me — email, the repos, the resume.
+
+[confident] Five clusters, twelve builds, one room you can walk.

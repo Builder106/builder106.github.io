@@ -1,0 +1,13 @@
+Welcome to the portfolio. What you're looking at is fifteen projects, laid out like a 3D server room.
+
+Every rack is a different build. We've got clusters for quant, software, analyst roles, security, and A.I. — and they're all color-coded.
+
+If you just sit back for about fifteen seconds, you'll see a light wave sweep across the room, rack by rack.
+
+Click one open, and you get the whole story right there. You'll see the read-me file, the repo activity, and a quick demo video.
+
+Right in the middle is the central console. That's your control panel. You can use it to adjust the audio, check your session uptime, and view repo telemetry.
+
+Want to get in touch? Just hit the ping button.
+
+This entire experience was proudly built using React Three Fiber, Three dot J-S, and Blender

@@ -18,8 +18,10 @@ Run locally (needs an authenticated `gh`), or let
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import subprocess
+import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent
 DATA = ROOT / "data.json"
@@ -43,15 +45,65 @@ def tracked_urls() -> list[str]:
     data = json.loads(DATA.read_text(encoding="utf-8"))
     urls = []
     for repo in data["repos"]:
-        if repo["host"] != "github":
+        if repo["host"] not in ("github", "gitlab"):
             continue
         urls += [i["url"] for i in repo["issues"]] + [p["url"] for p in repo["prs"]]
     urls += [i["url"] for i in data.get("misc", [])]
     return urls
 
 
+def snapshot_gitlab(url: str) -> dict | None:
+    try:
+        parts = url.split("gitlab.com/")[1].split("/-/")
+        project_path = urllib.parse.quote(parts[0], safe='')
+        kind, number = parts[1].split("/")[:2]
+        
+        cmd = ["curl", "-s"]
+        if "GITLAB_TOKEN" in os.environ:
+            cmd += ["-H", f"PRIVATE-TOKEN: {os.environ['GITLAB_TOKEN']}"]
+            
+        meta_url = f"https://gitlab.com/api/v4/projects/{project_path}/{kind}/{number}"
+        meta_out = run(cmd + [meta_url])
+        meta = json.loads(meta_out) if meta_out.strip() else {}
+        if meta.get("message") == "404 Project Not Found" or "id" not in meta:
+            return None
+            
+        notes_url = f"https://gitlab.com/api/v4/projects/{project_path}/{kind}/{number}/notes?sort=asc"
+        notes_out = run(cmd + [notes_url])
+        all_notes = json.loads(notes_out) if notes_out.strip() else []
+        
+        comments = []
+        if isinstance(all_notes, list):
+            for n in all_notes:
+                if not n.get("system"):
+                    comments.append({
+                        "author": n["author"]["username"],
+                        "created_at": n["created_at"],
+                        "body": n["body"]
+                    })
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, IndexError):
+        return None
+        
+    state = "merged" if meta.get("state") == "merged" else meta.get("state", "unknown")
+    if state == "opened":
+        state = "open"
+        
+    last = comments[-1] if comments else None
+    last_comment = None
+    if last is not None:
+        body_lines = (last["body"] or "").strip().splitlines()
+        last_comment = {
+            "author": last["author"],
+            "created_at": last["created_at"],
+            "first_line": body_lines[0][:120] if body_lines else "(no text)",
+        }
+    return {"url": url, "state": state, "comments": len(comments), "last_comment": last_comment}
+
+
 def snapshot(url: str) -> dict | None:
     """Current state, comment count, and last comment for one issue or PR."""
+    if "gitlab.com" in url:
+        return snapshot_gitlab(url)
     owner, repo, kind, number = url.rstrip("/").split("/")[-4:]
     endpoint = "pulls" if kind == "pull" else "issues"
     try:

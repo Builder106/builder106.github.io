@@ -1,0 +1,13 @@
+So this is everything I've built — twelve projects, one room. Every rack's something I actually shipped.
+
+Leave it alone and a wave just rolls through, rack by rack. The colors are the categories.
+
+Click one open and the whole story's right there — readme, repo activity, build status. This one's an economy run by learning agents.
+
+And the matching engine? About eighteen million orders a second.
+
+That console in the middle is the room talking about itself — uptime, what build it's on, repo stats. There's even music.
+
+Want to reach me? Email, repos, resume — it's all right here.
+
+So yeah — five categories, twelve builds, a whole room you can walk through.

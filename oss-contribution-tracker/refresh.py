@@ -14,10 +14,12 @@ from __future__ import annotations
 
 import datetime as _dt
 import json
+import os
 import pathlib
 import re
 import subprocess
 import sys
+import urllib.parse
 
 AUTHOR = "Builder106"
 TARGET = 3  # issues + PRs wanted per repo
@@ -49,6 +51,8 @@ REPOS = [
     ("cpython", "python/cpython", "github", "python/cpython", "#3776AB", "cpython.svg"),
     ("pwndbg", "pwndbg", "github", "pwndbg/pwndbg", "#8F2BF5", None),
     ("neovim", "neovim/neovim", "github", "neovim/neovim", "#57A143", "neovim.svg"),
+    ("gitlab-cli", "gitlab-org/cli", "gitlab", "gitlab-org/cli", "#FC6D26", "gitlab.svg"),
+    ("gitlab", "gitlab-org/gitlab", "gitlab", "gitlab-org/gitlab", "#FC6D26", "gitlab.svg"),
 ]
 
 # non-PR activity buckets. `query` rows are counted from GitHub; `manual` rows
@@ -185,6 +189,20 @@ def gitea(slug: str, kind: str) -> list[dict]:
     return json.loads(out or "[]")
 
 
+def gitlab_items(slug: str, kind: str) -> list[dict]:
+    encoded_slug = urllib.parse.quote(slug, safe='')
+    url = f"https://gitlab.com/api/v4/projects/{encoded_slug}/{kind}?author_username={AUTHOR}&state=all"
+    cmd = ["curl", "-s"]
+    if "GITLAB_TOKEN" in os.environ:
+        cmd += ["-H", f"PRIVATE-TOKEN: {os.environ['GITLAB_TOKEN']}"]
+    cmd.append(url)
+    out = run(cmd)
+    try:
+        return json.loads(out or "[]")
+    except json.JSONDecodeError:
+        return []
+
+
 def collect() -> dict:
     """Build the data structure that drives the page."""
     # gh search wants alternating "--repo <slug>" flags; build that flat list.
@@ -209,7 +227,7 @@ def collect() -> dict:
         if host == "github":
             issues = gh_items(gh_issues, slug)
             prs = gh_items(gh_prs, slug)
-        else:
+        elif host == "gitea":
             issues = [{"n": i["number"],
                        "url": f"https://projects.blender.org/{slug}/issues/{i['number']}",
                        "state": i["state"], "title": i["title"]}
@@ -220,6 +238,17 @@ def collect() -> dict:
                               else i["state"]),
                     "title": i["title"]}
                    for i in gitea(slug, "pulls")]
+        elif host == "gitlab":
+            issues = [{"n": i["iid"],
+                       "url": i["web_url"],
+                       "state": "open" if i["state"] == "opened" else i["state"],
+                       "title": i["title"]}
+                      for i in gitlab_items(slug, "issues")]
+            prs = [{"n": i["iid"],
+                    "url": i["web_url"],
+                    "state": "open" if i["state"] == "opened" else i["state"],
+                    "title": i["title"]}
+                   for i in gitlab_items(slug, "merge_requests")]
         repos.append({"key": key, "name": name, "host": host, "color": col,
                       "logo": logo, "issues": issues, "prs": prs})
 
@@ -419,7 +448,7 @@ def trial_row(repo: dict, target: int) -> str:
 def build_html(data: dict) -> str:
     repos = data["repos"]
     by_key = {r["key"]: r for r in repos}
-    order = ["gltf", "blender", "cpython", "pwndbg", "neovim"]
+    order = ["gltf", "blender", "cpython", "pwndbg", "neovim", "gitlab-cli", "gitlab"]
 
     active_issues = sum(active_count(r["issues"]) for r in repos)
     active_prs = sum(active_count(r["prs"]) for r in repos)
@@ -511,7 +540,7 @@ def main() -> int:
     (OUT_DIR / "index.html").write_text(build_html(data), encoding="utf-8")
     ai = sum(active_count(r["issues"]) for r in data["repos"])
     ap = sum(active_count(r["prs"]) for r in data["repos"])
-    print(f"refreshed {data['as_of']}: active issues {ai}/{TARGET*5}, active PRs {ap}/{TARGET*5}")
+    print(f"refreshed {data['as_of']}: active issues {ai}/{TARGET*len(data['repos'])}, active PRs {ap}/{TARGET*len(data['repos'])}")
     return 0
 
 

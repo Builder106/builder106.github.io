@@ -312,6 +312,27 @@
   .panel__bracket--br { bottom: -5px; right: -5px; }
 }
 
+/* ---------- Laptop / mid-range readability ----------
+ *
+ * The panel renders at its full 720px width on any viewport wider than
+ * 720px — including 13–15" laptops where recruiters typically review.
+ * Fixed-px sizes in the 9–10px range are genuinely hard to read at
+ * 96 DPI without a magnifier. This breakpoint bumps those floors so
+ * section labels, chip text, and badge text stay legible without
+ * disturbing the visual hierarchy (de-emphasis is carried by color
+ * and opacity, not size alone).
+ */
+@media (min-width: 721px) {
+  .panel__section-label,
+  .panel__close,
+  .panel__chip,
+  .project-card__cluster,
+  .project-card__chip,
+  .panel__list-stack {
+    font-size: 11px;
+  }
+}
+
 .panel__chips {
   display: flex;
   flex-wrap: wrap;
@@ -594,7 +615,7 @@
 
 .contact-pill__label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -625,7 +646,7 @@
 
 .contact-pill__sub {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--text-muted);
   opacity: 0.7;
@@ -667,7 +688,7 @@
 }
 
 .contact-method__key {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1171,7 +1192,7 @@
 
 .project-card__nav-label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1375,7 +1396,7 @@
 
 .console-pill__title {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1478,7 +1499,7 @@
 
 .console-pill__meta {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--text-muted);
   opacity: 0.7;
@@ -1488,7 +1509,7 @@
   margin-left: auto;
   padding: 3px 9px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: lowercase;
   background: rgba(76, 242, 255, 0.06);
@@ -1553,7 +1574,7 @@
 }
 
 .console-pill__track-artist {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--text-muted);
   opacity: 0.7;
   text-overflow: ellipsis;
@@ -1621,7 +1642,7 @@
 .panel__section-meta {
   margin-left: 10px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--text-muted);
   text-transform: none;
@@ -1675,7 +1696,7 @@
 }
 
 .repo-row__cluster {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--cluster-color);

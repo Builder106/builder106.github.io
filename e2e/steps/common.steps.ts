@@ -116,11 +116,25 @@ When("I wait for the idle wave to fire", async ({ page }: { page: Page }) => {
 });
 
 // ── Hover-only beats (for showing UI without committing to a click) ───────
+// drei's <Html> portal rerenders the element on every animation frame, so
+// btn.hover() fails Playwright's element-stability check indefinitely.
+// Fix: snapshot the bounding rect via evaluate (no stability guard), move
+// the mouse there in steps so the cursor arc is visible in the recording,
+// then fire a synthetic mouseenter so any hover CSS state triggers.
 When(
   "I hover the {string} project rack",
   async ({ page }: { page: Page }, name: string) => {
     const btn = page.getByRole("button", { name: new RegExp(name, "i") }).first();
-    await btn.hover();
+    const pos = await btn.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+    });
+    await page.mouse.move(pos.x, pos.y, { steps: 12 });
+    await btn.evaluate((el) => {
+      (el as HTMLElement).dispatchEvent(
+        new MouseEvent("mouseenter", { bubbles: true, cancelable: true }),
+      );
+    });
     await dwellForDemo(page);
   },
 );

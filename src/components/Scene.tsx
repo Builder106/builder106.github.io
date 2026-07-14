@@ -399,7 +399,7 @@ export function Scene({ active, onSelect }: SceneProps) {
       // saving from dropping 1.25 → 1.0 is the single biggest GPU
       // lever for a fillrate-bound WebGL scene on a phone. Slightly
       // softer rendering, dramatically smoother frames.
-      dpr={isMobile ? 1 : [1, 1.75]}
+      dpr={isMobile ? 1 : [1, 2]}
       // No mesh in this scene actually casts shadows — disable so the
       // shadow-map render pass + texture allocation are skipped.
       shadows={false}

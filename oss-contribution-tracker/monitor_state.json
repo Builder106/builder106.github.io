@@ -135,6 +135,36 @@
       "first_line": "<img width=\"815\" height=\"597\" alt=\"image\" src=\"https://github.com/user-attachments/assets/6aea3257-d1b6-4a7c-8e25-66078a"
     }
   },
+  "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452": {
+    "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://gitlab.com/gitlab-org/cli/-/merge_requests/3444": {
+    "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3444",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/241671": {
+    "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/241671",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/228354": {
+    "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/228354",
+    "state": "closed",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/225571": {
+    "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/225571",
+    "state": "merged",
+    "comments": 0,
+    "last_comment": null
+  },
   "https://github.com/WordPress/ai/pull/858": {
     "url": "https://github.com/WordPress/ai/pull/858",
     "state": "open",
@@ -181,6 +211,22 @@
       "first_line": "Ready for review."
     }
   },
+  "https://github.com/CineQua/celestial-sanctum/pull/18": {
+    "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
+    "state": "merged",
+    "comments": 1,
+    "last_comment": {
+      "author": "vercel[bot]",
+      "created_at": "2026-06-13T12:58:14Z",
+      "first_line": "[vc]: #SIMneRhECycbW+LfmZ0PPImss5Q3cY2qRR22wbrG3eU=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5h"
+    }
+  },
+  "https://github.com/CineQua/celestial-sanctum/pull/17": {
+    "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
+    "state": "merged",
+    "comments": 0,
+    "last_comment": null
+  },
   "https://github.com/ArunNGun/openTeleprompt/pull/6": {
     "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
     "state": "open",
@@ -198,21 +244,5 @@
     "state": "open",
     "comments": 0,
     "last_comment": null
-  },
-  "https://github.com/tradingeconomics/tradingeconomics-python/pull/5": {
-    "url": "https://github.com/tradingeconomics/tradingeconomics-python/pull/5",
-    "state": "open",
-    "comments": 0,
-    "last_comment": null
-  },
-  "https://github.com/OpenSourceEconomics/dags/pull/85": {
-    "url": "https://github.com/OpenSourceEconomics/dags/pull/85",
-    "state": "open",
-    "comments": 1,
-    "last_comment": {
-      "author": "review-notebook-app[bot]",
-      "created_at": "2026-05-30T17:46:40Z",
-      "first_line": "Check out this pull request on&nbsp; <a href=\"https://app.reviewnb.com/OpenSourceEconomics/dags/pull/85\"><img align=\"abs"
-    }
   }
 }

@@ -31,8 +31,9 @@ jobs:
       - name: Refresh OSS Ledger subpage
         run: python3 oss-contribution-tracker/refresh.py
         env:
-          # Needs `gh` (issues/PRs) and `curl` (Blender's Gitea API).
+          # Needs `gh` (issues/PRs), `curl` (Blender's Gitea API), and GitLab token for notes.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
       - name: Commit refreshed OSS Ledger data
         run: |
           git config user.name "github-actions[bot]"

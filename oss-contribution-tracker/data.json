@@ -181,6 +181,56 @@
           "title": "fix: note nil is valid in vim.validate() optional-arg errors"
         }
       ]
+    },
+    {
+      "key": "gitlab-cli",
+      "name": "gitlab-org/cli",
+      "host": "gitlab",
+      "color": "#FC6D26",
+      "logo": "gitlab.svg",
+      "issues": [],
+      "prs": [
+        {
+          "n": 3452,
+          "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452",
+          "state": "open",
+          "title": "feat: add variable import command"
+        },
+        {
+          "n": 3444,
+          "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3444",
+          "state": "open",
+          "title": "docs: Document XDG Base Directory support for glab config"
+        }
+      ]
+    },
+    {
+      "key": "gitlab",
+      "name": "gitlab-org/gitlab",
+      "host": "gitlab",
+      "color": "#FC6D26",
+      "logo": "gitlab.svg",
+      "issues": [],
+      "prs": [
+        {
+          "n": 241671,
+          "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/241671",
+          "state": "open",
+          "title": "Guard against nil pipeline in codequality reports comparer"
+        },
+        {
+          "n": 228354,
+          "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/228354",
+          "state": "closed",
+          "title": "Fix unguarded codequalityReportsComparer.status access and nil pipeline guard"
+        },
+        {
+          "n": 225571,
+          "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/225571",
+          "state": "merged",
+          "title": "Use localStorage for per-list sort persistence"
+        }
+      ]
     }
   ],
   "gh_comments": {

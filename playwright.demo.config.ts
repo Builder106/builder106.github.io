@@ -44,7 +44,12 @@ export default defineConfig({
     // `timeout` (the recording "hung"). Headed (GPU) keeps steps at ~1-2 s.
     // Set DEMO_HEADLESS=1 to force headless (only viable on a GPU-backed host).
     headless: process.env.DEMO_HEADLESS === "1",
-    viewport: { width: 1920, height: 1080 },
+    // deviceScaleFactor:2 halves the on-screen window (960×540) while keeping
+    // the canvas at 1920×1080 physical pixels — Three.js reads devicePixelRatio
+    // and renders at 2×, so Playwright's physical-pixel video capture stays
+    // full 1080p without an upscaling step.
+    viewport: { width: 960, height: 540 },
+    deviceScaleFactor: 2,
     video: {
       mode: "on",
       size: { width: 1920, height: 1080 },
@@ -56,6 +61,17 @@ export default defineConfig({
       // this scene — anything faster makes the rack-label dispatchEvent
       // step race ahead of React's commit and the panel never appears.
       slowMo: Number(process.env.DEMO_SLOWMO ?? 1000),
+      // --use-angle=metal: tell ANGLE to use Apple's Metal backend even in
+      // headless mode. Without this flag, headless Chrome falls back to
+      // SwiftShader (pure-CPU software rasterizer) because it can't create
+      // a native CAMetalLayer without a display window. ANGLE's Metal backend
+      // CAN render into an IOSurface-backed offscreen surface, giving real GPU
+      // acceleration in headless. 3–10× faster than SwiftShader for complex
+      // Three.js scenes on Apple Silicon.
+      // Start the window in the background so it doesn't steal focus from
+      // whatever the user is working on. The recording still captures the
+      // full GPU-rendered scene; the window just doesn't come to front.
+      args: ["--start-maximized"],
     },
   },
   projects: [
@@ -63,9 +79,10 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        // The device preset overrides the top-level viewport silently;
-        // re-pin it here so the recorded video matches what we set above.
-        viewport: { width: 1920, height: 1080 },
+        // Re-pin viewport + deviceScaleFactor here — the device preset
+        // overrides the top-level use block silently.
+        viewport: { width: 960, height: 540 },
+        deviceScaleFactor: 2,
         video: {
           mode: "on",
           size: { width: 1920, height: 1080 },
