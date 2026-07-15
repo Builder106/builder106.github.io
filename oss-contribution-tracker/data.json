@@ -124,6 +124,18 @@
           "url": "https://github.com/python/cpython/issues/151769",
           "state": "open",
           "title": "IPv6Address ordering is scope-id-blind, breaking trichotomy and making sorted()/min()/max() non-deterministic for scoped addresses"
+        },
+        {
+          "n": 153769,
+          "url": "https://github.com/python/cpython/issues/153769",
+          "state": "open",
+          "title": "`ipaddress`: `subnet_of()` and `supernet_of()` raise confusing `TypeError` wrapping an `AttributeError` when passed an Address object"
+        },
+        {
+          "n": 153771,
+          "url": "https://github.com/python/cpython/issues/153771",
+          "state": "open",
+          "title": "`zipfile.ZipFile.writestr()` raises `AttributeError` instead of accepting `os.PathLike` objects (e.g. `pathlib.Path`)"
         }
       ],
       "prs": [
