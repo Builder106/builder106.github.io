@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-07-15",
+  "as_of": "2026-07-14",
   "author": "Builder106",
   "repos": [
     {
@@ -70,6 +70,12 @@
       "logo": "blender.svg",
       "target": 3,
       "issues": [
+        {
+          "n": 161441,
+          "url": "https://projects.blender.org/blender/blender/issues/161441",
+          "state": "open",
+          "title": "make_single_user silently fails to make data/animation local for Library Overridden objects"
+        },
         {
           "n": 161272,
           "url": "https://projects.blender.org/blender/blender/issues/161272",
@@ -274,36 +280,20 @@
   "log": {},
   "misc": [
     {
+      "repo": "chloe-ek/MLH_Portfolio",
+      "n": 18,
+      "url": "https://github.com/chloe-ek/MLH_Portfolio/pull/18",
+      "state": "open",
+      "title": "Add DB and Flask integration tests",
+      "date": "2026-07-15"
+    },
+    {
       "repo": "WordPress/ai",
       "n": 858,
       "url": "https://github.com/WordPress/ai/pull/858",
       "state": "open",
       "title": "Abilities API: add core/read-nav-menus ability",
       "date": "2026-07-11"
-    },
-    {
-      "repo": "MLH-Fellowship/pe-portfolio-site",
-      "n": 5,
-      "url": "https://github.com/MLH-Fellowship/pe-portfolio-site/pull/5",
-      "state": "closed",
-      "title": "Add carbon-screenshot.sh for documentation screenshots",
-      "date": "2026-07-11"
-    },
-    {
-      "repo": "MLH-Fellowship/pe-portfolio-site",
-      "n": 4,
-      "url": "https://github.com/MLH-Fellowship/pe-portfolio-site/pull/4",
-      "state": "closed",
-      "title": "Add redeploy-site.sh for one-command VPS redeployment",
-      "date": "2026-07-03"
-    },
-    {
-      "repo": "MLH-Fellowship/pe-portfolio-site",
-      "n": 3,
-      "url": "https://github.com/MLH-Fellowship/pe-portfolio-site/pull/3",
-      "state": "closed",
-      "title": "chore: modernize Flask runtime so it runs locally",
-      "date": "2026-06-18"
     },
     {
       "repo": "spdx/tools-python",

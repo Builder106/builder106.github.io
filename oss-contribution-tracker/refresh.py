@@ -287,8 +287,10 @@ def other_contributions() -> list[dict]:
         owner_repo = r["repository"]["nameWithOwner"]
         if owner_repo.lower().startswith(f"{AUTHOR.lower()}/") or owner_repo.lower() in target_slugs:
             continue
+        if r["state"].lower() == "closed":
+            continue
         items.append({"repo": owner_repo, "n": r["number"], "url": r["url"],
-                      "state": r["state"], "title": r["title"], "date": r["createdAt"][:10]})
+                      "state": r["state"].lower(), "title": r["title"], "date": r["createdAt"][:10]})
     items.sort(key=lambda x: x["date"], reverse=True)
     return items[:MISC_LIMIT]
 
