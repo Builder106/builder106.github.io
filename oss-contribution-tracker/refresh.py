@@ -126,39 +126,50 @@ def gh_search(kind: str, extra: list[str]) -> list[dict]:
     return json.loads(out or "[]")
 
 
-def gh_count(kind: str, flag: str) -> dict[str, int]:
-    """Count issues/PRs where AUTHOR is commenter / reviewer, per repo."""
-    counts: dict[str, int] = {}
+def gh_supp(kind: str, flag: str) -> dict[str, list[dict]]:
+    """Items where AUTHOR is commenter / reviewer, per repo."""
+    items: dict[str, list[dict]] = {}
     for _key, _name, host, slug, _col, _logo, _target in REPOS:
         if host != "github":
             continue
         out = run(["gh", "search", kind, flag, AUTHOR, "--repo", slug,
-                   "--json", "number", "--limit", "100", "--", f"-author:{AUTHOR}"])
-        counts[slug] = len(json.loads(out or "[]"))
-    return counts
+                   "--json", "url,title,updatedAt", "--limit", "100", "--", f"-author:{AUTHOR}"])
+        parsed = json.loads(out or "[]")
+        formatted = []
+        for p in parsed:
+            formatted.append({
+                "url": p["url"],
+                "title": p["title"],
+                "date": p["updatedAt"][:10]
+            })
+        items[slug] = formatted
+    return items
 
 
 DISCUSSION_SEARCH = (
-    'query($search:String!){ search(query:$search, type: DISCUSSION, first: 1) '
-    '{ discussionCount } }'
+    'query($search:String!){ search(query:$search, type: DISCUSSION, first: 50) '
+    '{ nodes { ... on Discussion { title url updatedAt } } } }'
 )
 
 
-def gh_discussion_count(field: str) -> dict[str, int]:
-    """Count GitHub Discussions where AUTHOR is commenter/author, per repo.
-
-    `gh search` only covers issues/PRs, not Discussions -- a separate
-    GraphQL type -- so this goes through `gh api graphql` instead. Repos
-    with Discussions off (cpython, glTF-Blender-IO) just come back 0
-    rather than erroring, so it's safe to call for every GitHub repo."""
-    counts: dict[str, int] = {}
+def gh_discussion_supp(field: str) -> dict[str, list[dict]]:
+    """GitHub Discussions where AUTHOR is commenter/author, per repo."""
+    items: dict[str, list[dict]] = {}
     for _key, _name, host, slug, _col, _logo, _target in REPOS:
         if host != "github":
             continue
         out = run(["gh", "api", "graphql", "-f", f"query={DISCUSSION_SEARCH}",
                    "-f", f"search=repo:{slug} {field}:{AUTHOR} -author:{AUTHOR}"])
-        counts[slug] = json.loads(out)["data"]["search"]["discussionCount"]
-    return counts
+        nodes = json.loads(out)["data"]["search"]["nodes"]
+        formatted = []
+        for n in nodes:
+            formatted.append({
+                "url": n["url"],
+                "title": n["title"],
+                "date": n["updatedAt"][:10]
+            })
+        items[slug] = formatted
+    return items
 
 
 def discourse_post_count(base_url: str, username: str) -> int | None:
@@ -252,15 +263,19 @@ def collect() -> dict:
         repos.append({"key": key, "name": name, "host": host, "color": col,
                       "logo": logo, "target": target, "issues": issues, "prs": prs})
 
-    comments = gh_count("issues", "--commenter")
-    reviews = gh_count("prs", "--reviewed-by")
-    discussions = gh_discussion_count("commenter")
-    tallies = log_tallies()
+    comments = gh_supp("issues", "--commenter")
+    reviews = gh_supp("prs", "--reviewed-by")
+    discussions = gh_discussion_supp("commenter")
+    tallies = log_items()
     misc = other_contributions()
     discourse = {"cpython": discourse_post_count("https://discuss.python.org", AUTHOR)}
+    
+    today = _dt.date.today()
+    week_start = (today - _dt.timedelta(days=today.weekday())).isoformat()
 
     return {
-        "as_of": _dt.date.today().isoformat(),
+        "as_of": today.isoformat(),
+        "week_start": week_start,
         "author": AUTHOR,
         "repos": repos,
         "gh_comments": comments,
@@ -295,21 +310,32 @@ def other_contributions() -> list[dict]:
     return items[:MISC_LIMIT]
 
 
-def log_tallies() -> dict[str, int]:
-    """Count manual rows by 'Project | ... | tag' pattern in the log."""
+def log_items() -> dict[str, list[dict]]:
+    """Get manual rows by 'Project | ... | tag' pattern in the log."""
     if not LOG.exists():
         return {}
     text = LOG.read_text(encoding="utf-8")
-    tallies: dict[str, int] = {}
+    items: dict[str, list[dict]] = {}
     for line in text.splitlines():
         if not line.startswith("|") or "date" in line.lower() or "---" in line:
             continue
         cells = [c.strip() for c in line.strip("|").split("|")]
-        if len(cells) < 3:
+        if len(cells) < 5:
             continue
+        date = cells[0]
         proj, kind = cells[1].lower(), cells[2].lower()
-        tallies[f"{proj}:{kind}"] = tallies.get(f"{proj}:{kind}", 0) + 1
-    return tallies
+        link = cells[3]
+        note = cells[4]
+        
+        key = f"{proj}:{kind}"
+        if key not in items:
+            items[key] = []
+        items[key].append({
+            "url": link,
+            "title": note,
+            "date": date
+        })
+    return items
 
 
 # ---------------------------------------------------------------------------
@@ -446,6 +472,19 @@ def trial_row(repo: dict, target: int) -> str:
             f'<span class="tb__cell">{cell(ai)}</span>'
             f'<span class="tb__cell">{cell(ap)}</span></div>')
 
+def supp_item_link(item: dict) -> str:
+    return (f'<a class="supp-item" href="{item["url"]}" title="{esc(item["title"])}" target="_blank" rel="noopener noreferrer">'
+            f'<span class="supp-item__date">{item["date"][5:]}</span> '
+            f'<span class="supp-item__title">{esc(item["title"])}</span></a>')
+
+
+def supp_items_html(items: list[dict]) -> str:
+    if not items:
+        return ""
+    items.sort(key=lambda x: x["date"], reverse=True)
+    links = "".join(f'<li>{supp_item_link(i)}</li>' for i in items)
+    return f'<ul class="supp-items">{links}</ul>'
+
 
 def build_html(data: dict) -> str:
     repos = data["repos"]
@@ -465,35 +504,42 @@ def build_html(data: dict) -> str:
     # now" (e.g. a private Discourse profile) -- that falls back to the manual
     # log and renders as self-reported rather than a fake permanent zero.
     slug_by_key = {k: slug for k, _n, _h, slug, _c, _l, _t in REPOS}
-    prov: dict[str, int | None] = {
-        "pwndbg:comments": (data["gh_comments"].get("pwndbg/pwndbg", 0)
-                             + data["gh_discussions"].get("pwndbg/pwndbg", 0)),
-        "neovim:comments": data["gh_comments"].get("neovim/neovim", 0),
-        "neovim:discussions": data["gh_discussions"].get("neovim/neovim", 0),
-        "cpython:discourse": data["discourse"].get("cpython"),
-        # Blender has no verified equivalent -- Gitea's API has no
-        # search-by-reviewer, unlike `gh search prs --reviewed-by` -- so it
-        # stays self-reported. The other four are GitHub repos and this data
-        # was already being fetched into gh_reviews without ever being used.
-        "pwndbg:reviews": data["gh_reviews"].get(slug_by_key["pwndbg"], 0),
-        "neovim:reviews": data["gh_reviews"].get(slug_by_key["neovim"], 0),
-        "cpython:reviews": data["gh_reviews"].get(slug_by_key["cpython"], 0),
-        "gltf:reviews": data["gh_reviews"].get(slug_by_key["gltf"], 0),
+    prov: dict[str, list[dict] | None] = {
+        "pwndbg:comments": (data["gh_comments"].get("pwndbg/pwndbg", [])
+                             + data["gh_discussions"].get("pwndbg/pwndbg", [])),
+        "neovim:comments": data["gh_comments"].get("neovim/neovim", []),
+        "neovim:discussions": data["gh_discussions"].get("neovim/neovim", []),
+        "cpython:discourse": None,  # Always fallback to log for links
+        "pwndbg:reviews": data["gh_reviews"].get(slug_by_key["pwndbg"], []),
+        "neovim:reviews": data["gh_reviews"].get(slug_by_key["neovim"], []),
+        "cpython:reviews": data["gh_reviews"].get(slug_by_key["cpython"], []),
+        "gltf:reviews": data["gh_reviews"].get(slug_by_key["gltf"], []),
     }
     supp_blocks = []
+    global_backlog = []
     for proj, repo_key, rows in MANUAL:
         repo = by_key[repo_key]
         lines = []
         for label, meta, source, tag in rows:
-            verified_n = prov.get(tag) if source == "query" else None
-            if verified_n is not None:
-                n = verified_n
+            verified_items = prov.get(tag) if source == "query" else None
+            if verified_items is not None:
+                n_items = verified_items
                 mark, mcls = "●", "audit--verified"
                 mtitle = ("verified from discuss.python.org" if tag == "cpython:discourse"
                           else "verified from GitHub")
             else:
-                n = data["log"].get(f"{repo_key}:{tag.split(':')[-1]}", 0)
+                n_items = data["log"].get(f"{repo_key}:{tag.split(':')[-1]}", [])
                 mark, mcls, mtitle = "○", "audit--self", "self-reported in the log"
+            
+            this_week_items = [i for i in n_items if i["date"] >= data["week_start"]]
+            for i in n_items:
+                if i["date"] < data["week_start"]:
+                    b_item = i.copy()
+                    b_item["repo_key"] = repo["key"]
+                    b_item["category"] = label
+                    global_backlog.append(b_item)
+
+            n = len(this_week_items)
             lines.append(
                 f'<div class="supp__row">'
                 f'<div class="supp__row-top">'
@@ -504,12 +550,32 @@ def build_html(data: dict) -> str:
                 f'<span class="supp__leader" aria-hidden="true"></span>'
                 f'<span class="supp__meta">{meta}</span>'
                 f'<span class="supp__fig">{n}</span>'
-                f'</div></div>')
+                f'</div>'
+                f'{supp_items_html(this_week_items)}'
+                f'</div>')
         supp_blocks.append(
             f'<div class="supp__acct">'
             f'<div class="supp__head">{compact_mark(repo)}{proj}</div>'
             f'{"".join(lines)}</div>')
     supplementary = "".join(supp_blocks)
+    
+    global_backlog.sort(key=lambda x: x["date"], reverse=True)
+    backlog_rows = []
+    for item in global_backlog:
+        repo = by_key[item["repo_key"]]
+        mark = compact_mark(repo, "misc__dot")
+        backlog_rows.append(
+            f'<a class="misc__row" href="{item["url"]}" title="{esc(item["title"])}" target="_blank" rel="noopener noreferrer">'
+            f'<div class="misc__row-top">'
+            f'<span class="misc__title">{esc(item["title"])}</span>'
+            f'</div>'
+            f'<div class="misc__row-bottom">'
+            f'<span class="misc__repo">{mark} {repo["name"]} &middot; {item["category"]}</span>'
+            f'<span class="misc__leader" aria-hidden="true"></span>'
+            f'<span class="misc__date">{item["date"]}</span>'
+            f'</div></a>'
+        )
+    backlog_html = "".join(backlog_rows) if backlog_rows else '<div class="misc__row misc__row--empty">no past supplementary work</div>'
 
     misc_items = data.get("misc", [])
     misc_rows = ("".join(misc_row(i) for i in misc_items) if misc_items else
@@ -532,6 +598,7 @@ def build_html(data: dict) -> str:
             .replace("<!--TRIAL_ROWS-->", trial_rows)
             .replace("<!--ACCOUNTS-->", accounts)
             .replace("<!--SUPPLEMENTARY-->", supplementary)
+            .replace("<!--BACKLOG-->", backlog_html)
             .replace("<!--MISC-->", misc_rows))
 
 

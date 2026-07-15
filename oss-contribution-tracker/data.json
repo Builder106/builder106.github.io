@@ -1,5 +1,6 @@
 {
   "as_of": "2026-07-15",
+  "week_start": "2026-07-13",
   "author": "Builder106",
   "repos": [
     {
@@ -257,28 +258,62 @@
     }
   ],
   "gh_comments": {
-    "KhronosGroup/glTF-Blender-IO": 2,
-    "python/cpython": 2,
-    "pwndbg/pwndbg": 1,
-    "neovim/neovim": 0
+    "KhronosGroup/glTF-Blender-IO": [
+      {
+        "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2709",
+        "title": "Sun Lights: exported normalized intensity differs from previous versions",
+        "date": "2026-07-15"
+      },
+      {
+        "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2492",
+        "title": "Wrong absolute path of images",
+        "date": "2026-06-15"
+      }
+    ],
+    "python/cpython": [
+      {
+        "url": "https://github.com/python/cpython/issues/153713",
+        "title": "Cross-interpreter memory leak in _xidata_release when originating interpreter is destroyed",
+        "date": "2026-07-15"
+      },
+      {
+        "url": "https://github.com/python/cpython/issues/139140",
+        "title": "Document that accessing `__annotations__` through `__dict__` no longer works",
+        "date": "2026-06-19"
+      }
+    ],
+    "pwndbg/pwndbg": [
+      {
+        "url": "https://github.com/pwndbg/pwndbg/issues/3968",
+        "title": "if launched with gdb.attach(), heap-related commands fail against binaries patched with pwninit/patchelf",
+        "date": "2026-07-10"
+      }
+    ],
+    "neovim/neovim": []
   },
   "gh_reviews": {
-    "KhronosGroup/glTF-Blender-IO": 0,
-    "python/cpython": 0,
-    "pwndbg/pwndbg": 0,
-    "neovim/neovim": 0
+    "KhronosGroup/glTF-Blender-IO": [],
+    "python/cpython": [],
+    "pwndbg/pwndbg": [],
+    "neovim/neovim": []
   },
   "gh_discussions": {
-    "KhronosGroup/glTF-Blender-IO": 0,
-    "python/cpython": 0,
-    "pwndbg/pwndbg": 0,
-    "neovim/neovim": 0
+    "KhronosGroup/glTF-Blender-IO": [],
+    "python/cpython": [],
+    "pwndbg/pwndbg": [],
+    "neovim/neovim": []
   },
   "discourse": {
     "cpython": null
   },
   "log": {
-    "blender:triage": 1
+    "blender:triage": [
+      {
+        "url": "https://projects.blender.org/blender/blender/issues/161433",
+        "title": "Requested network details / offline mode check",
+        "date": "2026-07-14"
+      }
+    ]
   },
   "misc": [
     {
@@ -304,6 +339,22 @@
       "state": "open",
       "title": "Add the py.typed marker to the spdx3 package",
       "date": "2026-06-17"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 18,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
+      "state": "merged",
+      "title": "deps: bump Angular to 22 + typescript to ~6.0",
+      "date": "2026-06-13"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 17,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
+      "state": "merged",
+      "title": "deps: bump the dev-tooling group (jsdom 29.1.1, vitest 4.1.8)",
+      "date": "2026-06-13"
     },
     {
       "repo": "ArunNGun/openTeleprompt",
@@ -344,22 +395,6 @@
       "state": "open",
       "title": "Fix docs: non-string annotations are converted, not rejected",
       "date": "2026-05-30"
-    },
-    {
-      "repo": "QuantEcon/QuantEcon.py",
-      "n": 833,
-      "url": "https://github.com/QuantEcon/QuantEcon.py/pull/833",
-      "state": "open",
-      "title": "DEPR: deprecate Matlab-like tic/tac/toc/loop_timer timers (#786)",
-      "date": "2026-05-30"
-    },
-    {
-      "repo": "ArunNGun/openTeleprompt",
-      "n": 2,
-      "url": "https://github.com/ArunNGun/openTeleprompt/pull/2",
-      "state": "merged",
-      "title": "fix(build): restore tauri lib entrypoint and lockfile",
-      "date": "2026-03-25"
     }
   ]
 }

@@ -393,3 +393,18 @@ code .a { color: var(--accent); }
   .masthead__stamp { transform: none; }
   .tb__row { grid-template-columns: 1fr 4.5em 4.5em; }
 }
+.supp-items {
+  margin: 6px 0 0 0; padding: 0; list-style: none;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.supp-item {
+  display: flex; font-size: 13.5px; line-height: 1.4; padding-left: 20px;
+  color: var(--ink-soft); text-decoration: none;
+}
+.supp-item:hover .supp-item__title { color: var(--accent); }
+.supp-item__date {
+  font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-right: 8px; flex: none; transform: translateY(1.5px);
+}
+.supp-item__title {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
