@@ -165,7 +165,7 @@
         {
           "n": 3986,
           "url": "https://github.com/pwndbg/pwndbg/pull/3986",
-          "state": "open",
+          "state": "merged",
           "title": "feat(heap-tracker): annotate alloc/realloc/free events with calling symbol (--where)"
         },
         {
