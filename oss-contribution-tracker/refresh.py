@@ -61,16 +61,16 @@ REPOS = [
 # mark and color instead of duplicating them here.
 MANUAL = [
     ("Blender", "blender", [
-        ("Bug triage: repro, mark confirmed", "target 2 / wk", "manual", "triage"),
+        ("Bug triage: repro, mark confirmed", "target 1 / wk", "manual", "triage"),
         ("Patch review on others' PRs", "target 1 / wk", "manual", "review"),
         ("Module meeting attendance", "pipeline-IO / glTF · weekly", "manual", "meeting"),
     ]),
     ("pwndbg", "pwndbg", [
-        ("Answer issues / discussions", "target 2 / wk", "query", "pwndbg:comments"),
+        ("Answer issues / discussions", "target 1 / wk", "query", "pwndbg:comments"),
         ("Patch review on others' PRs", "target 1 / wk", "query", "pwndbg:reviews"),
     ]),
     ("Neovim", "neovim", [
-        ("Issue triage: label, repro, dedup", "target 2 / wk", "query", "neovim:comments"),
+        ("Issue triage: label, repro, dedup", "target 1 / wk", "query", "neovim:comments"),
         ("Answer GitHub Discussions", "target 1 / wk", "query", "neovim:discussions"),
         ("Patch review on others' PRs", "target 1 / wk", "query", "neovim:reviews"),
         ("Discourse / Matrix answers", ":h-documented behavior", "manual", "answer"),
