@@ -133,7 +133,7 @@ def gh_count(kind: str, flag: str) -> dict[str, int]:
         if host != "github":
             continue
         out = run(["gh", "search", kind, flag, AUTHOR, "--repo", slug,
-                   "--json", "number", "--limit", "100"])
+                   "--json", "number", "--limit", "100", "--", f"-author:{AUTHOR}"])
         counts[slug] = len(json.loads(out or "[]"))
     return counts
 
@@ -156,7 +156,7 @@ def gh_discussion_count(field: str) -> dict[str, int]:
         if host != "github":
             continue
         out = run(["gh", "api", "graphql", "-f", f"query={DISCUSSION_SEARCH}",
-                   "-f", f"search=repo:{slug} {field}:{AUTHOR}"])
+                   "-f", f"search=repo:{slug} {field}:{AUTHOR} -author:{AUTHOR}"])
         counts[slug] = json.loads(out)["data"]["search"]["discussionCount"]
     return counts
 

@@ -259,7 +259,7 @@
   "gh_comments": {
     "KhronosGroup/glTF-Blender-IO": 2,
     "python/cpython": 2,
-    "pwndbg/pwndbg": 2,
+    "pwndbg/pwndbg": 1,
     "neovim/neovim": 0
   },
   "gh_reviews": {
