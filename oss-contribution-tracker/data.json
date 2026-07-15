@@ -186,6 +186,24 @@
           "url": "https://github.com/pwndbg/pwndbg/pull/3997",
           "state": "merged",
           "title": "fix(heap-tracker): remove dead duplicate loop in Tracker.malloc"
+        },
+        {
+          "n": 4020,
+          "url": "https://github.com/pwndbg/pwndbg/pull/4020",
+          "state": "open",
+          "title": "Fix invalid SLUB object warning for kfree(0)"
+        },
+        {
+          "n": 4021,
+          "url": "https://github.com/pwndbg/pwndbg/pull/4021",
+          "state": "open",
+          "title": "Fix OSError parameter order in get_file"
+        },
+        {
+          "n": 4022,
+          "url": "https://github.com/pwndbg/pwndbg/pull/4022",
+          "state": "open",
+          "title": "Bump decomp2dbg to >=4.0.0"
         }
       ]
     },
@@ -353,6 +371,22 @@
       "date": "2026-06-17"
     },
     {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 18,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
+      "state": "merged",
+      "title": "deps: bump Angular to 22 + typescript to ~6.0",
+      "date": "2026-06-13"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 17,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
+      "state": "merged",
+      "title": "deps: bump the dev-tooling group (jsdom 29.1.1, vitest 4.1.8)",
+      "date": "2026-06-13"
+    },
+    {
       "repo": "ArunNGun/openTeleprompt",
       "n": 6,
       "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
@@ -391,22 +425,6 @@
       "state": "open",
       "title": "Fix docs: non-string annotations are converted, not rejected",
       "date": "2026-05-30"
-    },
-    {
-      "repo": "QuantEcon/QuantEcon.py",
-      "n": 833,
-      "url": "https://github.com/QuantEcon/QuantEcon.py/pull/833",
-      "state": "open",
-      "title": "DEPR: deprecate Matlab-like tic/tac/toc/loop_timer timers (#786)",
-      "date": "2026-05-30"
-    },
-    {
-      "repo": "ArunNGun/openTeleprompt",
-      "n": 2,
-      "url": "https://github.com/ArunNGun/openTeleprompt/pull/2",
-      "state": "merged",
-      "title": "fix(build): restore tauri lib entrypoint and lockfile",
-      "date": "2026-03-25"
     }
   ]
 }
