@@ -22,7 +22,6 @@ import sys
 import urllib.parse
 
 AUTHOR = "Builder106"
-TARGET = 3  # issues + PRs wanted per repo
 ROOT = pathlib.Path(__file__).resolve().parent
 LOG = ROOT / "CONTRIBUTIONS_LOG.md"
 LOGOS = ROOT / "assets" / "logos"
@@ -46,13 +45,14 @@ OUT_DIR = ROOT.parent / "public" / "oss-contribution-tracker"
 # (account_block special-cases repo["key"] == "pwndbg") rather than being
 # forced into the square icon slot logo_svg()/account_mark() assume.
 REPOS = [
-    ("gltf", "glTF-Blender-IO", "github", "KhronosGroup/glTF-Blender-IO", "#87C540", "gltf-blender-io.svg"),
-    ("blender", "blender/blender", "gitea", "blender/blender", "#E87D0D", "blender.svg"),
-    ("cpython", "python/cpython", "github", "python/cpython", "#3776AB", "cpython.svg"),
-    ("pwndbg", "pwndbg", "github", "pwndbg/pwndbg", "#8F2BF5", None),
-    ("neovim", "neovim/neovim", "github", "neovim/neovim", "#57A143", "neovim.svg"),
-    ("gitlab-cli", "gitlab-org/cli", "gitlab", "gitlab-org/cli", "#FC6D26", "gitlab.svg"),
-    ("gitlab", "gitlab-org/gitlab", "gitlab", "gitlab-org/gitlab", "#FC6D26", "gitlab.svg"),
+    ("gltf", "glTF-Blender-IO", "github", "KhronosGroup/glTF-Blender-IO", "#87C540", "gltf-blender-io.svg", 3),
+    ("blender", "blender/blender", "gitea", "blender/blender", "#E87D0D", "blender.svg", 3),
+    ("cpython", "python/cpython", "github", "python/cpython", "#3776AB", "cpython.svg", 3),
+    ("pwndbg", "pwndbg", "github", "pwndbg/pwndbg", "#8F2BF5", None, 3),
+    ("neovim", "neovim/neovim", "github", "neovim/neovim", "#57A143", "neovim.svg", 3),
+    ("gitlab-cli", "gitlab-org/cli", "gitlab", "gitlab-org/cli", "#FC6D26", "gitlab.svg", 1),
+    ("gitlab", "gitlab-org/gitlab", "gitlab", "gitlab-org/gitlab", "#FC6D26", "gitlab.svg", 1),
+    ("gitlab-runner", "gitlab-org/gitlab-runner", "gitlab", "gitlab-org/gitlab-runner", "#FC6D26", "gitlab.svg", 1),
 ]
 
 # non-PR activity buckets. `query` rows are counted from GitHub; `manual` rows
@@ -129,7 +129,7 @@ def gh_search(kind: str, extra: list[str]) -> list[dict]:
 def gh_count(kind: str, flag: str) -> dict[str, int]:
     """Count issues/PRs where AUTHOR is commenter / reviewer, per repo."""
     counts: dict[str, int] = {}
-    for _key, _name, host, slug, _col, _logo in REPOS:
+    for _key, _name, host, slug, _col, _logo, _target in REPOS:
         if host != "github":
             continue
         out = run(["gh", "search", kind, flag, AUTHOR, "--repo", slug,
@@ -152,7 +152,7 @@ def gh_discussion_count(field: str) -> dict[str, int]:
     with Discussions off (cpython, glTF-Blender-IO) just come back 0
     rather than erroring, so it's safe to call for every GitHub repo."""
     counts: dict[str, int] = {}
-    for _key, _name, host, slug, _col, _logo in REPOS:
+    for _key, _name, host, slug, _col, _logo, _target in REPOS:
         if host != "github":
             continue
         out = run(["gh", "api", "graphql", "-f", f"query={DISCUSSION_SEARCH}",
@@ -207,7 +207,7 @@ def collect() -> dict:
     """Build the data structure that drives the page."""
     # gh search wants alternating "--repo <slug>" flags; build that flat list.
     repo_flags: list[str] = []
-    for _k, _n, host, slug, _c, _l in REPOS:
+    for _k, _n, host, slug, _c, _l, _t in REPOS:
         if host == "github":
             repo_flags += ["--repo", slug]
     gh_issues = gh_search("issues", repo_flags)
@@ -223,7 +223,7 @@ def collect() -> dict:
         return sorted(items, key=lambda x: x["n"])
 
     repos = []
-    for key, name, host, slug, col, logo in REPOS:
+    for key, name, host, slug, col, logo, target in REPOS:
         if host == "github":
             issues = gh_items(gh_issues, slug)
             prs = gh_items(gh_prs, slug)
@@ -250,7 +250,7 @@ def collect() -> dict:
                     "title": i["title"]}
                    for i in gitlab_items(slug, "merge_requests")]
         repos.append({"key": key, "name": name, "host": host, "color": col,
-                      "logo": logo, "issues": issues, "prs": prs})
+                      "logo": logo, "target": target, "issues": issues, "prs": prs})
 
     comments = gh_count("issues", "--commenter")
     reviews = gh_count("prs", "--reviewed-by")
@@ -281,7 +281,7 @@ def other_contributions() -> list[dict]:
     out = run(["gh", "search", "prs", "--author", AUTHOR, "--json",
                "repository,title,state,url,number,createdAt", "--limit", "100"])
     rows = json.loads(out or "[]")
-    target_slugs = {slug.lower() for _k, _n, host, slug, _c, _l in REPOS if host == "github"}
+    target_slugs = {slug.lower() for _k, _n, host, slug, _c, _l, _t in REPOS if host == "github"}
     items = []
     for r in rows:
         owner_repo = r["repository"]["nameWithOwner"]
@@ -448,21 +448,21 @@ def trial_row(repo: dict, target: int) -> str:
 def build_html(data: dict) -> str:
     repos = data["repos"]
     by_key = {r["key"]: r for r in repos}
-    order = ["gltf", "blender", "cpython", "pwndbg", "neovim", "gitlab-cli", "gitlab"]
+    order = ["gltf", "blender", "cpython", "pwndbg", "neovim", "gitlab-cli", "gitlab", "gitlab-runner"]
 
     active_issues = sum(active_count(r["issues"]) for r in repos)
     active_prs = sum(active_count(r["prs"]) for r in repos)
     total_merged = sum(1 for r in repos for i in r["prs"] if i["state"] == "merged")
-    cap = TARGET * len(repos)
+    cap = sum(r["target"] for r in repos)
 
-    trial_rows = "".join(trial_row(by_key[k], TARGET) for k in order)
-    accounts = "".join(account_block(by_key[k], TARGET) for k in order)
+    trial_rows = "".join(trial_row(by_key[k], by_key[k]["target"]) for k in order)
+    accounts = "".join(account_block(by_key[k], by_key[k]["target"]) for k in order)
 
     # supplementary record: non-PR work, marked verified (queryable) vs self-reported.
     # A prov value of None means "queryable in principle but unavailable right
     # now" (e.g. a private Discourse profile) -- that falls back to the manual
     # log and renders as self-reported rather than a fake permanent zero.
-    slug_by_key = {k: slug for k, _n, _h, slug, _c, _l in REPOS}
+    slug_by_key = {k: slug for k, _n, _h, slug, _c, _l, _t in REPOS}
     prov: dict[str, int | None] = {
         "pwndbg:comments": (data["gh_comments"].get("pwndbg/pwndbg", 0)
                              + data["gh_discussions"].get("pwndbg/pwndbg", 0)),
@@ -540,7 +540,8 @@ def main() -> int:
     (OUT_DIR / "index.html").write_text(build_html(data), encoding="utf-8")
     ai = sum(active_count(r["issues"]) for r in data["repos"])
     ap = sum(active_count(r["prs"]) for r in data["repos"])
-    print(f"refreshed {data['as_of']}: active issues {ai}/{TARGET*len(data['repos'])}, active PRs {ap}/{TARGET*len(data['repos'])}")
+    total_cap = sum(r["target"] for r in data["repos"])
+    print(f"refreshed {data['as_of']}: active issues {ai}/{total_cap}, active PRs {ap}/{total_cap}")
     return 0
 
 

@@ -8,6 +8,7 @@
       "host": "github",
       "color": "#87C540",
       "logo": "gltf-blender-io.svg",
+      "target": 3,
       "issues": [
         {
           "n": 2725,
@@ -67,6 +68,7 @@
       "host": "gitea",
       "color": "#E87D0D",
       "logo": "blender.svg",
+      "target": 3,
       "issues": [
         {
           "n": 161272,
@@ -108,6 +110,7 @@
       "host": "github",
       "color": "#3776AB",
       "logo": "cpython.svg",
+      "target": 3,
       "issues": [
         {
           "n": 151769,
@@ -143,6 +146,7 @@
       "host": "github",
       "color": "#8F2BF5",
       "logo": null,
+      "target": 3,
       "issues": [
         {
           "n": 3998,
@@ -172,6 +176,7 @@
       "host": "github",
       "color": "#57A143",
       "logo": "neovim.svg",
+      "target": 3,
       "issues": [],
       "prs": [
         {
@@ -188,6 +193,7 @@
       "host": "gitlab",
       "color": "#FC6D26",
       "logo": "gitlab.svg",
+      "target": 1,
       "issues": [],
       "prs": [
         {
@@ -210,6 +216,7 @@
       "host": "gitlab",
       "color": "#FC6D26",
       "logo": "gitlab.svg",
+      "target": 1,
       "issues": [],
       "prs": [
         {
@@ -231,6 +238,16 @@
           "title": "Use localStorage for per-list sort persistence"
         }
       ]
+    },
+    {
+      "key": "gitlab-runner",
+      "name": "gitlab-org/gitlab-runner",
+      "host": "gitlab",
+      "color": "#FC6D26",
+      "logo": "gitlab.svg",
+      "target": 1,
+      "issues": [],
+      "prs": []
     }
   ],
   "gh_comments": {
@@ -297,6 +314,22 @@
       "date": "2026-06-17"
     },
     {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 18,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
+      "state": "merged",
+      "title": "deps: bump Angular to 22 + typescript to ~6.0",
+      "date": "2026-06-13"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 17,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
+      "state": "merged",
+      "title": "deps: bump the dev-tooling group (jsdom 29.1.1, vitest 4.1.8)",
+      "date": "2026-06-13"
+    },
+    {
       "repo": "ArunNGun/openTeleprompt",
       "n": 6,
       "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
@@ -319,22 +352,6 @@
       "state": "open",
       "title": "Add Claude Code CLI as an LLM provider",
       "date": "2026-06-10"
-    },
-    {
-      "repo": "tradingeconomics/tradingeconomics-python",
-      "n": 5,
-      "url": "https://github.com/tradingeconomics/tradingeconomics-python/pull/5",
-      "state": "open",
-      "title": "Fix broken function-call examples in docstrings",
-      "date": "2026-05-30"
-    },
-    {
-      "repo": "OpenSourceEconomics/dags",
-      "n": 85,
-      "url": "https://github.com/OpenSourceEconomics/dags/pull/85",
-      "state": "open",
-      "title": "Fix docs: non-string annotations are converted, not rejected",
-      "date": "2026-05-30"
     }
   ]
 }
