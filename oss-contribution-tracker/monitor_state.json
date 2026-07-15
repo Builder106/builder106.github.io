@@ -88,21 +88,21 @@
   "https://github.com/python/cpython/issues/153769": {
     "url": "https://github.com/python/cpython/issues/153769",
     "state": "open",
-    "comments": 1,
+    "comments": 2,
     "last_comment": {
-      "author": "picnixz",
-      "created_at": "2026-07-15T17:08:55Z",
-      "first_line": "cc @serhiy-storchaka as you had some issue about it I think"
+      "author": "Builder106",
+      "created_at": "2026-07-15T17:10:36Z",
+      "first_line": "> cc [@serhiy-storchaka](https://github.com/serhiy-storchaka) as you had some issue about it I think"
     }
   },
   "https://github.com/python/cpython/issues/153771": {
     "url": "https://github.com/python/cpython/issues/153771",
     "state": "open",
-    "comments": 1,
+    "comments": 4,
     "last_comment": {
-      "author": "picnixz",
-      "created_at": "2026-07-15T17:08:09Z",
-      "first_line": "It's kinda documenteed though:"
+      "author": "Builder106",
+      "created_at": "2026-07-15T17:52:34Z",
+      "first_line": "K, fair enough. I'll concede it as a convenience feature rather than a strict bug. I just find myself building archive p"
     }
   },
   "https://github.com/python/cpython/pull/151750": {
@@ -134,12 +134,34 @@
   "https://github.com/pwndbg/pwndbg/issues/3998": {
     "url": "https://github.com/pwndbg/pwndbg/issues/3998",
     "state": "open",
-    "comments": 2,
+    "comments": 3,
     "last_comment": {
       "author": "Builder106",
-      "created_at": "2026-07-06T05:08:24Z",
-      "first_line": "Hey, @disconnect3d. I don't think #3984 covers this one, though. Happy to be corrected if I'm missing something."
+      "created_at": "2026-07-15T18:13:26Z",
+      "first_line": "Hi again @disconnect3d. Just checking in on this. Let me know if you'd like me to open a quick PR to mirror the `AllocEx"
     }
+  },
+  "https://github.com/pwndbg/pwndbg/issues/4023": {
+    "url": "https://github.com/pwndbg/pwndbg/issues/4023",
+    "state": "closed",
+    "comments": 1,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-15T18:29:26Z",
+      "first_line": "Closing this because I realized my reading of the FIXME was backwards. There is no `heapfile` command currently, so `con"
+    }
+  },
+  "https://github.com/pwndbg/pwndbg/issues/4024": {
+    "url": "https://github.com/pwndbg/pwndbg/issues/4024",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://github.com/pwndbg/pwndbg/issues/4025": {
+    "url": "https://github.com/pwndbg/pwndbg/issues/4025",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
   },
   "https://github.com/pwndbg/pwndbg/pull/3986": {
     "url": "https://github.com/pwndbg/pwndbg/pull/3986",
@@ -154,6 +176,24 @@
   "https://github.com/pwndbg/pwndbg/pull/3997": {
     "url": "https://github.com/pwndbg/pwndbg/pull/3997",
     "state": "merged",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://github.com/pwndbg/pwndbg/pull/4020": {
+    "url": "https://github.com/pwndbg/pwndbg/pull/4020",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://github.com/pwndbg/pwndbg/pull/4021": {
+    "url": "https://github.com/pwndbg/pwndbg/pull/4021",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://github.com/pwndbg/pwndbg/pull/4022": {
+    "url": "https://github.com/pwndbg/pwndbg/pull/4022",
+    "state": "open",
     "comments": 0,
     "last_comment": null
   },
