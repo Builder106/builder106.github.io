@@ -277,7 +277,9 @@
   "discourse": {
     "cpython": null
   },
-  "log": {},
+  "log": {
+    "blender:triage": 1
+  },
   "misc": [
     {
       "repo": "chloe-ek/MLH_Portfolio",
