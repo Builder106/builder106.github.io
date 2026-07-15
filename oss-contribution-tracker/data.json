@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-07-15",
+  "as_of": "2026-07-14",
   "author": "Builder106",
   "repos": [
     {
@@ -306,6 +306,22 @@
       "date": "2026-06-17"
     },
     {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 18,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
+      "state": "merged",
+      "title": "deps: bump Angular to 22 + typescript to ~6.0",
+      "date": "2026-06-13"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 17,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
+      "state": "merged",
+      "title": "deps: bump the dev-tooling group (jsdom 29.1.1, vitest 4.1.8)",
+      "date": "2026-06-13"
+    },
+    {
       "repo": "ArunNGun/openTeleprompt",
       "n": 6,
       "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
@@ -344,22 +360,6 @@
       "state": "open",
       "title": "Fix docs: non-string annotations are converted, not rejected",
       "date": "2026-05-30"
-    },
-    {
-      "repo": "QuantEcon/QuantEcon.py",
-      "n": 833,
-      "url": "https://github.com/QuantEcon/QuantEcon.py/pull/833",
-      "state": "open",
-      "title": "DEPR: deprecate Matlab-like tic/tac/toc/loop_timer timers (#786)",
-      "date": "2026-05-30"
-    },
-    {
-      "repo": "ArunNGun/openTeleprompt",
-      "n": 2,
-      "url": "https://github.com/ArunNGun/openTeleprompt/pull/2",
-      "state": "merged",
-      "title": "fix(build): restore tauri lib entrypoint and lockfile",
-      "date": "2026-03-25"
     }
   ]
 }
