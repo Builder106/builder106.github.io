@@ -28,3 +28,4 @@ don't need a log entry.
 
 | date | project | type | link | note |
 |------|---------|------|------|------|
+| 2026-07-14 | blender | triage | https://projects.blender.org/blender/blender/issues/161433 | Requested network details / offline mode check |
