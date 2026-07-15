@@ -12,20 +12,32 @@
   "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2726": {
     "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2726",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "julienduroure",
+      "created_at": "2026-07-15T07:22:29Z",
+      "first_line": "Hello,"
+    }
   },
   "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2727": {
     "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2727",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "julienduroure",
+      "created_at": "2026-07-15T07:15:32Z",
+      "first_line": "Hello,"
+    }
   },
   "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2728": {
     "url": "https://github.com/KhronosGroup/glTF-Blender-IO/issues/2728",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "julienduroure",
+      "created_at": "2026-07-15T07:00:04Z",
+      "first_line": "Hello,"
+    }
   },
   "https://github.com/KhronosGroup/glTF-Blender-IO/pull/2710": {
     "url": "https://github.com/KhronosGroup/glTF-Blender-IO/pull/2710",
@@ -111,7 +123,7 @@
   },
   "https://github.com/pwndbg/pwndbg/pull/3986": {
     "url": "https://github.com/pwndbg/pwndbg/pull/3986",
-    "state": "open",
+    "state": "merged",
     "comments": 7,
     "last_comment": {
       "author": "Builder106",
