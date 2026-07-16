@@ -16,7 +16,7 @@ export const repoStats: Record<string, RepoStats> = {
   "Builder106/ocaml_limit": {
     "lang": "OCaml",
     "pushed_at": "2026-07-13T15:44:38Z",
-    "stars": 2
+    "stars": 3
   },
   "Builder106/qforge": {
     "lang": "C",
@@ -24,13 +24,13 @@ export const repoStats: Record<string, RepoStats> = {
     "stars": 0
   },
   "Builder106/MicroMatch": {
-    "lang": "Svelte",
-    "pushed_at": "2026-07-14T19:46:32Z",
+    "lang": "TypeScript",
+    "pushed_at": "2026-07-16T20:33:57Z",
     "stars": 0
   },
   "Builder106/STAIJA": {
     "lang": "TypeScript",
-    "pushed_at": "2026-07-13T13:56:52Z",
+    "pushed_at": "2026-07-16T05:35:52Z",
     "stars": 0
   },
   "Builder106/StudySprint": {
@@ -45,7 +45,7 @@ export const repoStats: Record<string, RepoStats> = {
   },
   "Builder106/datafest-2026": {
     "lang": "R",
-    "pushed_at": "2026-06-28T18:04:00Z",
+    "pushed_at": "2026-07-16T20:38:07Z",
     "stars": 0
   },
   "Builder106/LinuxBenchHub": {
