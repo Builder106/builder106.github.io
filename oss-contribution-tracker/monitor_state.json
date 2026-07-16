@@ -230,8 +230,12 @@
   "https://github.com/neovim/neovim/pull/40764": {
     "url": "https://github.com/neovim/neovim/pull/40764",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "justinmk",
+      "created_at": "2026-07-16T11:36:38Z",
+      "first_line": "is there a more low-level approach? we really just need the existing message:"
+    }
   },
   "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452": {
     "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452",
