@@ -424,3 +424,7 @@ First version of the site: a hand-written HTML/CSS/vanilla-JS portfolio titled
 icons, social/contact links with clipboard-copy, and a favicon. A clean,
 conventional developer portfolio — and the baseline the 2026 server-room
 concept was a deliberate reaction against.
+
+## 2026-07-16 — Fixed Lighthouse accessibility and SEO failures #milestone
+
+Resolved persistent LHCI audit failures that were blocking CI compliance. For the 404 page, added the missing meta description and removed the noindex tag to satisfy SEO requirements. For the OSS contribution tracker, satisfied `aria-required-children` by correctly applying `role="row"` to table rows and `role="cell"`/`role="columnheader"` to children, and resolved color-contrast violations by tuning `--ink-faint` across light and dark modes to ensure a minimum 4.5:1 ratio.
