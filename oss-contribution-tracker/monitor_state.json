@@ -213,12 +213,12 @@
   },
   "https://github.com/neovim/neovim/pull/40760": {
     "url": "https://github.com/neovim/neovim/pull/40760",
-    "state": "open",
-    "comments": 1,
+    "state": "closed",
+    "comments": 2,
     "last_comment": {
-      "author": "zeertzjq",
-      "created_at": "2026-07-15T23:59:48Z",
-      "first_line": "> - Verified that `nvim --embed --listen 0.0.0.0:8888 < /dev/null` no longer crashes and successfully waits for a client"
+      "author": "Builder106",
+      "created_at": "2026-07-16T02:28:13Z",
+      "first_line": "> > * Verified that `nvim --embed --listen 0.0.0.0:8888 < /dev/null` no longer crashes and successfully waits for a clie"
     }
   },
   "https://github.com/neovim/neovim/pull/40761": {
