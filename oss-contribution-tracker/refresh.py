@@ -605,8 +605,12 @@ def build_html(data: dict) -> str:
 def main() -> int:
     data = collect()
     (ROOT / "data.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    import shutil
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "index.html").write_text(build_html(data), encoding="utf-8")
+    for f in ["favicon.svg", "apple-touch-icon.png", "favicon.ico"]:
+        if (ROOT / f).exists():
+            shutil.copy(ROOT / f, OUT_DIR / f)
     ai = sum(active_count(r["issues"]) for r in data["repos"])
     ap = sum(active_count(r["prs"]) for r in data["repos"])
     total_cap = sum(r["target"] for r in data["repos"])
