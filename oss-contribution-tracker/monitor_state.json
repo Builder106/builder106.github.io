@@ -98,11 +98,11 @@
   "https://github.com/python/cpython/issues/153771": {
     "url": "https://github.com/python/cpython/issues/153771",
     "state": "open",
-    "comments": 4,
+    "comments": 5,
     "last_comment": {
-      "author": "Builder106",
-      "created_at": "2026-07-15T17:52:34Z",
-      "first_line": "K, fair enough. I'll concede it as a convenience feature rather than a strict bug. I just find myself building archive p"
+      "author": "serhiy-storchaka",
+      "created_at": "2026-07-16T20:40:28Z",
+      "first_line": "I concur with @picnixz, this is not a bug, and semantically, it would be misfeature. Names in archive should not have dr"
     }
   },
   "https://github.com/python/cpython/pull/151750": {
