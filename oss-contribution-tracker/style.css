@@ -6,7 +6,7 @@
   --panel: #FFFFFF;        /* raised account leaf */
   --ink: #232A20;          /* aged black-green ink */
   --ink-soft: #59614F;     /* olive-grey secondary */
-  --ink-faint: #8A9180;    /* faded pencil */
+  --ink-faint: #606658;    /* faded pencil (darkened for contrast) */
   --rule: #CBD3C0;         /* ruled line */
   --rule-strong: #A9B39A;  /* leader dots, heavier rules */
   --red: #973232;          /* ledger red ink: deficit / to fill */
@@ -21,7 +21,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --paper: #191D16; --paper-2: #212619; --panel: #1E231A;
-    --ink: #E7EBDD; --ink-soft: #9BA48C; --ink-faint: #6B7360;
+    --ink: #E7EBDD; --ink-soft: #9BA48C; --ink-faint: #929B85;
     --rule: #333A2C; --rule-strong: #4A5340;
     --red: #E07A6A; --red-soft: rgba(224, 122, 106, 0.13);
     --green: #83B892; --green-soft: rgba(131, 184, 146, 0.13);
@@ -31,7 +31,7 @@
 }
 :root[data-theme="light"] {
   --paper: #F3F5EE; --paper-2: #E9EEE1; --panel: #FBFCF8;
-  --ink: #232A20; --ink-soft: #59614F; --ink-faint: #8A9180;
+  --ink: #232A20; --ink-soft: #59614F; --ink-faint: #6E7565;
   --rule: #CBD3C0; --rule-strong: #A9B39A;
   --red: #973232; --red-soft: rgba(151, 50, 50, 0.09);
   --green: #3C6B4E; --green-soft: rgba(60, 107, 78, 0.10); --accent: #2E5E4E;
@@ -39,7 +39,7 @@
 }
 :root[data-theme="dark"] {
   --paper: #191D16; --paper-2: #212619; --panel: #1E231A;
-  --ink: #E7EBDD; --ink-soft: #9BA48C; --ink-faint: #6B7360;
+  --ink: #E7EBDD; --ink-soft: #9BA48C; --ink-faint: #88907C;
   --rule: #333A2C; --rule-strong: #4A5340;
   --red: #E07A6A; --red-soft: rgba(224, 122, 106, 0.13);
   --green: #83B892; --green-soft: rgba(131, 184, 146, 0.13); --accent: #86BBA1;
@@ -64,8 +64,8 @@ body {
   margin: 0 auto;
   padding: clamp(28px, 6vw, 68px) clamp(20px, 5vw, 52px) 80px;
 }
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; text-underline-offset: 2px; }
+a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { text-decoration: none; }
 a:focus-visible, summary:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px;
 }
@@ -236,6 +236,7 @@ code {
 .entry {
   display: flex; align-items: baseline; gap: 8px;
   padding: 5px 6px; margin: 0 -6px; color: var(--ink); border-radius: 2px;
+  text-decoration: none;
 }
 .entry:not(.entry--cleared):not(.entry--empty):nth-of-type(odd) {
   background: var(--paper-2);
@@ -316,6 +317,7 @@ code {
 .misc__list { display: flex; flex-direction: column; }
 .misc__row {
   display: block; color: var(--ink); padding: 9px 6px; margin: 0 -6px; border-radius: 2px;
+  text-decoration: none;
 }
 .misc__row:not(.misc__row--empty):nth-of-type(odd) { background: var(--paper-2); }
 .misc__row:hover { text-decoration: none; }

@@ -466,11 +466,11 @@ def trial_row(repo: dict, target: int) -> str:
         return f'<span class="{cls}">{n}&#8202;/&#8202;{target}</span>'
     mark = compact_mark(repo)
     ai, ap = active_count(repo["issues"]), active_count(repo["prs"])
-    return (f'<div class="tb__row">'
-            f'<span class="tb__acct">{mark}'
+    return (f'<div class="tb__row" role="row">'
+            f'<span class="tb__acct" role="cell">{mark}'
             f'{repo["name"]}</span>'
-            f'<span class="tb__cell">{cell(ai)}</span>'
-            f'<span class="tb__cell">{cell(ap)}</span></div>')
+            f'<span class="tb__cell" role="cell">{cell(ai)}</span>'
+            f'<span class="tb__cell" role="cell">{cell(ap)}</span></div>')
 
 def supp_item_link(item: dict) -> str:
     return (f'<a class="supp-item" href="{item["url"]}" title="{esc(item["title"])}" target="_blank" rel="noopener noreferrer">'

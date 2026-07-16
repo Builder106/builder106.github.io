@@ -83,3 +83,5 @@ e2e/demo/voice-training/
 # Local debug scratch — root-level Playwright/one-off probes (underscore
 # prefix). Kept locally while debugging the scene; never part of the site.
 /_*.mjs
+.lighthouseci
+lh-report.json
