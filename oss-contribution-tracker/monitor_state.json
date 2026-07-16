@@ -227,6 +227,12 @@
     "comments": 0,
     "last_comment": null
   },
+  "https://github.com/neovim/neovim/pull/40764": {
+    "url": "https://github.com/neovim/neovim/pull/40764",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
   "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452": {
     "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452",
     "state": "open",
