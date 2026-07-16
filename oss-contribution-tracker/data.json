@@ -267,7 +267,14 @@
       "color": "#FC6D26",
       "logo": "gitlab.svg",
       "target": 1,
-      "issues": [],
+      "issues": [
+        {
+          "n": 8398,
+          "url": "https://gitlab.com/gitlab-org/cli/-/work_items/8398",
+          "state": "open",
+          "title": "Refactor: Unify issueURLPathRE and issueMetadataFromURL logic"
+        }
+      ],
       "prs": [
         {
           "n": 3452,
@@ -290,7 +297,14 @@
       "color": "#FC6D26",
       "logo": "gitlab.svg",
       "target": 1,
-      "issues": [],
+      "issues": [
+        {
+          "n": 606331,
+          "url": "https://gitlab.com/gitlab-org/gitlab/-/work_items/606331",
+          "state": "open",
+          "title": "Trim AWS storage configuration strings on form submit in offline transfer export"
+        }
+      ],
       "prs": [
         {
           "n": 241671,
@@ -319,7 +333,14 @@
       "color": "#FC6D26",
       "logo": "gitlab.svg",
       "target": 1,
-      "issues": [],
+      "issues": [
+        {
+          "n": 39609,
+          "url": "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/39609",
+          "state": "open",
+          "title": "Support multiple builds in docker-machine executor"
+        }
+      ],
       "prs": []
     }
   ],
@@ -413,6 +434,22 @@
       "date": "2026-06-17"
     },
     {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 18,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
+      "state": "merged",
+      "title": "deps: bump Angular to 22 + typescript to ~6.0",
+      "date": "2026-06-13"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 17,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
+      "state": "merged",
+      "title": "deps: bump the dev-tooling group (jsdom 29.1.1, vitest 4.1.8)",
+      "date": "2026-06-13"
+    },
+    {
       "repo": "ArunNGun/openTeleprompt",
       "n": 6,
       "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
@@ -451,22 +488,6 @@
       "state": "open",
       "title": "Fix docs: non-string annotations are converted, not rejected",
       "date": "2026-05-30"
-    },
-    {
-      "repo": "QuantEcon/QuantEcon.py",
-      "n": 833,
-      "url": "https://github.com/QuantEcon/QuantEcon.py/pull/833",
-      "state": "open",
-      "title": "DEPR: deprecate Matlab-like tic/tac/toc/loop_timer timers (#786)",
-      "date": "2026-05-30"
-    },
-    {
-      "repo": "ArunNGun/openTeleprompt",
-      "n": 2,
-      "url": "https://github.com/ArunNGun/openTeleprompt/pull/2",
-      "state": "merged",
-      "title": "fix(build): restore tauri lib entrypoint and lockfile",
-      "date": "2026-03-25"
     }
   ]
 }
