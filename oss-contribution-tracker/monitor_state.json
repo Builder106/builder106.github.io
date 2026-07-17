@@ -261,7 +261,7 @@
   },
   "https://gitlab.com/gitlab-org/cli/-/merge_requests/3444": {
     "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3444",
-    "state": "open",
+    "state": "merged",
     "comments": 9,
     "last_comment": {
       "author": "Builder106",
