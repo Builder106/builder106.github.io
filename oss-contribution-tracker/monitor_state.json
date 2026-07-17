@@ -78,11 +78,11 @@
   "https://github.com/python/cpython/issues/151769": {
     "url": "https://github.com/python/cpython/issues/151769",
     "state": "open",
-    "comments": 1,
+    "comments": 2,
     "last_comment": {
       "author": "Builder106",
-      "created_at": "2026-07-06T05:58:35Z",
-      "first_line": "Heads up for whoever picks this up: there are two open PRs against this issue right now, #151772 (mine, opened first) an"
+      "created_at": "2026-07-17T13:01:25Z",
+      "first_line": "Just bumping this thread so it doesn't get lost."
     }
   },
   "https://github.com/python/cpython/issues/153769": {
