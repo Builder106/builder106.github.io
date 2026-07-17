@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-07-16",
+  "as_of": "2026-07-17",
   "week_start": "2026-07-13",
   "author": "Builder106",
   "repos": [
@@ -214,13 +214,13 @@
         {
           "n": 4021,
           "url": "https://github.com/pwndbg/pwndbg/pull/4021",
-          "state": "open",
+          "state": "merged",
           "title": "Fix OSError parameter order in get_file"
         },
         {
           "n": 4022,
           "url": "https://github.com/pwndbg/pwndbg/pull/4022",
-          "state": "open",
+          "state": "closed",
           "title": "Bump decomp2dbg to >=4.0.0"
         }
       ]
@@ -420,7 +420,7 @@
       "repo": "chloe-ek/MLH_Portfolio",
       "n": 18,
       "url": "https://github.com/chloe-ek/MLH_Portfolio/pull/18",
-      "state": "open",
+      "state": "merged",
       "title": "Add DB and Flask integration tests",
       "date": "2026-07-15"
     },
