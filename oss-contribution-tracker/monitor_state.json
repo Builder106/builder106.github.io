@@ -191,15 +191,23 @@
   },
   "https://github.com/pwndbg/pwndbg/pull/4021": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4021",
-    "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "state": "merged",
+    "comments": 2,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-17T01:25:19Z",
+      "first_line": "> I'll merge your PR because it fixes the param order, but your screenshot is clearly not showing running pwndbg what ar"
+    }
   },
   "https://github.com/pwndbg/pwndbg/pull/4022": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4022",
-    "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "state": "closed",
+    "comments": 1,
+    "last_comment": {
+      "author": "k4lizen",
+      "created_at": "2026-07-17T00:53:39Z",
+      "first_line": "oh come on, thats just insulting, you didn't even test it"
+    }
   },
   "https://github.com/neovim/neovim/pull/40682": {
     "url": "https://github.com/neovim/neovim/pull/40682",
@@ -224,8 +232,12 @@
   "https://github.com/neovim/neovim/pull/40761": {
     "url": "https://github.com/neovim/neovim/pull/40761",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "zeertzjq",
+      "created_at": "2026-07-17T00:57:30Z",
+      "first_line": "Please drop the first commit."
+    }
   },
   "https://github.com/neovim/neovim/pull/40764": {
     "url": "https://github.com/neovim/neovim/pull/40764",
@@ -287,11 +299,25 @@
       "first_line": "@gitlab-bot Help."
     }
   },
+  "https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/6969": {
+    "url": "https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/6969",
+    "state": "open",
+    "comments": 3,
+    "last_comment": {
+      "author": "gitlab-bot",
+      "created_at": "2026-07-17T00:16:41.344Z",
+      "first_line": "We've attempted to automatically add labels to this merge request."
+    }
+  },
   "https://github.com/chloe-ek/MLH_Portfolio/pull/18": {
     "url": "https://github.com/chloe-ek/MLH_Portfolio/pull/18",
-    "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "state": "merged",
+    "comments": 1,
+    "last_comment": {
+      "author": "chloe-ek",
+      "created_at": "2026-07-17T00:41:21Z",
+      "first_line": "Good!"
+    }
   },
   "https://github.com/WordPress/ai/pull/858": {
     "url": "https://github.com/WordPress/ai/pull/858",
