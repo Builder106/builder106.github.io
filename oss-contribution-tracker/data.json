@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-07-17",
+  "as_of": "2026-07-18",
   "week_start": "2026-07-13",
   "author": "Builder106",
   "repos": [
@@ -285,7 +285,7 @@
         {
           "n": 3444,
           "url": "https://gitlab.com/gitlab-org/cli/-/merge_requests/3444",
-          "state": "open",
+          "state": "merged",
           "title": "docs: Document XDG Base Directory support for glab config"
         }
       ]
