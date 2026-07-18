@@ -202,11 +202,11 @@
   "https://github.com/pwndbg/pwndbg/pull/4022": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4022",
     "state": "closed",
-    "comments": 1,
+    "comments": 2,
     "last_comment": {
-      "author": "k4lizen",
-      "created_at": "2026-07-17T00:53:39Z",
-      "first_line": "oh come on, thats just insulting, you didn't even test it"
+      "author": "Builder106",
+      "created_at": "2026-07-18T20:36:13Z",
+      "first_line": "Yo @k4lizen. Here's the screen recording demonstrating the decompiler integration successfully fetching and rendering de"
     }
   },
   "https://github.com/neovim/neovim/pull/40682": {
