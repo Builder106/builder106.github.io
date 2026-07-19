@@ -186,8 +186,12 @@
   "https://github.com/pwndbg/pwndbg/pull/4020": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4020",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-18T23:33:35Z",
+      "first_line": "@k4lizen I've updated the PR description with the before and after screenshots like ya wanted."
+    }
   },
   "https://github.com/pwndbg/pwndbg/pull/4021": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4021",
@@ -208,6 +212,34 @@
       "created_at": "2026-07-18T20:36:13Z",
       "first_line": "Yo @k4lizen. Here's the screen recording demonstrating the decompiler integration successfully fetching and rendering de"
     }
+  },
+  "https://github.com/pwndbg/pwndbg/pull/4031": {
+    "url": "https://github.com/pwndbg/pwndbg/pull/4031",
+    "state": "closed",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://github.com/neovim/neovim/issues/40820": {
+    "url": "https://github.com/neovim/neovim/issues/40820",
+    "state": "open",
+    "comments": 1,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-18T22:13:18Z",
+      "first_line": "Hi team."
+    }
+  },
+  "https://github.com/neovim/neovim/issues/40821": {
+    "url": "https://github.com/neovim/neovim/issues/40821",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
+  "https://github.com/neovim/neovim/issues/40822": {
+    "url": "https://github.com/neovim/neovim/issues/40822",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
   },
   "https://github.com/neovim/neovim/pull/40682": {
     "url": "https://github.com/neovim/neovim/pull/40682",
@@ -241,12 +273,12 @@
   },
   "https://github.com/neovim/neovim/pull/40764": {
     "url": "https://github.com/neovim/neovim/pull/40764",
-    "state": "open",
-    "comments": 4,
+    "state": "closed",
+    "comments": 5,
     "last_comment": {
-      "author": "lewis6991",
-      "created_at": "2026-07-16T15:16:52Z",
-      "first_line": "I'm not very comfortable with this. Seems like a very heavy solution to solve a niche/edge case problem. Sometimes it's "
+      "author": "Builder106",
+      "created_at": "2026-07-18T23:19:34Z",
+      "first_line": "K, I understand where the maintainers are coming from. Wrapping core builtins did feel a bit heavy, but since LuaJIT doe"
     }
   },
   "https://gitlab.com/gitlab-org/cli/-/merge_requests/3452": {
@@ -322,55 +354,71 @@
   "https://github.com/WordPress/ai/pull/858": {
     "url": "https://github.com/WordPress/ai/pull/858",
     "state": "open",
-    "comments": 2,
+    "comments": 3,
     "last_comment": {
-      "author": "codecov[bot]",
-      "created_at": "2026-07-11T17:02:23Z",
-      "first_line": "## [Codecov](https://app.codecov.io/gh/WordPress/ai/pull/858?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_sour"
+      "author": "Builder106",
+      "created_at": "2026-07-19T00:32:25Z",
+      "first_line": "@gziolo @jorgefilipecosta Just a quick heads up: I've pushed a few updates to fix the initial PHPCS and PHPStan CI failu"
     }
   },
   "https://github.com/spdx/tools-python/pull/895": {
     "url": "https://github.com/spdx/tools-python/pull/895",
     "state": "open",
-    "comments": 1,
+    "comments": 2,
     "last_comment": {
       "author": "Builder106",
-      "created_at": "2026-06-17T18:05:43Z",
-      "first_line": "Ready for review."
+      "created_at": "2026-07-19T01:11:06Z",
+      "first_line": "Checking in on this since it's been open for a bit. Let me know if you need any changes made or if there's anything bloc"
     }
   },
   "https://github.com/ArunNGun/openTeleprompt/pull/6": {
     "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-19T01:34:51Z",
+      "first_line": "@ArunNGun Checking in on this since it's been open for a bit. Let me know if you need any changes made or if there's any"
+    }
   },
   "https://github.com/ArunNGun/openTeleprompt/pull/5": {
     "url": "https://github.com/ArunNGun/openTeleprompt/pull/5",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-19T01:34:52Z",
+      "first_line": "@ArunNGun Bumping this one as well. Let me know if you need any changes or if there are any blockers."
+    }
   },
   "https://github.com/Pickle-Pixel/ApplyPilot/pull/64": {
     "url": "https://github.com/Pickle-Pixel/ApplyPilot/pull/64",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-19T01:02:40Z",
+      "first_line": "Checking in on this since it's been open for a bit. Let me know if you need any changes made or if there's anything bloc"
+    }
   },
   "https://github.com/tradingeconomics/tradingeconomics-python/pull/5": {
     "url": "https://github.com/tradingeconomics/tradingeconomics-python/pull/5",
     "state": "open",
-    "comments": 0,
-    "last_comment": null
+    "comments": 1,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-18T22:26:43Z",
+      "first_line": "Just gently pinging this one since it's been open for a while. The current examples in the docstrings throw syntax and n"
+    }
   },
   "https://github.com/OpenSourceEconomics/dags/pull/85": {
     "url": "https://github.com/OpenSourceEconomics/dags/pull/85",
     "state": "open",
-    "comments": 1,
+    "comments": 2,
     "last_comment": {
-      "author": "review-notebook-app[bot]",
-      "created_at": "2026-05-30T17:46:40Z",
-      "first_line": "Check out this pull request on&nbsp; <a href=\"https://app.reviewnb.com/OpenSourceEconomics/dags/pull/85\"><img align=\"abs"
+      "author": "Builder106",
+      "created_at": "2026-07-18T22:31:44Z",
+      "first_line": "Just bumping this doc fix. The `NonStringAnnotationError` hasn't been raised since #67, so this just cleans up the stale"
     }
   },
   "https://github.com/QuantEcon/QuantEcon.py/pull/833": {
