@@ -228,6 +228,12 @@
           "url": "https://github.com/pwndbg/pwndbg/pull/4031",
           "state": "closed",
           "title": "aglib: narrow broad exceptions to OSError in file.py"
+        },
+        {
+          "n": 4032,
+          "url": "https://github.com/pwndbg/pwndbg/pull/4032",
+          "state": "open",
+          "title": "aglib: narrow broad exceptions to OSError in file.py"
         }
       ]
     },
