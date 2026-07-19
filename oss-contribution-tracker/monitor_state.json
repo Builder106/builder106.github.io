@@ -232,11 +232,11 @@
   "https://github.com/neovim/neovim/issues/40820": {
     "url": "https://github.com/neovim/neovim/issues/40820",
     "state": "open",
-    "comments": 1,
+    "comments": 2,
     "last_comment": {
-      "author": "Builder106",
-      "created_at": "2026-07-18T22:13:18Z",
-      "first_line": "Hi team."
+      "author": "justinmk",
+      "created_at": "2026-07-19T10:42:04Z",
+      "first_line": "I assume this is a duplicate of https://github.com/neovim/neovim/issues/4443 . I used that issue as the \"parent\"."
     }
   },
   "https://github.com/neovim/neovim/issues/40821": {
@@ -274,11 +274,11 @@
   "https://github.com/neovim/neovim/pull/40761": {
     "url": "https://github.com/neovim/neovim/pull/40761",
     "state": "open",
-    "comments": 3,
+    "comments": 6,
     "last_comment": {
-      "author": "zeertzjq",
-      "created_at": "2026-07-19T05:29:06Z",
-      "first_line": "Hmm wait, what does `--headless` have to do with whether `--server` is ignored?"
+      "author": "justinmk",
+      "created_at": "2026-07-19T11:01:01Z",
+      "first_line": "If there are other permutations that should be validated, then yeah they should be. https://github.com/neovim/neovim/iss"
     }
   },
   "https://github.com/neovim/neovim/pull/40764": {
