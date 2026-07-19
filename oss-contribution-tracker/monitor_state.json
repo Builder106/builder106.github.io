@@ -206,11 +206,11 @@
   "https://github.com/pwndbg/pwndbg/pull/4022": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4022",
     "state": "closed",
-    "comments": 2,
+    "comments": 3,
     "last_comment": {
       "author": "Builder106",
-      "created_at": "2026-07-18T20:36:13Z",
-      "first_line": "Yo @k4lizen. Here's the screen recording demonstrating the decompiler integration successfully fetching and rendering de"
+      "created_at": "2026-07-19T06:05:50Z",
+      "first_line": "@k4lizen Sorry to mention you again, but I've rolled this decomp2dbg integration and the screen recording into #4032 so "
     }
   },
   "https://github.com/pwndbg/pwndbg/pull/4031": {
@@ -264,11 +264,11 @@
   "https://github.com/neovim/neovim/pull/40761": {
     "url": "https://github.com/neovim/neovim/pull/40761",
     "state": "open",
-    "comments": 1,
+    "comments": 3,
     "last_comment": {
       "author": "zeertzjq",
-      "created_at": "2026-07-17T00:57:30Z",
-      "first_line": "Please drop the first commit."
+      "created_at": "2026-07-19T05:29:06Z",
+      "first_line": "Hmm wait, what does `--headless` have to do with whether `--server` is ignored?"
     }
   },
   "https://github.com/neovim/neovim/pull/40764": {
