@@ -226,7 +226,7 @@
         {
           "n": 4031,
           "url": "https://github.com/pwndbg/pwndbg/pull/4031",
-          "state": "open",
+          "state": "closed",
           "title": "aglib: narrow broad exceptions to OSError in file.py"
         }
       ]
@@ -238,7 +238,26 @@
       "color": "#57A143",
       "logo": "neovim.svg",
       "target": 3,
-      "issues": [],
+      "issues": [
+        {
+          "n": 40820,
+          "url": "https://github.com/neovim/neovim/issues/40820",
+          "state": "open",
+          "title": "feat(rpc): TCP Authentication Token Generation & Secure Storage"
+        },
+        {
+          "n": 40821,
+          "url": "https://github.com/neovim/neovim/issues/40821",
+          "state": "open",
+          "title": "feat(rpc): TCP Channel Authentication State Machine & RPC Enforcement"
+        },
+        {
+          "n": 40822,
+          "url": "https://github.com/neovim/neovim/issues/40822",
+          "state": "open",
+          "title": "feat(clients): Support NVIM_TCP_TOKEN_FILE handshake in official clients"
+        }
+      ],
       "prs": [
         {
           "n": 40682,
@@ -261,7 +280,7 @@
         {
           "n": 40764,
           "url": "https://github.com/neovim/neovim/pull/40764",
-          "state": "open",
+          "state": "closed",
           "title": "fix(lua): nice error message when passing vim.NIL to ipairs/pairs/next"
         }
       ]
@@ -447,6 +466,22 @@
       "date": "2026-06-17"
     },
     {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 18,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/18",
+      "state": "merged",
+      "title": "deps: bump Angular to 22 + typescript to ~6.0",
+      "date": "2026-06-13"
+    },
+    {
+      "repo": "CineQua/celestial-sanctum",
+      "n": 17,
+      "url": "https://github.com/CineQua/celestial-sanctum/pull/17",
+      "state": "merged",
+      "title": "deps: bump the dev-tooling group (jsdom 29.1.1, vitest 4.1.8)",
+      "date": "2026-06-13"
+    },
+    {
       "repo": "ArunNGun/openTeleprompt",
       "n": 6,
       "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
@@ -485,22 +520,6 @@
       "state": "open",
       "title": "Fix docs: non-string annotations are converted, not rejected",
       "date": "2026-05-30"
-    },
-    {
-      "repo": "QuantEcon/QuantEcon.py",
-      "n": 833,
-      "url": "https://github.com/QuantEcon/QuantEcon.py/pull/833",
-      "state": "open",
-      "title": "DEPR: deprecate Matlab-like tic/tac/toc/loop_timer timers (#786)",
-      "date": "2026-05-30"
-    },
-    {
-      "repo": "ArunNGun/openTeleprompt",
-      "n": 2,
-      "url": "https://github.com/ArunNGun/openTeleprompt/pull/2",
-      "state": "merged",
-      "title": "fix(build): restore tauri lib entrypoint and lockfile",
-      "date": "2026-03-25"
     }
   ]
 }
