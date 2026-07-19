@@ -159,12 +159,12 @@
   },
   "https://github.com/pwndbg/pwndbg/issues/4025": {
     "url": "https://github.com/pwndbg/pwndbg/issues/4025",
-    "state": "open",
-    "comments": 1,
+    "state": "closed",
+    "comments": 2,
     "last_comment": {
       "author": "k4lizen",
-      "created_at": "2026-07-15T21:13:26Z",
-      "first_line": "yeah sure sounds good"
+      "created_at": "2026-07-19T08:49:38Z",
+      "first_line": "closed as spam"
     }
   },
   "https://github.com/pwndbg/pwndbg/pull/3986": {
@@ -185,12 +185,12 @@
   },
   "https://github.com/pwndbg/pwndbg/pull/4020": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4020",
-    "state": "open",
-    "comments": 1,
+    "state": "closed",
+    "comments": 2,
     "last_comment": {
-      "author": "Builder106",
-      "created_at": "2026-07-18T23:33:35Z",
-      "first_line": "@k4lizen I've updated the PR description with the before and after screenshots like ya wanted."
+      "author": "k4lizen",
+      "created_at": "2026-07-19T09:46:17Z",
+      "first_line": "my bad i read the code wrong, it does work"
     }
   },
   "https://github.com/pwndbg/pwndbg/pull/4021": {
@@ -206,11 +206,11 @@
   "https://github.com/pwndbg/pwndbg/pull/4022": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4022",
     "state": "closed",
-    "comments": 3,
+    "comments": 4,
     "last_comment": {
-      "author": "Builder106",
-      "created_at": "2026-07-19T06:05:50Z",
-      "first_line": "@k4lizen Sorry to mention you again, but I've rolled this decomp2dbg integration and the screen recording into #4032 so "
+      "author": "k4lizen",
+      "created_at": "2026-07-19T09:45:25Z",
+      "first_line": "> Here's the screen recording demonstrating the decompiler integration successfully fetching and rendering decompilation"
     }
   },
   "https://github.com/pwndbg/pwndbg/pull/4031": {
@@ -218,6 +218,16 @@
     "state": "closed",
     "comments": 0,
     "last_comment": null
+  },
+  "https://github.com/pwndbg/pwndbg/pull/4032": {
+    "url": "https://github.com/pwndbg/pwndbg/pull/4032",
+    "state": "closed",
+    "comments": 2,
+    "last_comment": {
+      "author": "k4lizen",
+      "created_at": "2026-07-19T08:49:23Z",
+      "first_line": "closed as spam"
+    }
   },
   "https://github.com/neovim/neovim/issues/40820": {
     "url": "https://github.com/neovim/neovim/issues/40820",
@@ -374,11 +384,11 @@
   "https://github.com/ArunNGun/openTeleprompt/pull/6": {
     "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
     "state": "open",
-    "comments": 1,
+    "comments": 2,
     "last_comment": {
-      "author": "Builder106",
-      "created_at": "2026-07-19T01:34:51Z",
-      "first_line": "@ArunNGun Checking in on this since it's been open for a bit. Let me know if you need any changes made or if there's any"
+      "author": "ArunNGun",
+      "created_at": "2026-07-19T06:42:16Z",
+      "first_line": "> @ArunNGun Checking in on this since it's been open for a bit. Let me know if you need any changes made or if there's a"
     }
   },
   "https://github.com/ArunNGun/openTeleprompt/pull/5": {
