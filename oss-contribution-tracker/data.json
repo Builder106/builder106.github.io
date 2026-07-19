@@ -106,7 +106,7 @@
         {
           "n": 160359,
           "url": "https://projects.blender.org/blender/blender/pulls/160359",
-          "state": "open",
+          "state": "merged",
           "title": "PyDoc: Document the undo argument when calling operators"
         }
       ]
@@ -188,7 +188,7 @@
         {
           "n": 4025,
           "url": "https://github.com/pwndbg/pwndbg/issues/4025",
-          "state": "open",
+          "state": "closed",
           "title": "Broad `except Exception` in `aglib/file.py` should be narrowed to `OSError`"
         }
       ],
@@ -208,7 +208,7 @@
         {
           "n": 4020,
           "url": "https://github.com/pwndbg/pwndbg/pull/4020",
-          "state": "open",
+          "state": "closed",
           "title": "Fix invalid SLUB object warning for kfree(0)"
         },
         {
@@ -232,7 +232,7 @@
         {
           "n": 4032,
           "url": "https://github.com/pwndbg/pwndbg/pull/4032",
-          "state": "open",
+          "state": "closed",
           "title": "aglib: narrow broad exceptions to OSError in file.py"
         }
       ]
@@ -249,19 +249,19 @@
           "n": 40820,
           "url": "https://github.com/neovim/neovim/issues/40820",
           "state": "open",
-          "title": "feat(rpc): TCP Authentication Token Generation & Secure Storage"
+          "title": "RPC: TCP Authentication Token Generation & Secure Storage"
         },
         {
           "n": 40821,
           "url": "https://github.com/neovim/neovim/issues/40821",
           "state": "open",
-          "title": "feat(rpc): TCP Channel Authentication State Machine & RPC Enforcement"
+          "title": "RPC: TCP Channel Authentication State Machine & RPC Enforcement"
         },
         {
           "n": 40822,
           "url": "https://github.com/neovim/neovim/issues/40822",
           "state": "open",
-          "title": "feat(clients): Support NVIM_TCP_TOKEN_FILE handshake in official clients"
+          "title": "RPC: Support NVIM_TCP_TOKEN_FILE handshake in official clients"
         }
       ],
       "prs": [
