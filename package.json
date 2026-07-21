@@ -9,6 +9,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "refresh-stats": "node scripts/fetch-repo-stats.mjs",
     "demo:record": "DEMO=1 playwright test --config=playwright.demo.config.ts",
     "demo:gif": "for f in e2e/demo/output/*.mp4; do ffmpeg -y -i \"$f\" -vf \"fps=8,scale=720:-1:flags=lanczos\" -loop 0 \"${f%.mp4}.gif\"; done",
@@ -37,6 +39,8 @@
     "playwright-bdd": "^9.2.0",
     "replicate": "^1.4.0",
     "typescript": "^7.0.2",
-    "vite": "^8.1.4"
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.10"
   }
 }

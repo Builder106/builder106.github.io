@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, type Plugin } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { execSync } from "node:child_process";
@@ -125,5 +125,9 @@ export default defineConfig({
   build: {
     target: "es2022",
     sourcemap: true,
+  },
+  test: {
+    include: ["src/**/*.test.ts"],
+    exclude: ["e2e/**", ".features-gen/**", "node_modules/**"],
   },
 });
