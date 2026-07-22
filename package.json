@@ -29,7 +29,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
-    "@elevenlabs/elevenlabs-js": "^2.58.0",
+    "@elevenlabs/elevenlabs-js": "^2.59.0",
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
