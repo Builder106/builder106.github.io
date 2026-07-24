@@ -24,9 +24,36 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
   // even when the panel was visually hidden). Set via ref because
   // React 18 doesn't type the inert JSX prop yet (added in React 19).
   const rootRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     if (rootRef.current) rootRef.current.inert = !open;
-  }, [open]);
+
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement | null;
+      // Focus the close button when the panel opens so keyboard users start in dialog scope
+      const focusTimer = window.setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 50);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onClose();
+        }
+      };
+
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        window.clearTimeout(focusTimer);
+        window.removeEventListener("keydown", handleKeyDown);
+        if (previousFocusRef.current && typeof previousFocusRef.current.focus === "function") {
+          previousFocusRef.current.focus();
+        }
+      };
+    }
+  }, [open, onClose]);
 
   return (
     <div
@@ -59,7 +86,7 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
             <span className="panel__chrome-dot panel__chrome-dot--green" />
           </div>
           <h2 className="panel__title">{title}</h2>
-          <button className="panel__close" onClick={onClose} aria-label="Close">
+          <button ref={closeButtonRef} className="panel__close" onClick={onClose} aria-label="Close">
             <span aria-hidden>esc</span>
           </button>
         </header>

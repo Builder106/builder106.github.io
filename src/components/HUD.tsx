@@ -45,7 +45,7 @@ export function HUD({ onPing, audioEnabled, onToggleAudio, hasExplored }: HUDPro
         <span className="hud__hint hud__hint--fine">
           <span className="hud__hint-key">drag</span>
           <span> to orbit</span>
-          <span className="hud__hint-sep">·</span>
+          <span className="hud__hint-sep" aria-hidden />
           <span className="hud__hint-key">click</span>
           <span> a node</span>
         </span>
@@ -81,7 +81,6 @@ export function HUD({ onPing, audioEnabled, onToggleAudio, hasExplored }: HUDPro
         </button>
 
         <button className="hud__ping" onClick={onPing}>
-          <span className="hud__ping-dot" />
           ping
         </button>
       </div>

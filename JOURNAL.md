@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-07-24 — Site optimization sweep: vendor chunking, dialog a11y, canonical tag, HUD rule cleanup, ServerRoom modularization #decision #milestone
+
+Executed a multi-domain optimization pass across the site. In `vite.config.ts`, added Rollup `manualChunks` to split `vendor-three` (Three.js + R3F + Drei) and `vendor-react` from application logic, and turned off sourcemap emission for cleaner production builds. Added a `<link rel="canonical" href="https://yinkavaughan.me/" />` in `index.html` to eliminate domain alias duplicates in search engines. Upgraded `PanelShell.tsx` accessibility with an `Escape` key event listener and focus restoration management so keyboard navigation starts in dialog scope when opened. Cleaned up `HUD.tsx` and `HUD.css` to replace punctuation glyph dividers (`·`) with vertical rule bars and removed real-time status dots. Finally, modularized `ServerRoom.tsx` by extracting `DistantRacks.tsx` and `TrofferLights.tsx` into `src/scene/components/`. All typechecks, unit tests, and production builds pass clean.
+
 ## 2026-07-16 — Relaxed Lighthouse performance threshold for CI stability #decision #incident
 
 The Lighthouse CI mobile check failed on a contribution-tracker data update because the Total Blocking Time (TBT) spiked to 3.2s on the GitHub Actions runner. Since the CI runner has no GPU and uses software WebGL rendering, the main thread blocks during scene boot, producing an artificially high TBT. The `categories:performance` minScore threshold of 0.7 was too strict for these CI-induced TBT spikes, resulting in failed deploy runs. I relaxed the threshold to 0.6 in `.lighthouserc.json` to tolerate CI hardware artifacts and allow otherwise unrelated commits to pass.

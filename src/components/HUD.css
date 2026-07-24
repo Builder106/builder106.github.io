@@ -104,14 +104,15 @@
 }
 
 .hud__hint-sep {
+  display: inline-block;
+  width: 1px;
+  height: 10px;
+  background: currentColor;
+  opacity: 0.3;
   margin: 0 8px;
-  opacity: 0.5;
+  vertical-align: middle;
 }
 
-/* Bottom-right cluster wraps audio + PING in a flex row. align-items:
-   center vertically centres both children no matter how their
-   individual heights compare. Replaces the two separately-positioned
-   absolute buttons that ended up vertically misaligned. */
 .hud__br-cluster {
   position: absolute;
   pointer-events: auto;
@@ -165,20 +166,6 @@
 .hud__ping:hover {
   background: rgba(76, 242, 255, 0.12);
   border-color: rgba(76, 242, 255, 0.6);
-}
-
-.hud__ping-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--terminal-green);
-  box-shadow: 0 0 8px var(--terminal-green);
-  animation: hud-ping-pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes hud-ping-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(0.85); }
 }
 
 /* ---------- Mobile / narrow viewport ---------- */

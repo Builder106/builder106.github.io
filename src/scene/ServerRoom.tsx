@@ -31,6 +31,8 @@ import { createWaveFloorMaterial, type WaveFloorUniforms } from "./waveFloorShad
 import { createOperatorHoloMaterial, type OperatorHoloUniforms } from "./operatorHoloShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
 import { CLUSTER_DISPLAY, projects } from "@/data/projects";
+import { DistantRacks } from "./components/DistantRacks";
+import { TrofferLights } from "./components/TrofferLights";
 
 // Preload the one glb both variants now resolve to (portrait used to
 // load a separate amphitheater file — retired, see sceneVariant.ts).
@@ -173,117 +175,17 @@ function waveColorForProject(
   return WAVE_CLUSTER_COLORS[cluster] ?? WAVE_CLUSTER_COLORS.quant;
 }
 
-// Tiny seeded RNG so the distant-rack layout is stable across reloads.
-function mulberry32(seed: number) {
-  return () => {
-    seed = (seed + 0x6D2B79F5) | 0;
-    let t = seed;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+
 
 // Deterministic transforms for the distant-rack scatter. Generated
-// once per "isMobile" flip; each transform places one rack instance.
-interface RackInstanceTransform {
-  position: [number, number, number];
-  rotationY: number;
-  scale: number;
-}
-
-function buildDistantRackTransforms(isMobile: boolean): RackInstanceTransform[] {
-  const rng = mulberry32(0xCAFE_BABE);
-  const count = isMobile ? 22 : 56;
-  const out: RackInstanceTransform[] = [];
-  for (let i = 0; i < count; i++) {
-    // Pull the inner radius out to 26m so distant racks don't crowd
-    // the silhouette of the main back-wall racks; outer radius 52m so
-    // there's still a sense of depth.
-    const r = 26 + rng() * 26;
-    const theta = rng() * Math.PI * 2;
-    const x = Math.cos(theta) * r;
-    const z = Math.sin(theta) * r;
-    // Skip anything inside the visible-room footprint plus a small
-    // breathing margin.
-    if (Math.abs(x) < 10 && Math.abs(z) < 10) continue;
-    // Random orientation but bias toward facing the room interior so
-    // the LED strip on the front of each rack reads at distance.
-    const facing = Math.atan2(-x, -z);
-    const jitter = (rng() - 0.5) * Math.PI * 0.6;  // ±54°
-    const rotationY = facing + jitter;
-    out.push({
-      position: [x, 0, z],
-      rotationY,
-      scale: 0.85 + rng() * 0.3,
-    });
-  }
-  return out;
-}
-
-interface DistantRacksProps {
-  bodyGeom: BufferGeometry | null;
-  bodyMat: Material | null;
-  ledGeom: BufferGeometry | null;
-  ledMat: Material | null;
-  isMobile: boolean;
-}
-
-// Two InstancedMesh: one for the rack body, one for the LED accent
-// strip. Same per-instance transform applied to both so each rack
-// reads as a single object. Materials/geometries come from the loaded
-// glb (authored in Blender) — the template meshes themselves are
-// hidden by the scene traversal that finds them.
-function DistantRacks({
-  bodyGeom,
-  bodyMat,
-  ledGeom,
-  ledMat,
-  isMobile,
-}: DistantRacksProps) {
-  const transforms = useMemo(() => buildDistantRackTransforms(isMobile), [isMobile]);
-
-  // Build the per-instance Matrix4 array once. Shared between the
-  // body and LED InstancedMesh.
-  const matrices = useMemo(() => {
-    const dummy = new Object3D();
-    return transforms.map((t) => {
-      dummy.position.set(t.position[0], t.position[1], t.position[2]);
-      dummy.rotation.set(0, t.rotationY, 0);
-      dummy.scale.setScalar(t.scale);
-      dummy.updateMatrix();
-      return dummy.matrix.clone();
-    });
-  }, [transforms]);
-
-  if (!bodyGeom || !bodyMat || !ledGeom || !ledMat) return null;
-
-  return (
-    <group>
-      <instancedMesh args={[bodyGeom, bodyMat, matrices.length]} frustumCulled={false}
-        ref={(m) => {
-          if (!m) return;
-          matrices.forEach((mat, i) => m.setMatrixAt(i, mat));
-          m.instanceMatrix.needsUpdate = true;
-        }}
-      />
-      <instancedMesh args={[ledGeom, ledMat, matrices.length]} frustumCulled={false}
-        ref={(m) => {
-          if (!m) return;
-          matrices.forEach((mat, i) => m.setMatrixAt(i, mat));
-          m.instanceMatrix.needsUpdate = true;
-        }}
-      />
-    </group>
-  );
-}
+// DistantRacks is imported from ./components/DistantRacks
 
 // Project ids in the order they should appear down the portrait aisle —
 // closest to camera first, receding into the fog. Quant cluster anchors
 // the front because OCaml LOB / qforge are the strongest "headline" tech
 // surfaces; swe + analyst + security + AI/ML clusters follow in cluster
 // groupings so the colour-coding reads as you walk.
-const AISLE_ORDER = [
+export const AISLE_ORDER = [
   "ocaml-lob",
   "qforge",
   "econos",
@@ -308,8 +210,8 @@ const AISLE_ORDER = [
 // front pair at the camera. Z_START sits a hair behind the (relocated)
 // terminal desk so the first pair reads as the user's first step into
 // the hall.
-const AISLE_SPACING = 2.6;
-const AISLE_Z_START = 1.0;
+export const AISLE_SPACING = 2.6;
+export const AISLE_Z_START = 1.0;
 const AISLE_TERMINAL_Z = 4.2;
 // Operator hologram parks just past the last rack, at the end of the
 // corridor, facing back up the aisle (+Z) as the walk's destination.
@@ -1715,6 +1617,8 @@ export function ServerRoom({
           side={2}
         />
       )}
+
+      <TrofferLights variant={variant} />
 
       {/* Distant data-center skyline: rack-shaped templates authored
           in Blender, instanced ~80x in a 22–50m ring around the room.
