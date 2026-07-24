@@ -348,11 +348,11 @@
   "https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/6969": {
     "url": "https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/6969",
     "state": "open",
-    "comments": 3,
+    "comments": 4,
     "last_comment": {
       "author": "gitlab-bot",
-      "created_at": "2026-07-17T00:16:41.344Z",
-      "first_line": "We've attempted to automatically add labels to this merge request."
+      "created_at": "2026-07-24T00:20:06.074Z",
+      "first_line": "@Builder106, the pipeline's failing, can you take a look? (there's also no review requested yet.) We'd love to help you "
     }
   },
   "https://github.com/chloe-ek/MLH_Portfolio/pull/18": {
