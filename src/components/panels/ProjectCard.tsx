@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { CLUSTER_DISPLAY, projects, type Project } from "@/data/projects";
+import { AISLE_ORDER, CLUSTER_DISPLAY, projects, type Project } from "@/data/projects";
 import { repoStats } from "@/data/repoStats.generated";
 import type { ActivePanel } from "@/scene/activePanel";
 import { PanelShell } from "./PanelShell";
@@ -10,24 +10,6 @@ interface ProjectCardProps {
   onNavigate: (target: ActivePanel) => void;
 }
 
-// Aisle ordering (front of corridor → back). Duplicated rather than
-// imported from ServerRoom because that module pulls three.js; this
-// panel must stay in its own lazy chunk so the initial bundle doesn't
-// drag in WebGL.
-const AISLE_ORDER = [
-  "ocaml-lob",
-  "qforge",
-  "econos",
-  "staija",
-  "studysprint",
-  "micromatch",
-  "capitol-alpha",
-  "datafest-2026",
-  "linuxbenchhub",
-  "clearhash",
-  "halberd",
-  "quarry",
-] as const;
 
 // Resolve a repo URL → "<owner>/<name>" slug, the same key the
 // build-time stats script uses.

@@ -30,7 +30,8 @@ import { createWaveBeamMaterial, type WaveBeamUniforms } from "./waveBeamShader"
 import { createWaveFloorMaterial, type WaveFloorUniforms } from "./waveFloorShader";
 import { createOperatorHoloMaterial, type OperatorHoloUniforms } from "./operatorHoloShader";
 import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
-import { CLUSTER_DISPLAY, projects } from "@/data/projects";
+import { AISLE_ORDER, CLUSTER_DISPLAY, projects } from "@/data/projects";
+
 import { DistantRacks } from "./components/DistantRacks";
 import { TrofferLights } from "./components/TrofferLights";
 
@@ -185,23 +186,9 @@ function waveColorForProject(
 // the front because OCaml LOB / qforge are the strongest "headline" tech
 // surfaces; swe + analyst + security + AI/ML clusters follow in cluster
 // groupings so the colour-coding reads as you walk.
-export const AISLE_ORDER = [
-  "ocaml-lob",
-  "qforge",
-  "econos",
-  "staija",
-  "studysprint",
-  "micromatch",
-  "capitol-alpha",
-  "datafest-2026",
-  "linuxbenchhub",
-  "clearhash",
-  "halberd",
-  "quarry",
-  "enclave",
-  "helm",
-  "tradetell",
-] as const;
+export { AISLE_ORDER };
+
+
 
 // Aisle geometry. Racks line both sides of a centre corridor, each pair
 // sharing the same Z position. AISLE_HALF_WIDTH is the lateral offset

@@ -7,7 +7,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { projects, CLUSTER_DISPLAY, type ProjectCluster } from "@/data/projects";
+import { AISLE_ORDER, projects, CLUSTER_DISPLAY, type ProjectCluster } from "@/data/projects";
 import { repoStats } from "@/data/repoStats.generated";
 import { aisleScroll } from "@/scene/aisleScroll";
 import type { ActivePanel } from "@/scene/activePanel";
@@ -32,27 +32,6 @@ interface TradingTerminalProps {
 // the bottom drives navigation + toggles via typed commands. The
 // OCaml LOB demo that used to anchor the panel is gone — the OCaml
 // LOB rack has its own ProjectCard.
-
-// Mirrors ServerRoom.tsx's AISLE_ORDER. Duplicated rather than imported
-// because that module pulls three.js; the terminal panel must stay in
-// its own light chunk so the initial bundle doesn't grow.
-const AISLE_ORDER = [
-  "ocaml-lob",
-  "qforge",
-  "econos",
-  "staija",
-  "studysprint",
-  "micromatch",
-  "capitol-alpha",
-  "datafest-2026",
-  "linuxbenchhub",
-  "clearhash",
-  "halberd",
-  "quarry",
-  "enclave",
-  "helm",
-  "tradetell",
-] as const;
 
 const AISLE_SPACING = 2.6;
 const AISLE_Z_START = 1.0;

@@ -13,6 +13,31 @@ export const CLUSTER_DISPLAY: Record<ProjectCluster, string> = {
   ml: "AI/ML",
 };
 
+// Project ids in the order they should appear down the portrait aisle and
+// in project card prev/next navigation — closest to camera first, receding
+// into the fog. Centralized here so ProjectCard, TradingTerminal, and
+// ServerRoom stay in lockstep without dragging WebGL/Three.js into light chunks.
+export const AISLE_ORDER = [
+  "ocaml-lob",
+  "qforge",
+  "econos",
+  "staija",
+  "studysprint",
+  "micromatch",
+  "capitol-alpha",
+  "datafest-2026",
+  "linuxbenchhub",
+  "clearhash",
+  "halberd",
+  "quarry",
+  "enclave",
+  "helm",
+  "tradetell",
+] as const;
+
+export type AisleProjectId = (typeof AISLE_ORDER)[number];
+
+
 export interface Project {
   id: string;
   name: string;
