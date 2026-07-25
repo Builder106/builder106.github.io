@@ -22,6 +22,9 @@
       <span class="stamp__line">statement of</span>
       <span class="stamp__name"><!--AUTHOR--></span>
       <span class="stamp__line">as of <!--ASOF--></span>
+      <button type="button" class="refresh-trigger" id="open-refresh-modal" aria-haspopup="dialog">
+        <span class="refresh-trigger__icon" aria-hidden="true">&#x21bb;</span> Run Refresh
+      </button>
     </div>
   </header>
 
@@ -108,12 +111,149 @@ gh search prs <span class="a">--author</span> Builder106 <span class="a">--json<
 
 </main>
 
+<div id="refresh-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="refresh-modal-title">
+  <div class="modal__backdrop" data-close-modal></div>
+  <div class="modal__card" role="document">
+    <header class="modal__header">
+      <h2 id="refresh-modal-title" class="modal__title">Run refresh.py &middot; Repost Ledger</h2>
+      <button type="button" class="modal__close" data-close-modal aria-label="Close modal">&times;</button>
+    </header>
+    <div class="modal__body">
+      <p class="modal__intro">Choose how to run <code>refresh.py</code> to recalculate balances and regenerate this book:</p>
+
+      <div class="modal__section">
+        <h3>Option 1: Trigger GitHub Actions Workflow</h3>
+        <p>Trigger the <code>deploy.yml</code> workflow directly on GitHub Actions. (Recommended)</p>
+        <a href="https://github.com/Builder106/Builder106.github.io/actions/workflows/deploy.yml" target="_blank" rel="noopener noreferrer" class="btn btn--primary">
+          Open GitHub Actions &rarr;
+        </a>
+      </div>
+
+      <div class="modal__section">
+        <h3>Option 2: Trigger via GitHub API (In-Browser)</h3>
+        <p>If you have a GitHub Personal Access Token (with <code>workflow</code> or <code>repo</code> scope), enter it below to dispatch the workflow immediately:</p>
+        <form id="api-dispatch-form" class="dispatch-form">
+          <div class="dispatch-form__field">
+            <input type="password" id="gh-token-input" placeholder="ghp_... or github_pat_..." autocomplete="off" class="input-text" />
+            <button type="submit" id="dispatch-submit-btn" class="btn btn--secondary">Dispatch Workflow</button>
+          </div>
+          <div id="dispatch-status" class="dispatch-status" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <div class="modal__section">
+        <h3>Option 3: Run via GitHub CLI or Python locally</h3>
+        <div class="code-box">
+          <div class="code-box__header">
+            <span>Terminal Commands</span>
+            <button type="button" class="btn-copy" id="copy-cli-btn">Copy CLI command</button>
+          </div>
+          <pre><code id="cli-cmd-text"><span class="c"># Trigger remote workflow via GitHub CLI</span>
+gh workflow run deploy.yml --repo Builder106/Builder106.github.io
+
+<span class="c"># Or run locally from repo root</span>
+python3 oss-contribution-tracker/refresh.py</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   (function () {
     try {
       var pref = localStorage.getItem("theme");
       if (pref) document.documentElement.setAttribute("data-theme", pref);
     } catch (e) {}
+
+    var modal = document.getElementById("refresh-modal");
+    var openBtn = document.getElementById("open-refresh-modal");
+    var closeBtns = document.querySelectorAll("[data-close-modal]");
+    var tokenInput = document.getElementById("gh-token-input");
+    var form = document.getElementById("api-dispatch-form");
+    var statusEl = document.getElementById("dispatch-status");
+    var submitBtn = document.getElementById("dispatch-submit-btn");
+    var copyBtn = document.getElementById("copy-cli-btn");
+
+    function openModal() {
+      if (!modal) return;
+      modal.setAttribute("aria-hidden", "false");
+      modal.classList.add("modal--open");
+      if (tokenInput) tokenInput.focus();
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      modal.setAttribute("aria-hidden", "true");
+      modal.classList.remove("modal--open");
+      if (openBtn) openBtn.focus();
+    }
+
+    if (openBtn) openBtn.addEventListener("click", openModal);
+    closeBtns.forEach(function (btn) {
+      btn.addEventListener("click", closeModal);
+    });
+
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && modal && modal.getAttribute("aria-hidden") === "false") {
+        closeModal();
+      }
+    });
+
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var token = tokenInput ? tokenInput.value.trim() : "";
+        if (!token) {
+          statusEl.className = "dispatch-status dispatch-status--error";
+          statusEl.textContent = "Please enter a GitHub Personal Access Token.";
+          return;
+        }
+
+        statusEl.className = "dispatch-status dispatch-status--info";
+        statusEl.textContent = "Dispatching workflow...";
+        if (submitBtn) submitBtn.disabled = true;
+
+        fetch("https://api.github.com/repos/Builder106/Builder106.github.io/actions/workflows/deploy.yml/dispatches", {
+          method: "POST",
+          headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": "Bearer " + token,
+            "X-GitHub-Api-Version": "2022-11-28"
+          },
+          body: JSON.stringify({ ref: "main" })
+        }).then(function (res) {
+          if (res.ok || res.status === 204) {
+            statusEl.className = "dispatch-status dispatch-status--success";
+            statusEl.textContent = "\u2713 Workflow dispatched successfully! The page will update in ~1-2 minutes.";
+            if (tokenInput) tokenInput.value = "";
+          } else {
+            return res.json().then(function (data) {
+              throw new Error((data && data.message) ? data.message : ("HTTP " + res.status));
+            }).catch(function () {
+              throw new Error("HTTP " + res.status);
+            });
+          }
+        }).catch(function (err) {
+          statusEl.className = "dispatch-status dispatch-status--error";
+          statusEl.textContent = "Dispatch failed: " + err.message;
+        }).finally(function () {
+          if (submitBtn) submitBtn.disabled = false;
+        });
+      });
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener("click", function () {
+        var cmd = "gh workflow run deploy.yml --repo Builder106/Builder106.github.io";
+        navigator.clipboard.writeText(cmd).then(function () {
+          copyBtn.textContent = "Copied!";
+          setTimeout(function () { copyBtn.textContent = "Copy CLI command"; }, 2000);
+        }).catch(function () {
+          copyBtn.textContent = "Failed to copy";
+        });
+      });
+    }
   })();
 </script>
 </body>

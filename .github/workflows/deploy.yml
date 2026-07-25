@@ -8,6 +8,8 @@ on:
     # portfolio commits. Matches the tracker's old standalone-repo cadence.
     - cron: "17 6 * * *"
   workflow_dispatch:
+  repository_dispatch:
+    types: [refresh-tracker]
 
 permissions:
   contents: write

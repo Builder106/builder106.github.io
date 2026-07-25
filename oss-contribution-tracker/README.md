@@ -38,8 +38,15 @@ replacing" list on its card instead of quietly still counting.
 -- Vite's `public/` dir is copied verbatim into `dist/` on build, so the
 portfolio's own deploy workflow picks it up without any extra wiring. The
 portfolio's `.github/workflows/deploy.yml` runs `refresh.py` before every
-build (on push, and on a daily schedule), commits the refreshed `data.json`,
+build (on push, on a daily schedule, or via manual dispatch), commits the refreshed `data.json`,
 and deploys.
+
+### Triggering a refresh
+
+1. **Web UI**: Click the **Run Refresh** button in the masthead stamp on [yinkavaughan.me/oss-contribution-tracker/](https://yinkavaughan.me/oss-contribution-tracker/) to open the dispatch modal (supports direct link to GitHub Actions, in-browser API dispatch via GitHub token, or CLI snippet).
+2. **GitHub Actions UI**: Go to [Actions &rarr; deploy workflow](https://github.com/Builder106/Builder106.github.io/actions/workflows/deploy.yml) and click **Run workflow**.
+3. **GitHub CLI**: Run `gh workflow run deploy.yml --repo Builder106/Builder106.github.io`.
+4. **Local Execution**:
 
 ```sh
 python3 oss-contribution-tracker/refresh.py     # needs an authenticated gh + curl, run from the portfolio repo root
