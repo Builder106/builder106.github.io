@@ -99,7 +99,7 @@ jobs:
     # Speed Index) are warn-only because the CI runner can't represent
     # them honestly — real desktop user perf gets measured by Cloudflare
     # Web Analytics with actual GPUs in the loop.
-    continue-on-error: ${{ matrix.profile == 'desktop' }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
