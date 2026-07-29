@@ -355,6 +355,12 @@
       "first_line": "@Builder106, the pipeline's failing, can you take a look? (there's also no review requested yet.) We'd love to help you "
     }
   },
+  "https://github.com/ascherj/pathreview/pull/340": {
+    "url": "https://github.com/ascherj/pathreview/pull/340",
+    "state": "open",
+    "comments": 0,
+    "last_comment": null
+  },
   "https://github.com/chloe-ek/MLH_Portfolio/pull/18": {
     "url": "https://github.com/chloe-ek/MLH_Portfolio/pull/18",
     "state": "merged",
@@ -444,11 +450,5 @@
       "created_at": "2026-07-07T00:43:00Z",
       "first_line": "Hi @Builder106 \u2014 this is really cleanly done, thanks! \ud83d\ude4f The `stacklevel=3` attribution, routing `loop_timer` through `se"
     }
-  },
-  "https://github.com/ArunNGun/openTeleprompt/pull/2": {
-    "url": "https://github.com/ArunNGun/openTeleprompt/pull/2",
-    "state": "merged",
-    "comments": 0,
-    "last_comment": null
   }
 }
