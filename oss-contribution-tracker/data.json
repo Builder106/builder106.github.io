@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-07-28",
+  "as_of": "2026-07-29",
   "week_start": "2026-07-27",
   "author": "Builder106",
   "repos": [
@@ -448,6 +448,14 @@
   },
   "misc": [
     {
+      "repo": "ascherj/pathreview",
+      "n": 340,
+      "url": "https://github.com/ascherj/pathreview/pull/340",
+      "state": "open",
+      "title": "feat: add GitHub Actions workflow parser for CI/CD skill detection",
+      "date": "2026-07-28"
+    },
+    {
       "repo": "chloe-ek/MLH_Portfolio",
       "n": 18,
       "url": "https://github.com/chloe-ek/MLH_Portfolio/pull/18",
@@ -518,14 +526,6 @@
       "state": "open",
       "title": "DEPR: deprecate Matlab-like tic/tac/toc/loop_timer timers (#786)",
       "date": "2026-05-30"
-    },
-    {
-      "repo": "ArunNGun/openTeleprompt",
-      "n": 2,
-      "url": "https://github.com/ArunNGun/openTeleprompt/pull/2",
-      "state": "merged",
-      "title": "fix(build): restore tauri lib entrypoint and lockfile",
-      "date": "2026-03-25"
     }
   ]
 }
