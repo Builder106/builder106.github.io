@@ -190,11 +190,11 @@
   "https://github.com/pwndbg/pwndbg/pull/4020": {
     "url": "https://github.com/pwndbg/pwndbg/pull/4020",
     "state": "closed",
-    "comments": 2,
+    "comments": 3,
     "last_comment": {
-      "author": "k4lizen",
-      "created_at": "2026-07-19T09:46:17Z",
-      "first_line": "my bad i read the code wrong, it does work"
+      "author": "Builder106",
+      "created_at": "2026-07-30T16:53:58Z",
+      "first_line": "Hey @k4lizen, I am truly sorry for using fake evidence on #4021. And even though you called me out and I said I'd use re"
     }
   },
   "https://github.com/pwndbg/pwndbg/pull/4021": {
