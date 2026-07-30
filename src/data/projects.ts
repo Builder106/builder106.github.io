@@ -81,7 +81,7 @@ export const projects: Project[] = [
     stack: ["Python", "PettingZoo", "PPO", "FastAPI", "WebSocket"],
     links: {
       live: "https://econ-os.vercel.app",
-      repo: "https://github.com/Builder106/EconOS",
+      repo: "https://github.com/Builder106/econ-os",
     },
     image: "/img/projects/econos.png",
     demo: "/img/projects/demos/econos.webm",
@@ -98,7 +98,7 @@ export const projects: Project[] = [
     stack: ["OCaml", "Dream", "Docker", "Tailwind", "Oracle Cloud"],
     links: {
       live: "https://ocaml-lob.vercel.app",
-      repo: "https://github.com/Builder106/ocaml_limit",
+      repo: "https://github.com/Builder106/ocaml-limit",
     },
     image: "/img/projects/ocaml-lob.png",
     demo: "/img/projects/demos/ocaml-lob.webm",
@@ -134,7 +134,7 @@ export const projects: Project[] = [
     stack: ["SvelteKit", "Appwrite", "Bun", "TypeScript", "Tailwind"],
     links: {
       live: "https://trymicromatch.vercel.app",
-      repo: "https://github.com/Builder106/MicroMatch",
+      repo: "https://github.com/Builder106/micro-match",
     },
     image: "/img/projects/micromatch.png",
     demo: "/img/projects/demos/micromatch.webm",
@@ -151,7 +151,7 @@ export const projects: Project[] = [
     stack: ["Vue 3", "TypeScript", "Firebase", "Tailwind", "Vite"],
     links: {
       live: "https://staija.org",
-      repo: "https://github.com/Builder106/STAIJA",
+      repo: "https://github.com/Builder106/staija",
     },
     image: "/img/projects/staija.png",
     demo: "/img/projects/demos/staija.webm",
@@ -168,7 +168,7 @@ export const projects: Project[] = [
     stack: ["Deno 2", "React", "TypeScript", "Vite", "Supabase"],
     links: {
       live: "https://getstudysprint.vercel.app",
-      repo: "https://github.com/Builder106/StudySprint",
+      repo: "https://github.com/Builder106/study-sprint",
     },
     image: "/img/projects/studysprint.png",
     demo: "/img/projects/demos/studysprint.webm",
@@ -190,7 +190,7 @@ export const projects: Project[] = [
     stack: ["Python", "Playwright", "pdfplumber", "pandas", "scipy", "Jupyter"],
     links: {
       live: "https://capitolalpha.vercel.app",
-      repo: "https://github.com/Builder106/CapitolAlpha",
+      repo: "https://github.com/Builder106/capitol-alpha",
     },
     demo: "/img/projects/demos/capitol-alpha.webm",
     color: "#ff3b5c",
@@ -221,7 +221,7 @@ export const projects: Project[] = [
       "A benchmarking dataset and Rails 8 dashboard comparing Ubuntu, Fedora, and Debian under identical virtual hardware. Phoronix runs are captured monthly by GitHub Actions; R parsers and the dashboard consume the same composite XML, so the static analysis and the live UI never drift.",
     stack: ["Ruby on Rails", "R", "Phoronix Test Suite", "GitHub Actions", "Docker"],
     links: {
-      repo: "https://github.com/Builder106/LinuxBenchHub",
+      repo: "https://github.com/Builder106/linux-bench-hub",
     },
     color: "#b06bff",
     logo: "/img/projects/logos/linuxbenchhub.png",
@@ -244,7 +244,7 @@ export const projects: Project[] = [
     stack: ["Rust", "Sigstore", "Rekor", "Docker", "Axum"],
     links: {
       live: "https://clear-hash.vercel.app",
-      repo: "https://github.com/Builder106/ClearHash",
+      repo: "https://github.com/Builder106/clear-hash",
     },
     color: "#3dff6a",
     logo: "/img/projects/logos/clearhash.png",
@@ -259,7 +259,7 @@ export const projects: Project[] = [
     stack: ["Go", "WebAssembly", "Next.js", "JSON-RPC", "MCP"],
     links: {
       live: "https://halberd-keep.vercel.app",
-      repo: "https://github.com/Builder106/Halberd",
+      repo: "https://github.com/Builder106/halberd",
     },
     color: "#f5c542",
     logo: "/img/projects/logos/halberd.png",
@@ -274,7 +274,7 @@ export const projects: Project[] = [
     stack: ["Solidity", "Yul", "TypeScript", "Foundry", "Bun"],
     links: {
       live: "https://quarry-mev.vercel.app",
-      repo: "https://github.com/Builder106/Quarry",
+      repo: "https://github.com/Builder106/quarry",
     },
     color: "#ff8a1f",
     logo: "/img/projects/logos/quarry.png",
@@ -301,7 +301,7 @@ export const projects: Project[] = [
     stack: ["Next.js 16", "AI SDK 5", "Ollama", "Groq", "TypeScript"],
     links: {
       live: "https://enclave-iota.vercel.app",
-      repo: "https://github.com/Builder106/Enclave",
+      repo: "https://github.com/Builder106/enclave",
     },
     color: "#15c39a",
     logo: "/img/projects/logos/enclave.png",
@@ -317,7 +317,7 @@ export const projects: Project[] = [
     stack: ["React 19", "Gemini 3.1 Flash Lite", "MCP", "libSQL", "Node"],
     links: {
       live: "https://helm-bridge.vercel.app",
-      repo: "https://github.com/Builder106/Helm",
+      repo: "https://github.com/Builder106/helm",
     },
     color: "#4f8cff",
     logo: "/img/projects/logos/helm.png",
@@ -333,7 +333,7 @@ export const projects: Project[] = [
     stack: ["Python", "Streamlit", "Groq", "RAG", "vector search"],
     links: {
       live: "https://tradetell.streamlit.app",
-      repo: "https://github.com/Builder106/IMC_Prosperity",
+      repo: "https://github.com/Builder106/imc-prosperity",
     },
     color: "#ff4b4b",
     logo: "/img/projects/logos/tradetell.png",

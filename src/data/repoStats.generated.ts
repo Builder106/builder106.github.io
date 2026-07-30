@@ -8,12 +8,12 @@ export interface RepoStats {
 }
 
 export const repoStats: Record<string, RepoStats> = {
-  "Builder106/EconOS": {
+  "Builder106/econ-os": {
     "lang": "JavaScript",
     "pushed_at": "2026-06-28T18:18:20Z",
     "stars": 0
   },
-  "Builder106/ocaml_limit": {
+  "Builder106/ocaml-limit": {
     "lang": "OCaml",
     "pushed_at": "2026-07-13T15:44:38Z",
     "stars": 3
@@ -23,22 +23,22 @@ export const repoStats: Record<string, RepoStats> = {
     "pushed_at": "2026-07-13T15:44:36Z",
     "stars": 0
   },
-  "Builder106/MicroMatch": {
+  "Builder106/micro-match": {
     "lang": "TypeScript",
     "pushed_at": "2026-07-16T20:46:47Z",
     "stars": 0
   },
-  "Builder106/STAIJA": {
+  "Builder106/staija": {
     "lang": "TypeScript",
     "pushed_at": "2026-07-16T05:35:52Z",
     "stars": 0
   },
-  "Builder106/StudySprint": {
+  "Builder106/study-sprint": {
     "lang": "TypeScript",
     "pushed_at": "2026-07-13T15:44:29Z",
     "stars": 0
   },
-  "Builder106/CapitolAlpha": {
+  "Builder106/capitol-alpha": {
     "lang": "Jupyter Notebook",
     "pushed_at": "2026-06-28T18:17:43Z",
     "stars": 0
@@ -48,37 +48,37 @@ export const repoStats: Record<string, RepoStats> = {
     "pushed_at": "2026-07-16T20:38:07Z",
     "stars": 0
   },
-  "Builder106/LinuxBenchHub": {
+  "Builder106/linux-bench-hub": {
     "lang": "HTML",
     "pushed_at": "2026-07-14T15:42:17Z",
     "stars": 0
   },
-  "Builder106/ClearHash": {
+  "Builder106/clear-hash": {
     "lang": "Rust",
     "pushed_at": "2026-07-14T15:55:55Z",
     "stars": 0
   },
-  "Builder106/Halberd": {
+  "Builder106/halberd": {
     "lang": "Go",
     "pushed_at": "2026-07-13T15:44:51Z",
     "stars": 0
   },
-  "Builder106/Quarry": {
+  "Builder106/quarry": {
     "lang": "TypeScript",
     "pushed_at": "2026-07-13T15:44:54Z",
     "stars": 0
   },
-  "Builder106/Enclave": {
+  "Builder106/enclave": {
     "lang": "TypeScript",
     "pushed_at": "2026-07-14T16:01:44Z",
     "stars": 0
   },
-  "Builder106/Helm": {
+  "Builder106/helm": {
     "lang": "HTML",
     "pushed_at": "2026-07-13T15:49:23Z",
     "stars": 0
   },
-  "Builder106/IMC_Prosperity": {
+  "Builder106/imc-prosperity": {
     "lang": "Python",
     "pushed_at": "2026-07-14T15:56:14Z",
     "stars": 0
