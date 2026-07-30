@@ -446,6 +446,14 @@ def account_block(repo: dict, target: int) -> str:
                 f'src="data:image/x-icon;base64,{PWNDBG_FAVICON_B64}" alt="" aria-hidden="true">')
     else:
         mark = account_mark(repo, "account__tab")
+
+    pause_notice = ""
+    if "paused_until" in repo:
+        from datetime import datetime
+        pause_date = datetime.strptime(repo["paused_until"], "%Y-%m-%d")
+        pause_text = pause_date.strftime("%b %d")
+        pause_notice = f'<div class="account__pause">paused until {pause_text}</div>'
+
     return (f'''
       <section class="account">
         <div class="account__head">
@@ -453,6 +461,7 @@ def account_block(repo: dict, target: int) -> str:
           <h3 class="account__name">{repo['name']}</h3>
           <span class="account__host">{host}</span>
         </div>
+        {pause_notice}
         <div class="account__cols">
           {account_column(repo['issues'], target, 'Issues')}
           {account_column(repo['prs'], target, 'Pull requests')}
@@ -604,6 +613,17 @@ def build_html(data: dict) -> str:
 
 def main() -> int:
     data = collect()
+
+    # Preserve paused_until fields from previous data
+    try:
+        old_data = json.loads((ROOT / "data.json").read_text(encoding="utf-8"))
+        old_by_key = {r["key"]: r for r in old_data.get("repos", [])}
+        for repo in data["repos"]:
+            if repo["key"] in old_by_key and "paused_until" in old_by_key[repo["key"]]:
+                repo["paused_until"] = old_by_key[repo["key"]]["paused_until"]
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+
     (ROOT / "data.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     import shutil
     OUT_DIR.mkdir(parents=True, exist_ok=True)
