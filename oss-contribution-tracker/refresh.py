@@ -452,7 +452,10 @@ def account_block(repo: dict, target: int) -> str:
         from datetime import datetime
         pause_date = datetime.strptime(repo["paused_until"], "%Y-%m-%d")
         pause_text = pause_date.strftime("%b %d")
-        pause_notice = f'<div class="account__pause">paused until {pause_text}</div>'
+        pause_icon = ('<svg class="account__pause__icon" viewBox="0 0 24 24" fill="currentColor">'
+                      '<rect x="6" y="4" width="3" height="16" rx="1"/>'
+                      '<rect x="15" y="4" width="3" height="16" rx="1"/></svg>')
+        pause_notice = f'<div class="account__pause">{pause_icon}paused until {pause_text}</div>'
 
     return (f'''
       <section class="account">

@@ -226,8 +226,15 @@ code {
   text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint);
 }
 .account__pause {
-  font-family: var(--mono); font-size: 10px; color: var(--ink-faint);
-  font-style: italic; padding: 6px 0; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink);
+  padding: 8px 10px; margin-bottom: 12px;
+  background: rgba(0,0,0,0.04); border-left: 3px solid var(--ink-faint);
+  border-radius: 2px;
+}
+.account__pause__icon {
+  flex-shrink: 0; width: 16px; height: 16px; display: flex;
+  align-items: center; justify-content: center; opacity: 0.7;
 }
 .account__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .col__head {
