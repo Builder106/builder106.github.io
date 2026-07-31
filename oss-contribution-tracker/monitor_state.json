@@ -348,10 +348,10 @@
   "https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/6969": {
     "url": "https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/6969",
     "state": "open",
-    "comments": 4,
+    "comments": 5,
     "last_comment": {
       "author": "gitlab-bot",
-      "created_at": "2026-07-24T00:20:06.074Z",
+      "created_at": "2026-07-31T00:27:36.581Z",
       "first_line": "@Builder106, the pipeline's failing, can you take a look? (there's also no review requested yet.) We'd love to help you "
     }
   },
