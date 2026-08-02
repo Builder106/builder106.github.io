@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Resume Kit &middot; Builder106</title>
+<meta name="description" content="A LaTeX system for maintaining several role-targeted resumes, each in three presentation variants, from shared assets.">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">a builder106.github.io subproject</p>
+    <h1>Multi-Resume Kit</h1>
+    <p class="lede">
+      A LaTeX system for maintaining several role-targeted resumes, each in
+      three presentation variants, without the content drifting out of sync
+      between copies.
+    </p>
+    <div class="masthead__links">
+      <a class="button button--primary" href="https://github.com/Builder106/builder106.github.io/tree/main/multi-resume-kit">Source on GitHub</a>
+      <a class="button" href="https://github.com/Builder106/builder106.github.io/blob/main/multi-resume-kit/README.md">Read the write-up</a>
+      <a class="button" href="../">&larr; Back to portfolio</a>
+    </div>
+  </header>
+
+  <section class="examples" aria-label="Example resumes">
+    <h2>Same content, three presentations</h2>
+    <p class="section-lede">
+      All three are compiled from the same shared assets under <code>template/assets/</code>.
+      Only the presentation macros differ.
+    </p>
+    <div class="example-grid">
+
+      <article class="example-card">
+        <a href="pdfs/example-digital.pdf" class="example-card__preview">
+          <img src="previews/digital.png" alt="Preview of the digital variant example resume" loading="lazy">
+        </a>
+        <h3>Digital</h3>
+        <p>Colorlinks, an icon contact row, and clickable project names via <code>\projectTitle</code>. Built for on-screen PDF viewing.</p>
+        <a class="button button--small" href="pdfs/example-digital.pdf">Download PDF</a>
+      </article>
+
+      <article class="example-card">
+        <a href="pdfs/example-physical.pdf" class="example-card__preview">
+          <img src="previews/physical.png" alt="Preview of the physical variant example resume" loading="lazy">
+        </a>
+        <h3>Physical</h3>
+        <p>Hidden links, a two-column header with QR codes standing in for anything you can't click on paper. Built for printing.</p>
+        <a class="button button--small" href="pdfs/example-physical.pdf">Download PDF</a>
+      </article>
+
+      <article class="example-card">
+        <a href="pdfs/example-ats.pdf" class="example-card__preview">
+          <img src="previews/ats.png" alt="Preview of the ats variant example resume" loading="lazy">
+        </a>
+        <h3>ATS</h3>
+        <p>Plainest variant: no icons, no links rendered visibly, nothing an applicant-tracking parser can trip on.</p>
+        <a class="button button--small" href="pdfs/example-ats.pdf">Download PDF</a>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="lessons" aria-label="What this kit is built around">
+    <h2>What it took a full session to learn</h2>
+
+    <div class="lesson">
+      <h3>Shared assets, not copy-paste</h3>
+      <p>
+        <code>education-common.tex</code>, <code>certs.tex</code>, and
+        <code>experience-bank.tex</code> hold the content that repeats across
+        every role and variant: the school line, cert links, and any
+        Experience entries that don't change per role. Every resume file
+        pulls them in with <code>\input{}</code>. One edit propagates
+        everywhere instead of needing a find-and-replace across a dozen files.
+      </p>
+    </div>
+
+    <div class="lesson">
+      <h3><code>\newcommand</code> "lengths" don't support arithmetic</h3>
+      <p>
+        <code>\newcommand{\myGap}{11pt}</code> defines a text macro, not a
+        real length register. <code>\vspace{2\myGap}</code> doesn't multiply;
+        it string-concatenates the text <code>11pt</code> after a literal
+        <code>2</code>, producing the dimension <code>211pt</code>, nearly 3
+        inches, instead of the intended <code>22pt</code>. It compiles
+        without a single warning. The fix is <code>\newlength</code> plus
+        <code>\setlength</code> wherever a spacing unit needs to be multiplied
+        by a variable coefficient.
+      </p>
+    </div>
+
+    <div class="lesson">
+      <h3>An auto-clean shell wrapper doesn't apply everywhere</h3>
+      <p>
+        A <code>pdflatex()</code> shell function that deletes
+        <code>.aux</code>/<code>.log</code>/<code>.out</code> after each run
+        only loads in an interactive shell. It never sources in CI, in a
+        Docker build step, or in any tool that spawns a non-interactive
+        shell, so byproducts pile up silently there. The reliable fix is an
+        explicit <code>find -delete</code> sweep after every compile.
+      </p>
+    </div>
+
+    <div class="lesson">
+      <h3>Page count needs auditing across every variant, not just the one you touched</h3>
+      <p>
+        A shared-asset edit that adds two lines to Education can push an
+        already-tight resume onto a second page somewhere else entirely.
+        Sweeping <code>pdfinfo file.pdf | grep Pages</code> across every
+        variant of every role after any edit catches this before it ships.
+      </p>
+    </div>
+
+    <p class="lessons-more">
+      Full write-up, including the content-parity rule and the
+      three-variant convention in detail, is in the
+      <a href="https://github.com/Builder106/builder106.github.io/blob/main/multi-resume-kit/README.md">README</a>.
+    </p>
+  </section>
+
+  <footer class="site-footer">
+    <p>
+      Everything in the example resumes above, including the name, contact
+      info, school, and project content, is fictitious. It exists only to
+      demonstrate the pattern.
+    </p>
+  </footer>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,158 @@
+/* Multi-Resume Kit -- manuscript paper, ink, monospace annotations. */
+
+:root {
+  --paper: #FBFBF9;
+  --panel: #FFFFFF;
+  --ink: #21231F;
+  --ink-soft: #55574F;
+  --ink-faint: #74766C;
+  --rule: #DCDCD3;
+  --accent: #2E5E8C;
+  --accent-soft: rgba(46, 94, 140, 0.08);
+  --shadow: 0 1px 0 rgba(33, 35, 31, 0.04), 0 8px 24px rgba(33, 35, 31, 0.06);
+  --serif: "Iowan Old Style", "Hoefler Text", "Palatino Linotype", Palatino, Charter, Georgia, serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #17181A; --panel: #1E2023;
+    --ink: #E8E9E5; --ink-soft: #A9ABA2; --ink-faint: #8B8D84;
+    --rule: #33352F; --accent: #7FB0DE; --accent-soft: rgba(127, 176, 222, 0.12);
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.35);
+  }
+}
+:root[data-theme="light"] {
+  --paper: #FBFBF9; --panel: #FFFFFF;
+  --ink: #21231F; --ink-soft: #55574F; --ink-faint: #74766C;
+  --rule: #DCDCD3; --accent: #2E5E8C; --accent-soft: rgba(46, 94, 140, 0.08);
+  --shadow: 0 1px 0 rgba(33, 35, 31, 0.04), 0 8px 24px rgba(33, 35, 31, 0.06);
+}
+:root[data-theme="dark"] {
+  --paper: #17181A; --panel: #1E2023;
+  --ink: #E8E9E5; --ink-soft: #A9ABA2; --ink-faint: #8B8D84;
+  --rule: #33352F; --accent: #7FB0DE; --accent-soft: rgba(127, 176, 222, 0.12);
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+img { max-width: 100%; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.55;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--accent-soft);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* Masthead */
+.masthead { margin-bottom: 56px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  margin: 0 0 8px;
+}
+.masthead h1 {
+  font-size: 2.6em;
+  margin: 0 0 16px;
+  line-height: 1.1;
+}
+.lede {
+  font-size: 1.15em;
+  color: var(--ink-soft);
+  max-width: 60ch;
+  margin: 0 0 24px;
+}
+.masthead__links { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.button {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.85em;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 9px 16px;
+  box-shadow: var(--shadow);
+}
+.button:hover { border-color: var(--accent); color: var(--accent); }
+.button--primary { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+.button--primary:hover { color: var(--paper); opacity: 0.9; }
+.button--small { padding: 6px 12px; font-size: 0.8em; }
+
+/* Sections */
+section { margin-bottom: 56px; }
+h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+}
+.section-lede { color: var(--ink-soft); max-width: 65ch; margin: 0 0 28px; }
+
+/* Example grid */
+.example-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 24px;
+}
+.example-card {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.example-card__preview {
+  display: block;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.example-card__preview img { display: block; width: 100%; height: auto; }
+.example-card h3 { margin: 0 0 8px; }
+.example-card p {
+  color: var(--ink-soft);
+  font-size: 0.95em;
+  min-height: 4.5em;
+}
+
+/* Lessons */
+.lesson { margin-bottom: 28px; }
+.lesson h3 { margin: 0 0 6px; font-size: 1.1em; }
+.lesson p { color: var(--ink-soft); max-width: 68ch; margin: 0; }
+.lessons-more { color: var(--ink-faint); font-size: 0.95em; }
+.lessons-more a { color: var(--accent); }
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid var(--rule);
+  padding-top: 20px;
+  color: var(--ink-faint);
+  font-size: 0.9em;
+}
+
+@media (max-width: 520px) {
+  .masthead h1 { font-size: 2em; }
+}
