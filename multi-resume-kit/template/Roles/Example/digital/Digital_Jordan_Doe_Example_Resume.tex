@@ -1,0 +1,154 @@
+\documentclass[11pt]{article}
+
+% Margin configuration (defined before geometry)
+\newcommand{\marginSide}{0.2in}
+\newcommand{\marginTop}{0.05in}
+\newcommand{\marginBottom}{0.05in}
+
+\usepackage[margin=\marginSide, top=\marginTop, bottom=\marginBottom]{geometry}
+\raggedbottom
+\usepackage{xcolor}
+\definecolor{linkblue}{RGB}{0, 90, 156}
+\usepackage[colorlinks=true, urlcolor=linkblue, linkcolor=linkblue]{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\graphicspath{{../../../assets/icons/}}
+\input{../../../assets/certs.tex}
+\input{../../../assets/education-common.tex}
+\input{../../../assets/experience-bank.tex}
+
+% Spacing configuration
+\newcommand{\spaceBeforeSubheading}{-2pt}
+\newcommand{\spaceAfterSubheading}{-3pt}
+\newcommand{\spaceAfterHeading}{-8pt}
+\newcommand{\spaceAfterList}{-7pt}
+\newcommand{\spaceAroundRule}{-7pt}
+\newcommand{\spaceAfterMainHeading}{-12pt}
+
+% Formatting configuration
+\newcommand{\mainHeadingSize}{\Huge}
+\newcommand{\contactInfoSize}{\small}
+\newcommand{\contentSize}{\small}
+\newcommand{\ruleThickness}{0.4pt}
+
+% ---- Link helpers (kept in one place so every clickable URL in the
+% document is built the same way) ----
+\newcommand{\weblink}[1]{\href{https://#1}{#1}}
+\newcommand{\weblinktext}[2]{\href{https://#1}{#2}}
+\newcommand{\githubIcon}{\raisebox{-0.1em}{\includegraphics[height=0.9em]{github-mark.pdf}}}
+\newcommand{\phoneIcon}{\raisebox{-0.1em}{\includegraphics[height=0.9em]{phone-mark.pdf}}}
+\newcommand{\mailIcon}{\raisebox{-0.1em}{\includegraphics[height=0.9em]{mail-mark.pdf}}}
+\newcommand{\linkedinIcon}{\raisebox{-0.1em}{\includegraphics[height=0.9em]{linkedin-mark.pdf}}}
+\newcommand{\globeIcon}{\raisebox{-0.1em}{\includegraphics[height=0.9em]{globe-mark.pdf}}}
+\newcommand{\projectTitle}[2]{\href{https://github.com/jordan-doe/#1}{\githubIcon\,\textbf{#2}}}
+
+% Custom commands for formatting
+\newcommand{\resumeItem}[1]{
+  \item\contentSize{
+    {#1 \vspace{0pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{\spaceBeforeSubheading}\item
+    \begin{tabular*}{\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{\spaceAfterSubheading}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{\spaceAfterHeading}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{\spaceAfterList}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{\spaceAfterList}}
+
+\makeatletter
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-10pt \@plus -1ex \@minus -.2ex}%
+                                   {5pt \@plus.2ex}%
+                                   {\large\bfseries\uppercase}}
+\makeatother
+
+\newcommand{\sectionrule}{\vspace{\spaceAroundRule}\noindent\rule{\textwidth}{\ruleThickness}\vspace{\spaceAroundRule}}
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\mainHeadingSize Jordan Doe} \\
+    \contactInfoSize
+    \phoneIcon\ 555-010-2000 $|$
+    \mailIcon\ \href{mailto:jordan.doe@example.com}{jordan.doe@example.com} $|$
+    \linkedinIcon\ \weblinktext{linkedin.com/in/jordan-doe}{linkedin.com/in/jordan-doe} $|$
+    \githubIcon\ \weblinktext{github.com/jordan-doe}{github.com/jordan-doe} $|$
+    \globeIcon\ \weblink{jordandoe.example.com}
+\end{center}\vspace{\spaceAfterMainHeading}
+
+%-----------EDUCATION-----------
+\section*{Education}
+\sectionrule
+  \resumeSubHeadingListStart
+    \exampleEducation
+
+      \contentSize{
+        \honorsAwardsLinked \\
+        \relatedCourseworkLine \\
+        \textbf{Certifications:} \href{\exampleCertLinkOne}{Data Analytics Certificate} (Coursera -- May 2026) \\
+        \organizationsLine
+      }
+  \resumeSubHeadingListEnd
+
+%-----------TECHNICAL SKILLS-----------
+\section*{Technical Skills}
+\sectionrule
+  \resumeSubHeadingListStart
+    \item\contentSize{
+      \textbf{Languages}{: Python, TypeScript, Go, SQL} \\
+      \textbf{Frameworks}{: React, Node.js, FastAPI, Docker} \\
+      \textbf{Data}{: PostgreSQL, Redis, Pandas}
+    }
+  \resumeSubHeadingListEnd
+
+%-----------EXPERIENCE-----------
+\section*{Experience}
+\sectionrule
+  \resumeSubHeadingListStart
+
+    \expAcmeInternship
+
+    \expClubLeadLinked
+
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section*{Projects}
+\sectionrule
+    \resumeSubHeadingListStart
+      \resumeProjectHeading
+          {\projectTitle{widgetize}{Widgetize} $|$ \emph{React, Node.js, PostgreSQL} $|$ \weblink{widgetize.example.com}}{Feb 2026 -- Present}
+    \item
+          \resumeItemListStart
+            \resumeItem{Built a full-stack inventory dashboard serving 40+ concurrent users, by designing a normalized 6-table schema and a role-based access layer.}
+            \resumeItem{Cut page-load time from 4.2s to 900ms, by adding server-side pagination and lazy-loading chart components.}
+            \resumeItem{Shipped an automated CI pipeline with 90\% test coverage, by writing integration tests against a seeded test database and gating merges on a green suite.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\projectTitle{dataloom}{DataLoom} $|$ \emph{Python, Pandas, DuckDB} $|$ \weblink{dataloom.example.com}}{Sep 2025 -- Dec 2025}
+    \item
+          \resumeItemListStart
+            \resumeItem{Built a data-cleaning pipeline processing 500K+ rows of survey data, by implementing schema validation and automated outlier flagging.}
+            \resumeItem{Reduced manual review time 70\%, by generating an automated summary report with column-level anomaly counts.}
+            \resumeItem{Documented the pipeline's assumptions and edge cases, by writing a data dictionary referenced by 3 downstream analyst teams.}
+          \resumeItemListEnd
+
+    \resumeSubHeadingListEnd
+
+\vspace*{-\baselineskip}\end{document}

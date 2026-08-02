@@ -1,0 +1,13 @@
+% Shared Education-section building blocks that are identical across every
+% resume, regardless of role or variant — factored out so a change to the
+% degree, honors, or organization list only needs updating once.
+\newcommand{\exampleEducation}{%
+  \resumeSubheading
+    {Riverside State University}{Riverside, ST}
+    {Bachelor of Science in Computer Science}{May 2026}%
+}
+\newcommand{\organizationsLine}{\textbf{Organizations:} Code Collective, Data Science Club, Women in Computing}
+\newcommand{\relatedCourseworkLine}{\textbf{Related Coursework:} Algorithms, Database Systems, Applied Statistics}
+% Digital variants link Widgetize via \projectTitle; physical/ats use plain text.
+\newcommand{\honorsAwardsLinked}{\textbf{Honors/Awards:} Winner --- 2026 Riverside Innovation Challenge (\projectTitle{widgetize}{Widgetize}), Dean's List (4 semesters)}
+\newcommand{\honorsAwardsPlain}{\textbf{Honors/Awards:} Winner --- 2026 Riverside Innovation Challenge (Widgetize), Dean's List (4 semesters)}

@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+
+% Margin configuration (defined before geometry)
+\newcommand{\marginSide}{0.2in}
+\newcommand{\marginTop}{0.05in}
+\newcommand{\marginBottom}{0.05in}
+
+\usepackage[margin=\marginSide, top=\marginTop, bottom=\marginBottom]{geometry}
+\raggedbottom
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\input{../../../assets/education-common.tex}
+\input{../../../assets/experience-bank.tex}
+\graphicspath{{../../../assets/icons/}{../../../assets/qr/}}
+
+% Spacing configuration
+\newcommand{\spaceBeforeSubheading}{-2pt}
+\newcommand{\spaceAfterSubheading}{-3pt}
+\newcommand{\spaceAfterHeading}{-8pt}
+\newcommand{\spaceAfterList}{-7pt}
+\newcommand{\spaceAroundRule}{-7pt}
+\newcommand{\spaceAfterMainHeading}{-12pt}
+
+% Formatting configuration
+\newcommand{\mainHeadingSize}{\Huge}
+\newcommand{\contactInfoSize}{\small}
+\newcommand{\contentSize}{\small}
+\newcommand{\ruleThickness}{0.4pt}
+
+% QR code block: code, a platform icon, and its handle, stacked and centered
+% as one unit so each label reads as clearly tied to its own code.
+\newcommand{\qrCodeSize}{0.55in}
+\newcommand{\qrIconSize}{0.14in}
+\newcommand{\qrBlock}[4][0.9in]{%
+  \begin{minipage}[t]{#1}
+    \centering
+    \includegraphics[width=\qrCodeSize]{#2}\\[3pt]
+    \raisebox{-0.02in}{\includegraphics[height=\qrIconSize]{#3}}\,{\footnotesize #4}
+  \end{minipage}%
+}
+\newcommand{\contactIconSize}{0.9em}
+\newcommand{\phoneIcon}{\raisebox{-0.1em}{\includegraphics[height=\contactIconSize]{phone-mark.pdf}}}
+\newcommand{\mailIcon}{\raisebox{-0.1em}{\includegraphics[height=\contactIconSize]{mail-mark.pdf}}}
+
+% Custom commands for formatting
+\newcommand{\resumeItem}[1]{
+  \item\contentSize{
+    {#1 \vspace{0pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{\spaceBeforeSubheading}\item
+    \begin{tabular*}{\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{\spaceAfterSubheading}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{\spaceAfterHeading}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{\spaceAfterList}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{\spaceAfterList}}
+
+\makeatletter
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-10pt \@plus -1ex \@minus -.2ex}%
+                                   {5pt \@plus.2ex}%
+                                   {\large\bfseries\uppercase}}
+\makeatother
+
+\newcommand{\sectionrule}{\vspace{\spaceAroundRule}\noindent\rule{\textwidth}{\ruleThickness}\vspace{\spaceAroundRule}}
+
+\begin{document}
+
+%----------HEADING----------
+\noindent
+\begin{minipage}[c]{0.56\textwidth}
+  \centering
+  \textbf{\mainHeadingSize Jordan Doe}\\
+  \contactInfoSize \phoneIcon\ 555-010-2000 $|$ \mailIcon\ jordan.doe@example.com
+\end{minipage}%
+\hspace{-0.5in}
+\begin{minipage}[c]{0.4\textwidth}
+  \centering
+  \qrBlock{qr_github.png}{github-mark.pdf}{jordan-doe}\hspace{\fill}%
+  \qrBlock[1.1in]{qr_linkedin.png}{linkedin-mark.pdf}{jordan-doe}\hspace{\fill}%
+  \qrBlock{qr_website.png}{globe-mark.pdf}{jordandoe.example.com}
+\end{minipage}
+\vspace{\spaceAfterMainHeading}
+
+%-----------EDUCATION-----------
+\section*{Education}
+\sectionrule
+  \resumeSubHeadingListStart
+    \exampleEducation
+
+      \contentSize{
+        \honorsAwardsPlain \\
+        \relatedCourseworkLine \\
+        \textbf{Certifications:} Data Analytics Certificate (Coursera -- May 2026) \\
+        \organizationsLine
+      }
+  \resumeSubHeadingListEnd
+
+%-----------TECHNICAL SKILLS-----------
+\section*{Technical Skills}
+\sectionrule
+  \resumeSubHeadingListStart
+    \item\contentSize{
+      \textbf{Languages}{: Python, TypeScript, Go, SQL} \\
+      \textbf{Frameworks}{: React, Node.js, FastAPI, Docker} \\
+      \textbf{Data}{: PostgreSQL, Redis, Pandas}
+    }
+  \resumeSubHeadingListEnd
+
+%-----------EXPERIENCE-----------
+\section*{Experience}
+\sectionrule
+  \resumeSubHeadingListStart
+
+    \expAcmeInternship
+
+    \expClubLeadPlain
+
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section*{Projects}
+\sectionrule
+    \resumeSubHeadingListStart
+      \resumeProjectHeading
+          {\textbf{Widgetize} $|$ \emph{React, Node.js, PostgreSQL} $|$ widgetize.example.com}{Feb 2026 -- Present}
+    \item
+          \resumeItemListStart
+            \resumeItem{Built a full-stack inventory dashboard serving 40+ concurrent users, by designing a normalized 6-table schema and a role-based access layer.}
+            \resumeItem{Cut page-load time from 4.2s to 900ms, by adding server-side pagination and lazy-loading chart components.}
+            \resumeItem{Shipped an automated CI pipeline with 90\% test coverage, by writing integration tests against a seeded test database and gating merges on a green suite.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{DataLoom} $|$ \emph{Python, Pandas, DuckDB} $|$ dataloom.example.com}{Sep 2025 -- Dec 2025}
+    \item
+          \resumeItemListStart
+            \resumeItem{Built a data-cleaning pipeline processing 500K+ rows of survey data, by implementing schema validation and automated outlier flagging.}
+            \resumeItem{Reduced manual review time 70\%, by generating an automated summary report with column-level anomaly counts.}
+            \resumeItem{Documented the pipeline's assumptions and edge cases, by writing a data dictionary referenced by 3 downstream analyst teams.}
+          \resumeItemListEnd
+
+    \resumeSubHeadingListEnd
+
+\vspace*{-\baselineskip}\end{document}

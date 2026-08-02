@@ -1,0 +1,34 @@
+% Shared Experience-entry macros — illustrative/fabricated content only,
+% demonstrating the "one edit point instead of N" pattern for entries that
+% repeat verbatim across every role's resume.
+\newcommand{\expAcmeInternship}{%
+  \resumeSubheading
+    {Software Engineering Intern}{Remote}
+    {Acme Cloud Systems}{Jun 2026 -- Aug 2026}
+  \item
+    \resumeItemListStart
+      \resumeItem{Migrated a legacy deployment pipeline to containerized infrastructure, cutting release time from 45 minutes to 6 minutes, by scripting a Docker Compose workflow and automating health-check gating.}
+      \resumeItem{Reduced API p99 latency 38\% under peak load, by profiling the request path and adding a read-through cache layer in front of the primary database.}
+      \resumeItem{Closed a test-coverage gap on the billing module from 52\% to 94\%, by writing integration tests against a seeded staging environment.}
+    \resumeItemListEnd%
+}
+\newcommand{\leadershipBullets}{%
+  \resumeItemListStart
+    \resumeItem{Cut new-member onboarding time from 3 weeks to 1 week as measured by time-to-first-contribution across a 10-person team, by designing a structured onboarding track and a buddy-pairing system.}
+    \resumeItem{Standardized project handoff process across 4 concurrent teams as measured by zero lost-context incidents in the following semester, by authoring a shared handoff template covering scope, blockers, and next steps.}
+  \resumeItemListEnd%
+}
+\newcommand{\expClubLeadLinked}{%
+  \resumeSubheading
+    {Technical Lead}{Riverside, ST}
+    {\weblink{codecollective.example.com}}{Sep 2025 -- Present}
+  \item
+  \leadershipBullets%
+}
+\newcommand{\expClubLeadPlain}{%
+  \resumeSubheading
+    {Technical Lead}{Riverside, ST}
+    {codecollective.example.com}{Sep 2025 -- Present}
+  \item
+  \leadershipBullets%
+}
