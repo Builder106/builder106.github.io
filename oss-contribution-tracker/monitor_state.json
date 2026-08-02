@@ -371,6 +371,16 @@
       "first_line": "Good!"
     }
   },
+  "https://github.com/WordPress/ai/pull/858": {
+    "url": "https://github.com/WordPress/ai/pull/858",
+    "state": "open",
+    "comments": 3,
+    "last_comment": {
+      "author": "Builder106",
+      "created_at": "2026-07-19T00:32:25Z",
+      "first_line": "@gziolo @jorgefilipecosta Just a quick heads up: I've pushed a few updates to fix the initial PHPCS and PHPStan CI failu"
+    }
+  },
   "https://github.com/spdx/tools-python/pull/895": {
     "url": "https://github.com/spdx/tools-python/pull/895",
     "state": "open",
