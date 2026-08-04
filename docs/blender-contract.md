@@ -156,6 +156,7 @@ elements; baked-in lighting plus runtime lighting will double up otherwise.
 ## Geometry budget
 
 Target the whole scene at:
+
 - **≤ 80k triangles total** (mobile-safe).
 - **≤ 8 materials**.
 - **No N-gons**: all faces triangulated or quads. Run

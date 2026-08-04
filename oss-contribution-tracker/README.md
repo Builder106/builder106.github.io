@@ -8,7 +8,7 @@ Lives inside [`builder106.github.io`](../) as a self-contained subproject:
 it generates its own static page, which Vite copies straight through to
 `dist/oss-contribution-tracker/` on every portfolio build.
 
-**Live:** https://yinkavaughan.me/oss-contribution-tracker/
+**Live:** <https://yinkavaughan.me/oss-contribution-tracker/>
 
 ## What it counts
 
@@ -81,7 +81,7 @@ The next `refresh.py` run rolls it into the ○ counters.
 ## Files
 
 | File | Role |
-|------|------|
+| ------ | ------ |
 | `refresh.py` | Queries data, tallies the log, writes `../public/oss-contribution-tracker/index.html` + `data.json` |
 | `template.html` | Page skeleton with injection markers |
 | `style.css` | Inlined into the generated page |

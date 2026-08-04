@@ -4,7 +4,7 @@ A LaTeX system for maintaining several role-targeted resumes, each in three
 presentation variants, without the content drifting out of sync between
 copies.
 
-**Live preview:** https://yinkavaughan.me/multi-resume-kit/
+**Live preview:** <https://yinkavaughan.me/multi-resume-kit/>
 
 ## The problem
 
@@ -53,7 +53,7 @@ variant that references it. No find-and-replace across a dozen files.
 ## The three-variant convention
 
 | Variant | hyperref mode | Header | Project names |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **digital** | `colorlinks` | icon row (phone, mail, LinkedIn, GitHub, site) | `\projectTitle{slug}{Name}`, bold and clickable |
 | **physical** | `hidelinks` | two-column: contact left, QR codes right | plain `\textbf{}`, nothing to click on paper |
 | **ats** | `hidelinks` | plain text line | plain `\textbf{}` |

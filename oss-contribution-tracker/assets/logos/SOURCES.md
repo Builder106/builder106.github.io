@@ -3,7 +3,7 @@
 Vendored (not hotlinked) so the page stays self-contained and doesn't depend on a third-party CDN staying up. Used for identification only — this project isn't affiliated with, endorsed by, or sponsored by any of these projects.
 
 | File | Mark | Color | Source |
-|------|------|-------|--------|
+| ------ | ------ | ------- | -------- |
 | `gltf-blender-io.svg` | glTF | `#87C540` | [Simple Icons](https://simpleicons.org/) (CC0); color cross-checked against the official mark in [`KhronosGroup/glTF`](https://github.com/KhronosGroup/glTF/blob/main/specification/figures/glTF_RGB_June16.svg) (`#86C540`) |
 | `blender.svg` | Blender | `#E87D0D` | Simple Icons (CC0); color cross-checked against [blender.org's brand guidelines](https://www.blender.org/about/logo/) via independent citers |
 | `cpython.svg` | Python | `#3776AB` | Simple Icons (CC0) — the standard single-accent Python blue; the official two-tone `python.org` logo uses `#306998`/`#FFD43B` |

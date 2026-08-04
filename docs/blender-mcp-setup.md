@@ -38,6 +38,7 @@ release is **v0.3.0**
 ([release page](https://projects.blender.org/lab/blender_mcp/releases)).
 
 You want two things from the release:
+
 - the **server bundle** (a tarball or zip — extract it),
 - the **add-on file** (an `.zip` you'll feed to Blender).
 

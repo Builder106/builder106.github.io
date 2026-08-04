@@ -24,7 +24,7 @@ Twelve builds, laid out as one server room. A first-person builder's tour: open 
 Total video ≈ **47s** (8s flythrough opener + ~39s live tour + 2 interleaved 3s stat cards minus overlap; see runbook for exact assembled length). Spoken-only ≈ 38s. The two silent close-panel beats (shots 5 and 7) plus the muxer's `adelay=3000` lead-in absorb the gap between spoken time and video length.
 
 | # | Source (composition id OR Playwright beat) | Dur | On-screen | VO line |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 1 | **Remotion `scene-flythrough`** (1920×1080, 240f/8s; `server-room.glb` dolly arc radius 16→10, height 8.5→4; `title` prop) | 8s | Camera arcs through the baked server room, racks resolving from the isometric vantage. Lower-left title "Twelve builds. One room." fades in ~frame 14–32. `github.com/Builder106` footer bottom-right. | "Twelve builds, one room. Every rack here is a project I shipped, and I built the room to hold them." |
 | 2 | **Playwright beat:** `I wait for the idle wave to fire` (`01-hero.feature`; `ServerRoom.tsx` idle attractor, holds 22000ms) | 6s | The attractor wave sweeps the racks one slot at a time, surfacing per-cluster colors: cyan quant, pink SWE, gold analyst, emerald cybersec, violet AI/ML. | "Left idle, a wave sweeps through, one rack at a time. The colors are the clusters." |
 | 3 | **Playwright beat:** `I click the "EconOS" project rack` → `I see the project card for "EconOS"` (PanelShell `// node.econos`, ProjectCard) | 7s | EconOS panel slides in over the room — readme blurb "MARL economy · live shared mainframe", repo activity, build status, stack chips. | "I open one and the dossier comes up — readme, repo activity, build status. This one's a learning-agent economy." |
@@ -77,7 +77,7 @@ npx remotion render media/compositions/Root.tsx stat-reveal out/stat-requests.mp
 ```
 
 | Command | Produces |
-|---|---|
+| --- | --- |
 | `remotion render … scene-flythrough` | `content-pipeline/out/scene-flythrough.mp4` (shot 1 opener; needs `--gl=angle` for WebGL + the present `server-room.glb`) |
 | `remotion render … stat-reveal --props ORDERS/SEC` | `content-pipeline/out/stat-orders.mp4` (shot 4; `--props` mandatory — must set `value` **and** `unit:""`, else the `142`/`ns` defaults print "…ns" on an orders count — verified: caught and fixed during render) |
 | `remotion render … stat-reveal --props REQUESTS/SEC` | `content-pipeline/out/stat-requests.mp4` (optional B-card after shot 6) |
@@ -141,6 +141,7 @@ An assistant must **not** run these autonomously. Each spends money or requires 
 ```
 npm run voice:eleven:create
 ```
+
 - **What it is:** `node scripts/tts/render-elevenlabs.mjs --create-voice` — creates the cloned voice and prints `ELEVENLABS_VOICE_ID`.
 - **Cost/requires:** ElevenLabs API key + a voice-clone slot; consumes account quota. Run once; skip if `ELEVENLABS_VOICE_ID` is already set.
 
@@ -149,6 +150,7 @@ npm run voice:eleven:create
 ```
 npm run demo:voiceover:eleven
 ```
+
 - **What it is:** `node scripts/tts/render-elevenlabs.mjs` — reads `e2e/demo/output/narration.txt`, renders paragraph-by-paragraph (re-anchoring the clone, 0.5s silence between segments), writes `e2e/demo/output/narration-eleven.mp3`.
 - **Cost/requires:** ElevenLabs API key + character credits (Starter-tier `mp3_44100_128` ceiling). 95 words ≈ ~560 characters of quota per full run; re-runs re-bill.
 
@@ -158,6 +160,7 @@ npm run demo:voiceover:eleven
 npm run dev          # terminal 1 — must be up first
 npm run demo:record  # terminal 2
 ```
+
 - **What it is:** `npm run demo:record` = `DEMO=1 playwright test --config=playwright.demo.config.ts` — drives `01-hero.feature` headless at slowMo 1000ms, single-worker, records 1920×1080 webm; `reporter.ts` converts webm→mp4, drops the two `00-warmup-` videos and any 0-byte sentinels.
 - **Cost/requires:** the Vite dev server live on its expected port; no API spend, but it launches a browser and writes `e2e/demo/output/01-hero-master-tour.mp4`. Fails or records a blank page if `npm run dev` isn't up.
 
@@ -168,7 +171,7 @@ npm run demo:record  # terminal 2
 ### Voice settings (`render-elevenlabs.mjs` defaults — keep them)
 
 | Setting | Value |
-|---|---|
+| --- | --- |
 | `model` | `eleven_multilingual_v2` |
 | `stability` | `0.7` (high — anchored timbre; high variability adds the theatrical inflection we're avoiding) |
 | `similarityBoost` | `0.85` (close to the reference clone) |

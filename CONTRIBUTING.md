@@ -14,7 +14,7 @@ npm run dev
 Requires Node 20+ (matches the CI matrix in `.github/workflows/deploy.yml`).
 
 | Command | Purpose |
-|---|---|
+| --- | --- |
 | `npm run dev` | Vite dev server with HMR |
 | `npm run build` | Refresh repo stats, type-check, build to `dist/` |
 | `npm run typecheck` | `tsc -b --noEmit` — same check CI runs |

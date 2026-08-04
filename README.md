@@ -78,7 +78,7 @@ npm run dev
 ```
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `npm run dev` | Vite dev server at `localhost:5173` |
 | `npm run build` | Type-check, refresh repo stats, build to `dist/` |
 | `npm run typecheck` | `tsc -b --noEmit` |
