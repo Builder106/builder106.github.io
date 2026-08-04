@@ -28,16 +28,16 @@ will need to match this length.
 
 ## Timed beats (for editor alignment)
 
-| Start | Line                                                             | On-screen                         |
-| ----- | ---------------------------------------------------------------- | --------------------------------- |
-| 0:00  | "Most portfolios are just websites."                             | Boot finishes, scene reveals      |
-| 0:04  | "I decided to build a server room instead."                      | Wide scene establishes            |
-| 0:08  | "What you're looking at is a fully interactive 3D data center…" | Camera sweeps the room            |
-| 0:22  | "You can walk around, explore the space…"                        | Rack interaction demo begins      |
-| 0:42  | "If you leave the room idle for a bit…"                          | Wave fires through the room       |
-| 0:58  | "At the center is a control console…"                            | Console panel visible             |
-| 1:14  | "The entire thing was built with React Three Fiber…"             | Hero scene, ambient idle          |
-| 1:26  | "I wanted something that felt more like stepping into my work…"  | Final wide shot                   |
+| Start | Line                                                            | On-screen                    |
+| ----- | --------------------------------------------------------------- | ---------------------------- |
+| 0:00  | "Most portfolios are just websites."                            | Boot finishes, scene reveals |
+| 0:04  | "I decided to build a server room instead."                     | Wide scene establishes       |
+| 0:08  | "What you're looking at is a fully interactive 3D data center…" | Camera sweeps the room       |
+| 0:22  | "You can walk around, explore the space…"                       | Rack interaction demo begins |
+| 0:42  | "If you leave the room idle for a bit…"                         | Wave fires through the room  |
+| 0:58  | "At the center is a control console…"                           | Console panel visible        |
+| 1:14  | "The entire thing was built with React Three Fiber…"            | Hero scene, ambient idle     |
+| 1:26  | "I wanted something that felt more like stepping into my work…" | Final wide shot              |
 
 ## Voice direction
 

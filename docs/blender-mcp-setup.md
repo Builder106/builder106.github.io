@@ -50,9 +50,9 @@ below.
 
 Extract the bundle so its `pyproject.toml` lives at:
 
-```
+```text
 ~/.local/blender-mcp/bundle/pyproject.toml
-```
+```text
 
 Adjust the path in `.mcp.json` if you put it elsewhere — but keep it under
 `$HOME` so the `${HOME}` substitution works.

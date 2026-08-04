@@ -9,7 +9,7 @@ git clone https://github.com/Builder106/builder106.github.io.git
 cd builder106.github.io
 npm install
 npm run dev
-```
+```text
 
 Requires Node 20+ (matches the CI matrix in `.github/workflows/deploy.yml`).
 
@@ -58,11 +58,11 @@ Requires Node 20+ (matches the CI matrix in `.github/workflows/deploy.yml`).
 
 Imperative mood, present tense, capitalized first word, no trailing period. Match the style in `git log`:
 
-```
+```text
 Cables: messy noise-driven paths instead of ruler-straight lines
 Hover: harder spotlight, deeper dim on the non-hovered rest
 Fix paths configuration in tsconfig to ensure correct module resolution
-```
+```text
 
 If a commit touches one subsystem (cables, hover, paths), lead with that subsystem and a colon, then the change. Otherwise just describe the change. Keep the subject under ~72 characters.
 
@@ -81,7 +81,7 @@ The README's "Demo" section embeds an animated GIF rendered from a Playwright BD
 npm run dev          # in one terminal
 npm run demo:record  # in another — records to e2e/demo/output/*.mp4
 npm run demo:gif     # converts each mp4 to a GIF at 720p / 8fps
-```
+```text
 
 Notes from building this pipeline (worth knowing before touching it):
 

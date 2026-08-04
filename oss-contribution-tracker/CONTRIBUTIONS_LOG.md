@@ -26,6 +26,6 @@ pwndbg issue/discussion answers and Neovim issue-triage comments + GitHub
 Discussions answers are counted straight from GitHub (the ● rows), so they
 don't need a log entry.
 
-| date | project | type | link | note |
-|------|---------|------|------|------|
+| date       | project | type   | link                                                         | note                                           |
+| ---------- | ------- | ------ | ------------------------------------------------------------ | ---------------------------------------------- |
 | 2026-07-14 | blender | triage | <https://projects.blender.org/blender/blender/issues/161433> | Requested network details / offline mode check |
