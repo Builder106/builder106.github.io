@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-08-03",
+  "as_of": "2026-08-04",
   "week_start": "2026-08-03",
   "author": "Builder106",
   "repos": [
@@ -441,7 +441,7 @@
   "log": {
     "blender:triage": [
       {
-        "url": "https://projects.blender.org/blender/blender/issues/161433",
+        "url": "<https://projects.blender.org/blender/blender/issues/161433>",
         "title": "Requested network details / offline mode check",
         "date": "2026-07-14"
       }
