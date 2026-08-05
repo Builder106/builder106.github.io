@@ -317,7 +317,7 @@
   },
   "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/241671": {
     "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/241671",
-    "state": "open",
+    "state": "merged",
     "comments": 9,
     "last_comment": {
       "author": "gitlab-bot",
