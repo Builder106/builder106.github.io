@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-08-04",
+  "as_of": "2026-08-05",
   "week_start": "2026-08-03",
   "author": "Builder106",
   "repos": [
@@ -341,7 +341,7 @@
         {
           "n": 241671,
           "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/241671",
-          "state": "open",
+          "state": "merged",
           "title": "Guard against nil pipeline in codequality reports comparer"
         },
         {
