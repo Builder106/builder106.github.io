@@ -88,11 +88,11 @@
   "https://github.com/python/cpython/issues/153769": {
     "url": "https://github.com/python/cpython/issues/153769",
     "state": "open",
-    "comments": 5,
+    "comments": 7,
     "last_comment": {
-      "author": "zuo",
-      "created_at": "2026-07-19T13:18:40Z",
-      "first_line": "I believe the current behavior (raising `TypeError` when non-network object is given) is correct. However, a more friend"
+      "author": "picnixz",
+      "created_at": "2026-08-05T22:21:00Z",
+      "first_line": "@fedonman I don't understand why you created a PR. I explicitly said \"We do not know yet whether this is an issue.\", mea"
     }
   },
   "https://github.com/python/cpython/issues/153771": {
