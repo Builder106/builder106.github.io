@@ -992,6 +992,9 @@
 }
 
 .project-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.06em;
@@ -1002,6 +1005,12 @@
   border: 1px solid color-mix(in srgb, var(--cluster-color) 22%, transparent);
   border-left: 2px solid color-mix(in srgb, var(--cluster-color) 55%, transparent);
   color: rgba(220, 226, 240, 0.92);
+}
+
+.project-card__chip-icon {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
 }
 
 .project-card__repo {
