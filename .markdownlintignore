@@ -7,3 +7,8 @@
 **/.turbo/**
 **/.pytest_cache/**
 **/__pycache__/**
+**/.chat-archive/**
+**/contracts/lib/**
+
+e2e/
+**/e2e/**
