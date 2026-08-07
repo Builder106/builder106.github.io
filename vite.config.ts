@@ -139,7 +139,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     exclude: ["e2e/**", ".features-gen/**", "node_modules/**"],
   },
 });

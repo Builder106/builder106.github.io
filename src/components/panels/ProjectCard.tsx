@@ -3,6 +3,7 @@ import { AISLE_ORDER, CLUSTER_DISPLAY, projects, type Project } from "@/data/pro
 import { repoStats } from "@/data/repoStats.generated";
 import type { ActivePanel } from "@/scene/activePanel";
 import { PanelShell } from "./PanelShell";
+import { StackChip } from "./StackChip";
 
 interface ProjectCardProps {
   project: Project | null;
@@ -146,7 +147,7 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
             <div className="panel__section-label">stack</div>
             <div className="project-card__chips">
               {project.stack.map((tag) => (
-                <span key={tag} className="project-card__chip">{tag}</span>
+                <StackChip key={tag} tag={tag} />
               ))}
             </div>
           </section>
