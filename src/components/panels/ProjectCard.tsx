@@ -157,16 +157,15 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
               <div className="panel__section-label">repo</div>
               <div className="project-card__repo">
                 {stats.lang && (
-                  <span className="project-card__repo-stat">
-                    <span className="project-card__repo-dot" aria-hidden />
-                    {stats.lang}
-                  </span>
+                  <>
+                    <span className="project-card__repo-stat">{stats.lang}</span>
+                    <span className="project-card__repo-divider" aria-hidden />
+                  </>
                 )}
-                <span className="project-card__repo-sep" aria-hidden>·</span>
                 <span className="project-card__repo-stat">
                   <span aria-hidden>★</span> {stats.stars}
                 </span>
-                <span className="project-card__repo-sep" aria-hidden>·</span>
+                <span className="project-card__repo-divider" aria-hidden />
                 <span className="project-card__repo-stat">
                   <span aria-hidden>⟳</span> {relativeTime(stats.pushed_at)}
                 </span>

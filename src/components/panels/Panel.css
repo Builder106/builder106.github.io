@@ -1035,18 +1035,12 @@
   text-shadow: 0 0 6px color-mix(in srgb, var(--cluster-color) 50%, transparent);
 }
 
-.project-card__repo-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--cluster-color);
-  box-shadow: 0 0 6px var(--cluster-color);
-}
-
-.project-card__repo-sep {
-  color: var(--text-muted);
-  opacity: 0.5;
-  margin: 0 2px;
+.project-card__repo-divider {
+  display: inline-block;
+  width: 1px;
+  height: 11px;
+  background: rgba(255, 255, 255, 0.18);
+  margin: 0 4px;
 }
 
 /* CTA row. Primary (live demo) gets the cluster-colored fill so it
