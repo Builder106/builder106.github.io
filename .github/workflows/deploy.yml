@@ -111,6 +111,8 @@ jobs:
         with:
           urls: |
             ${{ needs.deploy.outputs.url }}
+            ${{ needs.deploy.outputs.url }}/oss-contribution-tracker/
+            ${{ needs.deploy.outputs.url }}/404.html
           configPath: ./.lighthouserc.${{ matrix.profile == 'mobile' && 'json' || 'desktop.json' }}
           uploadArtifacts: true
           temporaryPublicStorage: true
