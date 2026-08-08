@@ -948,14 +948,6 @@ export function TradingTerminal({
       .slice(0, 6);
   }, []);
 
-  // Cluster headcounts for the load widget. Stable across renders so
-  // the bar fills don't reflow on every scroll tick.
-  const clusterCounts = useMemo(() => {
-    const counts = { quant: 0, swe: 0, analyst: 0 } as Record<string, number>;
-    for (const p of projects) counts[p.cluster] = (counts[p.cluster] ?? 0) + 1;
-    return counts;
-  }, []);
-  const totalProjects = projects.length;
 
   // Prefix glyph per entry kind so a glance at the column tells you
   // what each line is without reading the text. Kept aligned (two
@@ -1111,31 +1103,6 @@ export function TradingTerminal({
               >
                 ›
               </button>
-            </div>
-          </div>
-
-          <div className="console-pill console-pill--cluster">
-            <div className="console-pill__header">
-              <span className="console-pill__title">cluster_load</span>
-              <span className="console-pill__dot console-pill__dot--ok" aria-hidden />
-            </div>
-            <div className="cluster-bars">
-              {(["quant", "swe", "analyst"] as const).map((c) => {
-                const count = clusterCounts[c] ?? 0;
-                const pct = totalProjects > 0 ? (count / totalProjects) * 100 : 0;
-                return (
-                  <div key={c} className={`cluster-bar cluster-bar--${c}`}>
-                    <span className="cluster-bar__label">{c}</span>
-                    <span className="cluster-bar__track">
-                      <span
-                        className="cluster-bar__fill"
-                        style={{ width: `${pct.toFixed(1)}%` }}
-                      />
-                    </span>
-                    <span className="cluster-bar__count">{count}</span>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>
