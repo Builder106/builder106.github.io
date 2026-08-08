@@ -18,12 +18,12 @@ export const CLUSTER_DISPLAY: Record<ProjectCluster, string> = {
 // into the fog. Centralized here so ProjectCard, TradingTerminal, and
 // ServerRoom stay in lockstep without dragging WebGL/Three.js into light chunks.
 export const AISLE_ORDER = [
+  "econos",
   "ocaml-lob",
   "qforge",
-  "econos",
+  "micromatch",
   "staija",
   "studysprint",
-  "micromatch",
   "capitol-alpha",
   "datafest-2026",
   "linuxbenchhub",
