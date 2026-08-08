@@ -72,10 +72,6 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
           role. Reads as the contact panel's header card, parallel to
           the project card's identity strip. */}
       <section className="contact-identity">
-        <div className="contact-identity__status">
-          <span className="contact-identity__dot" aria-hidden />
-          <span className="contact-identity__status-text">connection established</span>
-        </div>
         <h3 className="contact-identity__name">{NAME}</h3>
         <span className="contact-identity__role">{ROLE}</span>
       </section>

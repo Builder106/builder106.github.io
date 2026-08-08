@@ -564,35 +564,6 @@
   margin: -4px 0 -4px;
 }
 
-.contact-identity__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--terminal-green);
-  padding: 4px 10px;
-  align-self: flex-start;
-  border-radius: 999px;
-  background: rgba(92, 255, 157, 0.08);
-  border: 1px solid rgba(92, 255, 157, 0.3);
-}
-
-.contact-identity__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--terminal-green);
-  box-shadow: 0 0 8px var(--terminal-green);
-  animation: contact-dot-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes contact-dot-pulse {
-  0%, 100% { opacity: 1;   transform: scale(1);    }
-  50%      { opacity: 0.55; transform: scale(0.7); }
-}
 
 .contact-identity__name {
   font-family: var(--font-display);
