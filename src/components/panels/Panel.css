@@ -210,6 +210,28 @@
   display: flex;
   flex-direction: column;
   gap: 22px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--cluster-color, var(--neon-cyan)) 45%, rgba(255, 255, 255, 0.15)) rgba(10, 12, 20, 0.6);
+}
+
+.panel__body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel__body::-webkit-scrollbar-track {
+  background: rgba(10, 12, 20, 0.6);
+  border-radius: 4px;
+  margin: 6px 0;
+}
+
+.panel__body::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--cluster-color, var(--neon-cyan)) 45%, rgba(255, 255, 255, 0.15));
+  border-radius: 4px;
+}
+
+.panel__body::-webkit-scrollbar-thumb:hover {
+  background: var(--cluster-color, var(--neon-cyan));
+  box-shadow: 0 0 8px var(--cluster-color, var(--neon-cyan));
 }
 
 .panel__section-label {

@@ -16,6 +16,29 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(76, 242, 255, 0.3) rgba(14, 15, 26, 0.4);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(14, 15, 26, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(76, 242, 255, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(76, 242, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(76, 242, 255, 0.6);
+  box-shadow: 0 0 8px rgba(76, 242, 255, 0.5);
 }
 
 html,
