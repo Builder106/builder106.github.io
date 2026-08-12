@@ -22,7 +22,7 @@
     "demo:mux:eleven": "ffmpeg -y -hide_banner -loglevel error -i e2e/demo/output/01-hero-master-tour.mp4 -i e2e/demo/output/narration-eleven.mp3 -filter_complex \"[1:a]silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,adelay=3000,apad[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -b:a 192k -shortest e2e/demo/output/01-hero-master-tour-narrated.mp4 && cp e2e/demo/output/01-hero-master-tour-narrated.mp4 public/demo.mp4"
   },
   "dependencies": {
-    "@react-three/drei": "^10.7.7",
+    "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
