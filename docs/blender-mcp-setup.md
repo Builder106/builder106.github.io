@@ -12,11 +12,16 @@ what the marketplace listing and Anthropic's tutorials point at.
 ## What's installed where
 
 - **MCP server bundle** — extracted to `~/.local/blender-mcp/bundle`. Started
+
   on demand via `uv run --directory ~/.local/blender-mcp/bundle blender-mcp`.
+
 - **Blender add-on** — bundled with the release. Loaded inside
+
   Blender via Edit → Preferences → Add-ons. Opens a local socket the MCP
   server connects to.
+
 - **Claude Code MCP config** — committed to this repo as `.mcp.json`, using
+
   `${HOME}` so it stays portable.
 
 The MCP server and the add-on talk over a local socket, so nothing leaves
@@ -24,7 +29,7 @@ the machine.
 
 ## Prerequisites (already verified on this machine)
 
-- macOS with `uv` at `/opt/homebrew/bin/uv` ✓
+- macOS with `uv`at`/opt/homebrew/bin/uv` ✓
 - Blender 4.5.4 LTS ✓ (4.2+ required by the official connector)
 - Claude Code installed and configured ✓
 
@@ -55,7 +60,7 @@ Extract the bundle so its `pyproject.toml` lives at:
 ```text
 
 Adjust the path in `.mcp.json` if you put it elsewhere — but keep it under
-`$HOME` so the `${HOME}` substitution works.
+`$HOME`so the`${HOME}` substitution works.
 
 ### 3. Install the official add-on in Blender
 
@@ -64,8 +69,11 @@ Adjust the path in `.mcp.json` if you put it elsewhere — but keep it under
 3. Select the official add-on `.zip` from the release.
 4. Tick the checkbox to enable it.
 5. Press **N** in the 3D Viewport to open the side panel. Find the
+
    **BlenderMCP** tab.
-6. Click **Connect** (or **Start Server**, depending on the release). Leave
+
+6. Click **Connect**(or**Start Server**, depending on the release). Leave
+
    it running.
 
 > If you previously installed the community add-on
@@ -91,20 +99,27 @@ the round trip works before we start modeling the server room.
 
 ## Troubleshooting
 
-- **`uv: command not found` after restart** — `uv` is at
+- **`uv: command not found`after restart** —`uv` is at
+
   `/opt/homebrew/bin/uv`. If Claude Code can't find it on PATH, swap the
-  `command` value in `.mcp.json` to the absolute path.
+  `command`value in`.mcp.json` to the absolute path.
+
 - **`error in 'egg_base' option: '.' does not exist`** — known issue with
+
   the official Windows installer
   ([anthropics/claude-code#54798](https://github.com/anthropics/claude-code/issues/54798)).
   Doesn't affect macOS, but if it ever lands here, fall back to the
   community connector by setting `command: "uvx"`, `args: ["blender-mcp"]`
   in `.mcp.json` (and installing the community add-on instead).
+
 - **Server starts but tools never appear** — the add-on isn't running. The
+
   MCP server can spawn, but it has nothing to talk to until Blender's
   socket is up. Toggle the Connect button in Blender and restart the
   Claude Code session.
+
 - **Two clients fighting over the socket** — only one MCP client (Claude
+
   Code, Claude Desktop, Cursor, …) can hold the connection at a time.
   Close the others.
 
@@ -115,10 +130,15 @@ When the connection is live, the modeling step (Blender side of the
 
 1. Build the room geometry with `bpy` — racks, desk, monitor, cable trays.
 2. Apply the dark-mode + neon material palette and bake lighting into a
+
    single combined texture per material.
+
 3. Place `anchor.<id>` Empties at the positions defined in
+
    [src/data/projects.ts](../src/data/projects.ts).
+
 4. Export to `public/models/server-room.glb` so Vite picks it up
+
    automatically.
 
 The placeholder geometry in [src/scene/ServerRoom.tsx](../src/scene/ServerRoom.tsx)

@@ -16,9 +16,12 @@ Valid `type` values the dashboard counts:
 - `blender`: `triage`, `review`, `meeting`
 - `neovim`: `answer`
 - `cpython`: `discourse` -- only used as a fallback; discuss.python.org posts
+
   are counted live via its public API when the profile is public. Mine is
   currently private, so this stays manual until that changes.
+
 - `gltf`: `community` -- Khronos' community forum has no public per-user API
+
   (returns 403 for any `/u/<name>.json` lookup, member or not), so this is
   manual-only for good.
 

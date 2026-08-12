@@ -4,16 +4,16 @@
 
 **Goal:** Add brand-colored framework/language logos to the "stack" chips in the rack modal (`ProjectCard.tsx`), with a neutral fallback glyph for tags that have no matching logo.
 
-**Architecture:** A pure-data lookup module (`stackIcons.ts`) maps each of the 55 distinct stack tags in `projects.ts` to a `simple-icons` icon (individually imported, tree-shaken) or `null`. A `StackChip` component consumes that lookup and renders either the brand-colored SVG + text or the fallback glyph + text. `ProjectCard.tsx` swaps its plain `<span>` chip loop for `<StackChip>`.
+**Architecture:** A pure-data lookup module (`stackIcons.ts`) maps each of the 55 distinct stack tags in `projects.ts`to a`simple-icons`icon (individually imported, tree-shaken) or`null`. A `StackChip`component consumes that lookup and renders either the brand-colored SVG + text or the fallback glyph + text.`ProjectCard.tsx`swaps its plain`<span>`chip loop for`<StackChip>`.
 
 **Tech Stack:** React 19, TypeScript, `simple-icons` (new dependency), Vitest.
 
 ## Global Constraints
 
-- Import icons individually by name (`import { siReact } from 'simple-icons'`) — never `import * as`. `simple-icons` has `sideEffects: false` so Rollup/Vite tree-shakes unused named exports; a wildcard import risks disabling that.
+- Import icons individually by name (`import { siReact } from 'simple-icons'`) — never `import * as`. `simple-icons`has`sideEffects: false` so Rollup/Vite tree-shakes unused named exports; a wildcard import risks disabling that.
 - Every tag in `projects.ts` must resolve to either a real icon or the documented fallback — no silent blank/undefined case.
-- Icon SVGs are decorative: every `<svg>` gets `aria-hidden="true"`.
-- No changes to `Project` type or `projects.ts` — icons resolve purely from the existing `stack: string[]` at render time.
+- Icon SVGs are decorative: every `<svg>`gets`aria-hidden="true"`.
+- No changes to `Project`type or`projects.ts`— icons resolve purely from the existing`stack: string[]` at render time.
 - Chip layout (padding, border, background, left accent) in `Panel.css` is unchanged; only new rules are added for icon sizing.
 
 ---
@@ -22,20 +22,20 @@
 
 **Files:**
 
-- Modify: `package.json` (add `simple-icons` dependency)
+- Modify: `package.json`(add`simple-icons` dependency)
 - Create: `src/data/stackIcons.ts`
 - Test: `src/data/stackIcons.test.ts`
 
 **Interfaces:**
 
-- Produces: `resolveStackIcon(tag: string): ResolvedStackIcon | null` and `export interface ResolvedStackIcon { path: string; hex: string; title: string }` — consumed by Task 2's `StackChip`.
+- Produces: `resolveStackIcon(tag: string): ResolvedStackIcon | null`and`export interface ResolvedStackIcon { path: string; hex: string; title: string }`— consumed by Task 2's`StackChip`.
 
 - [ ] **Step 1: Add the dependency without creating `node_modules` on the Mac**
 
-Per this machine's rule that installs/builds only happen on the `ampere-dev` VM, use `--package-lock-only` so `package.json` and `package-lock.json` are updated but no local `node_modules` is written:
+Per this machine's rule that installs/builds only happen on the `ampere-dev`VM, use`--package-lock-only`so`package.json`and`package-lock.json`are updated but no local`node_modules` is written:
 
 Run: `npm install --package-lock-only simple-icons@16.28.0`
-Expected: `package.json` gains a `"simple-icons": "^16.28.0"` dependency entry and `package-lock.json` gains the matching resolved entry. No `node_modules/` directory appears in the repo.
+Expected: `package.json`gains a`"simple-icons": "^16.28.0"`dependency entry and`package-lock.json`gains the matching resolved entry. No`node_modules/` directory appears in the repo.
 
 - [ ] **Step 2: Write the failing test**
 
@@ -258,12 +258,12 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
     let tt = t;
     if (tt < 0) tt += 1;
     if (tt > 1) tt -= 1;
-    if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+    if (tt < 1 / 6) return p + (q - p) *6* tt;
     if (tt < 1 / 2) return q;
-    if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+    if (tt < 2 / 3) return p + (q - p) *(2 / 3 - tt)* 6;
     return p;
   };
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const q = l < 0.5 ? l *(1 + s) : l + s - l* s;
   const p = 2 * l - q;
   return [
     Math.round(hue2rgb(p, q, h + 1 / 3) * 255),
@@ -325,7 +325,7 @@ git commit -m "feat: add stack tag to logo icon lookup"
 **Interfaces:**
 
 - Consumes: `resolveStackIcon(tag: string): ResolvedStackIcon | null` from Task 1.
-- Produces: `<StackChip tag={string} />` — a single chip, used by Task 3 in `ProjectCard.tsx`'s stack loop.
+- Produces: `<StackChip tag={string} />`— a single chip, used by Task 3 in`ProjectCard.tsx`'s stack loop.
 
 - [ ] **Step 1: Write `src/components/panels/StackChip.tsx`**
 
@@ -374,7 +374,7 @@ export function StackChip({ tag }: StackChipProps) {
 
 - [ ] **Step 2: Add icon sizing to `Panel.css`**
 
-Append after the existing `.project-card__chip` rule (around line 1005 in `src/components/panels/Panel.css`, right after the closing brace of `.project-card__chip`):
+Append after the existing `.project-card__chip`rule (around line 1005 in`src/components/panels/Panel.css`, right after the closing brace of `.project-card__chip`):
 
 ```css
 .project-card__chip {
@@ -390,7 +390,7 @@ Append after the existing `.project-card__chip` rule (around line 1005 in `src/c
 }
 ```
 
-(`display: inline-flex`, `align-items`, and `gap` are new declarations added to the existing `.project-card__chip` rule — do not duplicate the selector; merge these three lines into the block that already sets `font-family`, `font-size`, etc.)
+(`display: inline-flex`, `align-items`, and `gap`are new declarations added to the existing`.project-card__chip`rule — do not duplicate the selector; merge these three lines into the block that already sets`font-family`, `font-size`, etc.)
 
 - [ ] **Step 3: Typecheck**
 
@@ -406,7 +406,7 @@ git commit -m "feat: add StackChip component with brand-logo and fallback glyph 
 
 ---
 
-### Task 3: Wire `StackChip` into `ProjectCard`
+### Task 3: Wire `StackChip`into`ProjectCard`
 
 **Files:**
 
@@ -421,7 +421,7 @@ git commit -m "feat: add StackChip component with brand-logo and fallback glyph 
 
 Run: `ls src/components/panels/ProjectCard.test.tsx 2>/dev/null || echo "none"`
 
-If a test file exists, read it to match its existing render/setup pattern before writing Step 2's test. If none exists, Step 2 creates one from scratch using `@testing-library/react` (already a devDependency — confirm with `grep testing-library package.json`; if absent, use React's `react-dom/client` + `document.body` directly instead of pulling in a new dependency).
+If a test file exists, read it to match its existing render/setup pattern before writing Step 2's test. If none exists, Step 2 creates one from scratch using `@testing-library/react`(already a devDependency — confirm with`grep testing-library package.json`; if absent, use React's `react-dom/client`+`document.body` directly instead of pulling in a new dependency).
 
 - [ ] **Step 2: Write the failing test**
 
@@ -446,7 +446,7 @@ describe("ProjectCard stack chips", () => {
 - [ ] **Step 3: Run test to verify it fails**
 
 Run: `verify-on-vm "$(pwd)" "npx vitest run src/components/panels/ProjectCard.test.tsx"`
-Expected: FAIL — chip text is still a plain `<span>{tag}</span>` with no `<svg>` child
+Expected: FAIL — chip text is still a plain `<span>{tag}</span>`with no`<svg>` child
 
 - [ ] **Step 4: Update `ProjectCard.tsx`**
 
@@ -514,7 +514,7 @@ Expected: build succeeds with no new warnings
 - [ ] **Step 2: Start the dev server via `dev-on-vm` and open the tunnel**
 
 Run: `dev-on-vm "$(pwd)"`
-Then open the tunneled URL and click through several racks whose stacks mix icon and fallback tags — at minimum `halberd` (Go, WebAssembly, Next.js, JSON-RPC, MCP: exercises fallback for JSON-RPC and the lightness clamp for Next.js/MCP) and `capitol-alpha` (Python, Playwright, pdfplumber, pandas, scipy, Jupyter: exercises the fallback glyph for Playwright/pdfplumber and the pandas lightness clamp).
+Then open the tunneled URL and click through several racks whose stacks mix icon and fallback tags — at minimum `halberd`(Go, WebAssembly, Next.js, JSON-RPC, MCP: exercises fallback for JSON-RPC and the lightness clamp for Next.js/MCP) and`capitol-alpha` (Python, Playwright, pdfplumber, pandas, scipy, Jupyter: exercises the fallback glyph for Playwright/pdfplumber and the pandas lightness clamp).
 
 - [ ] **Step 3: Confirm in the browser**
 
@@ -529,5 +529,5 @@ Summarize what was checked and any visual issues found. If issues are found, fix
 ## Self-Review Notes
 
 - **Spec coverage:** Simple Icons import (Task 1), alias table (Task 1's `TAG_TO_SLUG`), contrast clamping (Task 1's `clampLightness`), fallback glyph (Task 2), accessibility `aria-hidden` (Task 2), chip wiring (Task 3), and manual visual verification (Task 4) are all covered.
-- **Type consistency:** `ResolvedStackIcon` (Task 1) is the only cross-task type; `StackChip` (Task 2) imports and consumes it by calling `resolveStackIcon`, never redefining its shape. `resolveStackIcon`'s name and signature are identical everywhere they're referenced.
+- **Type consistency:** `ResolvedStackIcon`(Task 1) is the only cross-task type;`StackChip`(Task 2) imports and consumes it by calling`resolveStackIcon`, never redefining its shape. `resolveStackIcon`'s name and signature are identical everywhere they're referenced.
 - **No placeholders:** every step ships real, complete code — the icon map, alias table, and HSL clamp math are fully written out, not sketched.

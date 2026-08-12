@@ -1,7 +1,7 @@
 # Demo narration — Master tour (01-hero)
 
 One-take voiceover for the recording produced by
-`e2e/demo/features/01-hero.feature` → `01-hero-master-tour.mp4`.
+`e2e/demo/features/01-hero.feature`→`01-hero-master-tour.mp4`.
 
 Word budget: ~210 words at ~135 wpm ≈ 95 s of speech. Video recording
 will need to match this length.
@@ -48,11 +48,16 @@ will need to match this length.
 ## Render paths
 
 - **ElevenLabs (most faithful)** — `npm run demo:voiceover:eleven`.
+
   Voice: `LFYP0IuVPVdjvBSuqXL1` (Yinka PVC, retrained 2026-06-26).
   See [scripts/tts/render-elevenlabs.mjs](../../scripts/tts/render-elevenlabs.mjs).
+
 - **Replicate Chatterbox (cheap, zero-shot)** — `npm run demo:voiceover`.
+
   See [scripts/tts/render-remote.mjs](../../scripts/tts/render-remote.mjs).
+
 - **Local CPU fallback** — `~/CS/content-pipeline/scripts/tts/render.py --device cpu`.
+
   Avoid `--device mps` (hangs at step 3/1000).
 
 After any path produces `e2e/demo/output/narration*.{wav,mp3}`:

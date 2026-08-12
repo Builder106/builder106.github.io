@@ -16,10 +16,13 @@ The page splits contributions into two halves, marked by how each number is
 sourced:
 
 - **● Verifiable.** Currently-open issues and PRs, plus the triage and review
+
   touches GitHub can surface. Pulled live from GitHub with `gh` and from
   Blender's Gitea instance through its public REST API. Nothing here is
   hand-entered.
+
 - **○ Self-logged.** Bug triage, patch review, module-meeting attendance, and
+
   forum answers that no API captures. Each one is an evidence-linked row in
   [`CONTRIBUTIONS_LOG.md`](CONTRIBUTIONS_LOG.md).
 
@@ -34,10 +37,10 @@ replacing" list on its card instead of quietly still counting.
 ## How it updates
 
 `refresh.py` runs every query, tallies the log, and regenerates the page from
-`template.html` + `style.css` into `../public/oss-contribution-tracker/index.html`
--- Vite's `public/` dir is copied verbatim into `dist/` on build, so the
+`template.html`+`style.css`into`../public/oss-contribution-tracker/index.html`
+-- Vite's `public/`dir is copied verbatim into`dist/` on build, so the
 portfolio's own deploy workflow picks it up without any extra wiring. The
-portfolio's `.github/workflows/deploy.yml` runs `refresh.py` before every
+portfolio's `.github/workflows/deploy.yml`runs`refresh.py` before every
 build (on push, on a daily schedule, or via manual dispatch), commits the refreshed `data.json`,
 and deploys.
 
@@ -54,7 +57,7 @@ python3 oss-contribution-tracker/refresh.py     # needs an authenticated gh + cu
 
 ## Monitoring for new activity
 
-`monitor.py` checks every tracked issue/PR in `data.json` -- the five target
+`monitor.py`checks every tracked issue/PR in`data.json` -- the five target
 repos plus the "Other Contributions" list -- for new comments or a state
 change since the last check, and posts a digest to a rolling GitHub issue on
 `builder106.github.io` when there's something to report (silent otherwise).
@@ -82,12 +85,12 @@ The next `refresh.py` run rolls it into the ○ counters.
 
 | File | Role |
 | ------ | ------ |
-| `refresh.py` | Queries data, tallies the log, writes `../public/oss-contribution-tracker/index.html` + `data.json` |
+| `refresh.py`| Queries data, tallies the log, writes`../public/oss-contribution-tracker/index.html`+`data.json` |
 | `template.html` | Page skeleton with injection markers |
 | `style.css` | Inlined into the generated page |
 | `CONTRIBUTIONS_LOG.md` | Source of the self-logged ○ rows |
-| `data.json` | Last snapshot; also what `monitor.py` reads to know what to track |
-| `monitor.py` | Checks tracked issues/PRs for new comments/state, writes `monitor_state.json`, posts a digest issue on new activity |
+| `data.json`| Last snapshot; also what`monitor.py` reads to know what to track |
+| `monitor.py`| Checks tracked issues/PRs for new comments/state, writes`monitor_state.json`, posts a digest issue on new activity |
 | `monitor_state.json` | Last-seen comment count/state per tracked item, for diffing over time |
 
 The two GitHub Actions workflows that drive this (refresh-on-push/schedule

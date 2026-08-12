@@ -27,14 +27,19 @@ maintain across several roles and genericized so it's safe to publish (see
 
 ## The shared-asset pattern
 
-`template/assets/` holds three files, each a set of `\newcommand` macros:
+`template/assets/`holds three files, each a set of`\newcommand` macros:
 
 - **`education-common.tex`**: the school/degree line, an Organizations line,
+
   and Honors/Awards in both a hyperlinked (digital) and plain-text
   (physical/ats) form.
+
 - **`certs.tex`**: certification URLs as named macros (`\exampleCertLinkOne`),
+
   so a cert re-upload only means editing one line.
+
 - **`experience-bank.tex`**: full Experience entries (subheading plus
+
   bullets), again in both linked and plain forms.
 
 Every resume file pulls these in with `\input{}` and calls the macros instead
@@ -54,9 +59,9 @@ variant that references it. No find-and-replace across a dozen files.
 
 | Variant | hyperref mode | Header | Project names |
 | --- | --- | --- | --- |
-| **digital** | `colorlinks` | icon row (phone, mail, LinkedIn, GitHub, site) | `\projectTitle{slug}{Name}`, bold and clickable |
-| **physical** | `hidelinks` | two-column: contact left, QR codes right | plain `\textbf{}`, nothing to click on paper |
-| **ats** | `hidelinks` | plain text line | plain `\textbf{}` |
+| **digital** | `colorlinks`| icon row (phone, mail, LinkedIn, GitHub, site) |`\projectTitle{slug}{Name}`, bold and clickable |
+| **physical** | `hidelinks`| two-column: contact left, QR codes right | plain`\textbf{}`, nothing to click on paper |
+| **ats** | `hidelinks`| plain text line | plain`\textbf{}` |
 
 Same content, three presentations. `template/Roles/Example/{digital,
 physical,ats}/` shows all three built from the same shared assets, so you can
@@ -84,8 +89,8 @@ Neither throws an error, so they only show up as a wrong-looking PDF.
 \vspace{2\myGap}            % NOT 22pt, this string-concatenates to 211pt
 ```
 
-`\newcommand` defines a text macro. `2\myGap` expands `\myGap` to the literal
-text `11pt` and prepends `2`, producing the dimension `211pt` (nearly 3
+`\newcommand`defines a text macro.`2\myGap`expands`\myGap` to the literal
+text `11pt`and prepends`2`, producing the dimension `211pt` (nearly 3
 inches), not the `22pt` you meant. If you need a spacing unit that gets
 multiplied by a variable coefficient anywhere, define it as a real length
 instead:
@@ -98,7 +103,7 @@ instead:
 
 **2. A shell auto-clean wrapper doesn't apply in non-interactive shells.**
 
-If you've wrapped `pdflatex` in a shell function that deletes `.aux`/`.log`/
+If you've wrapped `pdflatex`in a shell function that deletes`.aux`/`.log`/
 `.out` after each run, that wrapper only loads in an *interactive* shell. It
 never sources in CI, in a Docker build step, or in any tool that spawns a
 non-interactive shell. Byproducts pile up silently in those contexts. Sweep
@@ -133,18 +138,27 @@ delete key.
 
 1. Fork `template/` into your own project.
 2. Find-and-replace the placeholder identity (`Jordan Doe`, `jordan.doe@example.com`,
+
    `github.com/jordan-doe`, etc.) with your own.
+
 3. Edit `assets/education-common.tex`, `assets/certs.tex`, and
+
    `assets/experience-bank.tex` with your real school, certs, and any
    Experience entries that repeat across roles.
-4. Copy `Roles/Example/` to `Roles/<YourRole>/` for each role you're
+
+4. Copy `Roles/Example/`to`Roles/<YourRole>/` for each role you're
+
    targeting, and write role-specific Projects content in each variant.
    Projects are the one section this kit doesn't share, since they're
    naturally different per role.
-5. Regenerate your own QR codes (`qrencode -o qr_x.png -s 10 "https://..."`)
+
+5. Regenerate your own QR codes (`qrencode -o qr_x.png -s 10 "<https://...>"`)
+
    pointing at your real profiles. Never reuse placeholder ones in a real
    resume, and never reuse real ones in a published example.
+
 6. Run the page-count sweep above after every edit, across every role and
+
    variant, not just the one you changed.
 
 ## Content

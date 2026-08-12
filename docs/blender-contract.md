@@ -1,6 +1,6 @@
 # Blender → Three.js export contract
 
-The Three.js code in `src/scene/` consumes a single `.glb` exported from
+The Three.js code in `src/scene/`consumes a single`.glb` exported from
 Blender. The contract below is what makes the React overlay panels and camera
 flies "just work" the moment a fresh export is dropped in.
 
@@ -16,9 +16,13 @@ the root, so it resolves to `/models/server-room.glb` in both dev and prod.
 ## Coordinate system
 
 - Blender ships Z-up; Three.js / glTF uses Y-up. **Tick "Y Up" in the glTF
+
   exporter** (it's on by default — leave it on).
+
 - One Blender unit = one Three.js unit. The current placeholder room is
+
   ~14 units across and ~3 units tall.
+
 - Origin is the centre of the room floor.
 
 ## Naming conventions
@@ -31,7 +35,7 @@ for camera flies and React-panel pinning.
 
 > **Use underscore, not dot.** Three.js's GLTFLoader strips dots from glTF
 > node names — it reserves them for animation property paths. So
-> `anchor.terminal` would arrive in the browser as `anchorterminal` and
+> `anchor.terminal`would arrive in the browser as`anchorterminal` and
 > the prefix match would silently fail. The Rack and Screen meshes follow
 > the same rule (`Rack_imc-prosperity`, not `Rack.imc-prosperity`).
 
@@ -54,7 +58,7 @@ for camera flies and React-panel pinning.
 | `anchor_helm`           | ml      | Helm rack.                                           |
 | `anchor_tradetell`      | ml      | TradeTell rack.                                      |
 
-The id after `anchor_` must match a `Project.id` value in
+The id after `anchor_`must match a`Project.id` value in
 [src/data/projects.ts](../src/data/projects.ts). When you add a project, add
 both a row there and an `anchor_<id>` Empty in Blender — or set
 `inScene: false` on the project to opt it out of the scene presence check.
@@ -73,12 +77,12 @@ landscape composition (quant=back, swe+analyst=left, security=right).
 | `anchor_halberd`   | (6.1,  1.0, 1.3)         | security | Halberd   |
 | `anchor_quarry`    | (6.1,  2.5, 1.3)         | security | Quarry    |
 
-Each has the usual `Rack_<id>` + `Screen_<id>` + 12× `StatusLED_<id>_r{0,1}_c{0..5}`
+Each has the usual `Rack_<id>`+`Screen_<id>`+ 12×`StatusLED_<id>_r{0,1}_c{0..5}`
 meshes; LEDs are recoloured at runtime from the `color` field in projects.ts
 (ClearHash `#39ff14`, Halberd `#e0b341`, Quarry `#ff7a18`). Anchors sit 1.4
 units toward room centre (X=4.7). The wing is live in code: it's in both
-`AISLE_ORDER` copies (portrait), the `slotIndexByKey` `order` tuple +
-landscape `waveSlotCount` (=5), and the `security` wave colour `#4cff8f`.
+`AISLE_ORDER`copies (portrait), the`slotIndexByKey` `order` tuple +
+landscape `waveSlotCount`(=5), and the`security`wave colour`#4cff8f`.
 
 #### AI/ML wing — front wall (−Y in Blender → +Z in Three.js)
 
@@ -103,7 +107,7 @@ entrance side (Y=−7.5 in Blender → z=+7.5 in Three.js), in front of the scre
 
 LEDs recolour at runtime (Enclave `#15c39a`, Helm `#4f8cff`, TradeTell
 `#ff4b4b`). The wing is live in code: `AISLE_ORDER` (portrait, 15 racks), the
-`slotIndexByKey` `order` tuple + landscape `waveSlotCount` (=5), the `ml` wave
+`slotIndexByKey` `order`tuple + landscape`waveSlotCount`(=5), the`ml` wave
 colour `#a06bff`, the `wallNormalFor` / logo-placement front-plane handling
 (both treat z≈+7.5 anchors as +Z-facing, like the back wall), and the
 `projectCameraTarget` front-wing case (camera approaches from +Z so a click-fly
@@ -115,7 +119,7 @@ To re-export after editing the security wing: open
 images packed — cameras/lights are excluded by exporter default). **Enable
 Draco mesh compression** under the Geometry → Compression panel (the geometry
 is the bulk of the file; Draco cuts it ~57%). The loader points
-`useGLTF(url, "/draco/")` at a self-hosted decoder in `public/draco/`, so a
+`useGLTF(url, "/draco/")`at a self-hosted decoder in`public/draco/`, so a
 Draco glb is expected — a non-Draco export still loads (DRACOLoader no-ops on
 uncompressed primitives) but forfeits the size win.
 
@@ -125,12 +129,12 @@ frames the rack rather than burying itself in geometry.
 
 ### Interactive meshes
 
-Meshes named `Rack_<id>` and `Screen_<id>` (where `<id>` matches a
+Meshes named `Rack_<id>`and`Screen_<id>`(where`<id>` matches a
 [Project.id](../src/data/projects.ts) value) are recognised by
 `resolveClick()` ([src/scene/clickResolver.ts](../src/scene/clickResolver.ts))
 and trigger a fly + panel-open for that project. Same underscore-not-dot
 rule applies. The central monitor mesh is just `Monitor` (no separator);
-clicking `Monitor` or `Desk` opens the central terminal panel.
+clicking `Monitor`or`Desk` opens the central terminal panel.
 
 ## Apply transforms before export
 
@@ -160,7 +164,8 @@ Target the whole scene at:
 - **≤ 80k triangles total** (mobile-safe).
 - **≤ 8 materials**.
 - **No N-gons**: all faces triangulated or quads. Run
-  `Mesh → Clean Up → Tris to Quads` then `Triangulate` on export.
+
+  `Mesh → Clean Up → Tris to Quads`then`Triangulate` on export.
 
 ## Export settings
 
@@ -183,6 +188,9 @@ Target the whole scene at:
 3. Lights moved to a non-exported collection.
 4. Bake completed and packed into materials.
 5. Scene scale and origin match the placeholder room (use the
+
    `ServerRoom.tsx` stand-in as a size reference).
+
 6. Triangulate + check tri count in the Statistics overlay (`N` panel →
+
    Statistics).

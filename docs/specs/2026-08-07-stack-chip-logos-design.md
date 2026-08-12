@@ -8,13 +8,20 @@ icon (about a third of the ~55 distinct tags in `projects.ts` — things like
 
 ## Files
 
-- `src/data/stackIcons.ts` (new) — tag → `{ path, hex }` lookup, alias table,
+- `src/data/stackIcons.ts`(new) — tag →`{ path, hex }` lookup, alias table,
+
   fallback glyph path. Pure data/lookup module, no React.
-- `src/components/panels/ProjectCard.tsx` — swap the plain `<span>` chip loop
+
+- `src/components/panels/ProjectCard.tsx`— swap the plain`<span>` chip loop
+
   for a `<StackChip>` component.
-- `src/components/panels/Panel.css` — add `.project-card__chip-icon` sizing;
+
+- `src/components/panels/Panel.css`— add`.project-card__chip-icon` sizing;
+
   existing chip padding/border/background rules are untouched.
+
 - `src/data/stackIcons.test.ts` (new) — asserts every distinct stack tag
+
   currently in `projects.ts` resolves to a real icon or the documented
   fallback, so a future typo'd tag doesn't silently render blank.
 
@@ -27,17 +34,17 @@ already had a same-day perf pass on the Matrix renderer, so bundle weight is
 a live concern, not a hypothetical one.
 
 Lookup key normalization: lowercase, strip a trailing version-number token
-(`Vue 3` → `vue`, `React 19` → `react`, `Next.js 16` → `next.js`). An
+(`Vue 3`→`vue`, `React 19`→`react`, `Next.js 16`→`next.js`). An
 explicit alias table then maps normalized names that don't match a
-Simple Icons slug directly — `next.js` → `nextdotjs`, `ruby on rails` →
-`rubyonrails`, `github actions` → `githubactions`. Tags with no entry in
+Simple Icons slug directly — `next.js`→`nextdotjs`, `ruby on rails` →
+`rubyonrails`, `github actions`→`githubactions`. Tags with no entry in
 either the direct-match set or the alias table fall back to the generic
 glyph.
 
 ## Contrast handling
 
 Simple Icons ships one canonical brand hex per icon, and a few are near-black
-(`Next.js` is `#000000`) or otherwise too close to the chip's dark background
+(`Next.js`is`#000000`) or otherwise too close to the chip's dark background
 to read. Rather than hand-picking overrides per icon, `stackIcons.ts` runs
 each brand hex through a lightness check (HSL) at build/lookup time and, if
 under a floor threshold, substitutes a lightened version of the same hue
@@ -59,15 +66,18 @@ existing text content once, not the icon plus text.
 
 ## Data flow
 
-No changes to `Project` or `projects.ts`. Icons resolve purely from the
+No changes to `Project`or`projects.ts`. Icons resolve purely from the
 existing `project.stack` strings at render time via the lookup map in
 `stackIcons.ts`.
 
 ## Testing
 
 - `stackIcons.test.ts`: every stack tag in `projects.ts` maps to a known icon
+
   or the documented fallback — no silent unmatched case.
+
 - Existing `projects.test.ts` is unaffected (data shape unchanged).
 - Manual visual check via `verify-on-vm` dev server / tunnel before calling
+
   this done — this is a rendering change, typecheck and unit tests don't
   prove the chips actually look right.

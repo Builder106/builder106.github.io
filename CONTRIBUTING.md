@@ -16,10 +16,10 @@ Requires Node 20+ (matches the CI matrix in `.github/workflows/deploy.yml`).
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Vite dev server with HMR |
-| `npm run build` | Refresh repo stats, type-check, build to `dist/` |
-| `npm run typecheck` | `tsc -b --noEmit` — same check CI runs |
+| `npm run build`| Refresh repo stats, type-check, build to`dist/` |
+| `npm run typecheck`|`tsc -b --noEmit` — same check CI runs |
 | `npm run preview` | Serve the production build locally |
-| `npm run refresh-stats` | Pull fresh GitHub stats (needs `GH_TOKEN` env var) |
+| `npm run refresh-stats`| Pull fresh GitHub stats (needs`GH_TOKEN` env var) |
 
 ## Project shape
 
@@ -33,7 +33,7 @@ Requires Node 20+ (matches the CI matrix in `.github/workflows/deploy.yml`).
 ## Project-specific guardrails
 
 - **Performance budget**: the scene must boot in under ~2 seconds on a mid-tier laptop. Adding heavyweight assets (large textures, uncompressed meshes) is the easiest way to blow that budget — measure with the Network and Performance panels before merging.
-- **Don't break the glTF contract**: every project listed in `src/data/projects.ts` requires a matching `anchor_<id>` Empty in the Blender scene. Renaming an `id` without updating the Blender file (or vice versa) will silently break that rack's camera focus.
+- **Don't break the glTF contract**: every project listed in `src/data/projects.ts`requires a matching`anchor_<id>`Empty in the Blender scene. Renaming an`id` without updating the Blender file (or vice versa) will silently break that rack's camera focus.
 - **Hover/focus states are intentional**: the harder spotlight + deeper dim on non-hovered racks is a deliberate UX choice, not a placeholder. Don't soften it in the name of "subtle."
 - **Mobile is a fallback, not the target**: the canvas downgrades gracefully on small screens, but the design target is a desktop browser with a pointer. Don't refactor the scene for mobile-first.
 
@@ -69,7 +69,7 @@ If a commit touches one subsystem (cables, hover, paths), lead with that subsyst
 ## PR process
 
 1. Open an issue first for anything beyond a small bug fix — it saves both of us a wasted PR if it's out of scope.
-2. Run `npm run typecheck` and `npm run build` locally before pushing. CI runs the same checks; failing them just delays review.
+2. Run `npm run typecheck`and`npm run build` locally before pushing. CI runs the same checks; failing them just delays review.
 3. Keep PRs focused on one change. A perf fix + a refactor + a new feature in one PR is three PRs.
 4. If a change affects the Blender scene, attach a before/after screenshot.
 
@@ -86,10 +86,10 @@ npm run demo:gif     # converts each mp4 to a GIF at 720p / 8fps
 Notes from building this pipeline (worth knowing before touching it):
 
 - **Single-worker, slowMo=1000.** Parallel breaks Playwright's video subsystem; faster slowMo races React's panel-mount timing and the test flakes.
-- **Clicks are dispatched as synthetic events, not `.click()`.** drei's `<Html>` re-portals on every animation frame, which trips Playwright's "element is attached + stable" check. The step library dispatches a `MouseEvent` via `evaluate()` to bypass that.
-- **Animations frozen during recording.** A pre-mount `addInitScript` adds `.rack-label { animation: none !important; }` so the floating labels stay still while Playwright clicks them.
-- **Warmup scenarios.** Playwright + slowMo + `video: "on"` records a 0-byte first video for one of the first 1-2 tests. The `00-warmup.feature` has two throwaway scenarios; the custom reporter detects them by slug prefix and drops their output.
-- **mp4 also ships in `public/`** as `/demo.mp4` so the `og:video` meta tag in `index.html` has something to point to.
+- **Clicks are dispatched as synthetic events, not `.click()`.** drei's `<Html>`re-portals on every animation frame, which trips Playwright's "element is attached + stable" check. The step library dispatches a`MouseEvent`via`evaluate()` to bypass that.
+- **Animations frozen during recording.** A pre-mount `addInitScript`adds`.rack-label { animation: none !important; }` so the floating labels stay still while Playwright clicks them.
+- **Warmup scenarios.** Playwright + slowMo + `video: "on"`records a 0-byte first video for one of the first 1-2 tests. The`00-warmup.feature` has two throwaway scenarios; the custom reporter detects them by slug prefix and drops their output.
+- **mp4 also ships in `public/`** as `/demo.mp4`so the`og:video`meta tag in`index.html` has something to point to.
 
 ## License
 
