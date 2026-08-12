@@ -32,7 +32,7 @@
   "devDependencies": {
     "@elevenlabs/elevenlabs-js": "^2.62.0",
     "@playwright/test": "^1.62.1",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@types/three": "^0.185.4",
