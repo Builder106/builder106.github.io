@@ -21,11 +21,13 @@
 ### Task 1: Install `simple-icons` and create the icon lookup module
 
 **Files:**
+
 - Modify: `package.json` (add `simple-icons` dependency)
 - Create: `src/data/stackIcons.ts`
 - Test: `src/data/stackIcons.test.ts`
 
 **Interfaces:**
+
 - Produces: `resolveStackIcon(tag: string): ResolvedStackIcon | null` and `export interface ResolvedStackIcon { path: string; hex: string; title: string }` — consumed by Task 2's `StackChip`.
 
 - [ ] **Step 1: Add the dependency without creating `node_modules` on the Mac**
@@ -316,10 +318,12 @@ git commit -m "feat: add stack tag to logo icon lookup"
 ### Task 2: Fallback glyph + `StackChip` component
 
 **Files:**
+
 - Create: `src/components/panels/StackChip.tsx`
 - Modify: `src/components/panels/Panel.css` (append icon-sizing rules)
 
 **Interfaces:**
+
 - Consumes: `resolveStackIcon(tag: string): ResolvedStackIcon | null` from Task 1.
 - Produces: `<StackChip tag={string} />` — a single chip, used by Task 3 in `ProjectCard.tsx`'s stack loop.
 
@@ -405,10 +409,12 @@ git commit -m "feat: add StackChip component with brand-logo and fallback glyph 
 ### Task 3: Wire `StackChip` into `ProjectCard`
 
 **Files:**
+
 - Modify: `src/components/panels/ProjectCard.tsx:145-152`
 - Test: `src/components/panels/ProjectCard.test.tsx` (create if it doesn't already exist — check first)
 
 **Interfaces:**
+
 - Consumes: `<StackChip tag={string} />` from Task 2.
 
 - [ ] **Step 1: Check for an existing ProjectCard test file**
