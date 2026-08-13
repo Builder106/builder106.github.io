@@ -85,12 +85,12 @@ The next `refresh.py` run rolls it into the ○ counters.
 
 | File | Role |
 | ------ | ------ |
-| `refresh.py`| Queries data, tallies the log, writes`../public/oss-contribution-tracker/index.html`+`data.json` |
+| `refresh.py` | Queries data, tallies the log, writes`../public/oss-contribution-tracker/index.html`+`data.json` |
 | `template.html` | Page skeleton with injection markers |
 | `style.css` | Inlined into the generated page |
 | `CONTRIBUTIONS_LOG.md` | Source of the self-logged ○ rows |
-| `data.json`| Last snapshot; also what`monitor.py` reads to know what to track |
-| `monitor.py`| Checks tracked issues/PRs for new comments/state, writes`monitor_state.json`, posts a digest issue on new activity |
+| `data.json` | Last snapshot; also what`monitor.py` reads to know what to track |
+| `monitor.py` | Checks tracked issues/PRs for new comments/state, writes`monitor_state.json`, posts a digest issue on new activity |
 | `monitor_state.json` | Last-seen comment count/state per tracked item, for diffing over time |
 
 The two GitHub Actions workflows that drive this (refresh-on-push/schedule

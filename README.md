@@ -79,11 +79,11 @@ npm run dev
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev`| Vite dev server at`localhost:5173` |
-| `npm run build`| Type-check, refresh repo stats, build to`dist/` |
-| `npm run typecheck`|`tsc -b --noEmit` |
+| `npm run dev` | Vite dev server at`localhost:5173` |
+| `npm run build` | Type-check, refresh repo stats, build to`dist/` |
+| `npm run typecheck` | `tsc -b --noEmit` |
 | `npm run preview` | Serve the production build locally |
-| `npm run refresh-stats`| Re-fetch GitHub repo stats (requires`GH_TOKEN`) |
+| `npm run refresh-stats` | Re-fetch GitHub repo stats (requires`GH_TOKEN`) |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for project conventions and the scope of changes welcomed via PR.
 

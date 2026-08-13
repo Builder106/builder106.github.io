@@ -59,9 +59,9 @@ variant that references it. No find-and-replace across a dozen files.
 
 | Variant | hyperref mode | Header | Project names |
 | --- | --- | --- | --- |
-| **digital** | `colorlinks`| icon row (phone, mail, LinkedIn, GitHub, site) |`\projectTitle{slug}{Name}`, bold and clickable |
-| **physical** | `hidelinks`| two-column: contact left, QR codes right | plain`\textbf{}`, nothing to click on paper |
-| **ats** | `hidelinks`| plain text line | plain`\textbf{}` |
+| **digital** | `colorlinks` | icon row (phone, mail, LinkedIn, GitHub, site) | `\projectTitle{slug}{Name}`, bold and clickable |
+| **physical** | `hidelinks` | two-column: contact left, QR codes right | plain`\textbf{}`, nothing to click on paper |
+| **ats** | `hidelinks` | plain text line | plain`\textbf{}` |
 
 Same content, three presentations. `template/Roles/Example/{digital,
 physical,ats}/` shows all three built from the same shared assets, so you can
