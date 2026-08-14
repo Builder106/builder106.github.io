@@ -1,0 +1,5 @@
+[allowlist]
+description = "Allow Cloudflare Web Analytics public token"
+regexes = [
+  '''fabd15e75373473ca21e21b3214a1862''',
+]
