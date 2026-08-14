@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-08-13",
+  "as_of": "2026-08-14",
   "week_start": "2026-08-10",
   "author": "Builder106",
   "repos": [
@@ -182,7 +182,7 @@
         {
           "n": 4024,
           "url": "https://github.com/pwndbg/pwndbg/issues/4024",
-          "state": "open",
+          "state": "closed",
           "title": "Replace `assert False` with `typing_extensions.assert_never` in `objc.py` (FIXME resolution)"
         },
         {
