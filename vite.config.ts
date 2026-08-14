@@ -1,7 +1,8 @@
 import { defineConfig, type Plugin } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import { exec, execSync } from "node:child_process";
+import { promisify } from "node:util";
 import { writeFileSync } from "node:fs";
 import { projects } from "./src/data/projects.ts";
 import {
@@ -10,6 +11,8 @@ import {
   buildStructuredDataJSON,
 } from "./src/utils/semanticHtml.ts";
 
+const execAsync = promisify(exec);
+
 interface RepoStatEntry {
   stars: number;
   lang: string | null;
@@ -17,9 +20,9 @@ interface RepoStatEntry {
 }
 
 // Fetch star counts, primary language, and last-push timestamp for each project's
-// GitHub repo directly from typed project objects. Writes to `repoStats.generated.ts`.
+// GitHub repo in parallel directly from typed project objects.
 // Gracefully skips overwriting if offline or unauthenticated so committed stats remain.
-function syncRepoStats(): void {
+async function syncRepoStats(): Promise<void> {
   const slugs = Array.from(
     new Set(
       projects
@@ -29,16 +32,24 @@ function syncRepoStats(): void {
     ),
   );
 
+  const results = await Promise.all(
+    slugs.map(async (slug): Promise<[string, RepoStatEntry] | null> => {
+      try {
+        const { stdout } = await execAsync(
+          `gh api repos/${slug} --jq '{stars: .stargazers_count, lang: .language, pushed_at: .pushed_at}'`,
+          { encoding: "utf8" },
+        );
+        return [slug, JSON.parse(stdout.trim())];
+      } catch {
+        return null;
+      }
+    }),
+  );
+
   const stats: Record<string, RepoStatEntry> = {};
-  for (const slug of slugs) {
-    try {
-      const out = execSync(
-        `gh api repos/${slug} --jq '{stars: .stargazers_count, lang: .language, pushed_at: .pushed_at}'`,
-        { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
-      );
-      stats[slug] = JSON.parse(out);
-    } catch {
-      // Offline, rate limited, or unauthenticated; continue
+  for (const entry of results) {
+    if (entry) {
+      stats[entry[0]] = entry[1];
     }
   }
 
@@ -65,8 +76,8 @@ export const repoStats: Record<string, RepoStats> = ${JSON.stringify(stats, null
 function syncRepoStatsPlugin(): Plugin {
   return {
     name: "sync-repo-stats",
-    buildStart() {
-      syncRepoStats();
+    async buildStart() {
+      await syncRepoStats();
     },
   };
 }
