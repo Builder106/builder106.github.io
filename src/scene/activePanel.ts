@@ -4,7 +4,7 @@
 // Scene + CameraRig translate this into actual camera target vectors
 // inside the lazy-loaded Scene chunk.
 export type ActivePanel =
-  | { kind: "none" }
-  | { kind: "terminal" }
-  | { kind: "project"; projectId: string }
-  | { kind: "contact" };
+  | { kind: 'none' }
+  | { kind: 'terminal' }
+  | { kind: 'project'; projectId: string }
+  | { kind: 'contact' };

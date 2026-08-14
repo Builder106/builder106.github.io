@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { aisleScroll } from "../scene/aisleScroll";
-import "./ScrollHint.css";
+import { useEffect, useState } from 'react';
+import { aisleScroll } from '../scene/aisleScroll';
+import './ScrollHint.css';
 
 // Affordance for the portrait swipe-the-aisle mechanic. Renders a
 // bouncing chevron + "scroll" label centred above the bottom HUD row.

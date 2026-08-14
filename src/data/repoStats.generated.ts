@@ -8,79 +8,79 @@ export interface RepoStats {
 }
 
 export const repoStats: Record<string, RepoStats> = {
-  "Builder106/econ-os": {
-    "lang": "JavaScript",
-    "pushed_at": "2026-06-28T18:18:20Z",
-    "stars": 0
+  'Builder106/econ-os': {
+    lang: 'Python',
+    pushed_at: '2026-08-13T00:18:33Z',
+    stars: 0,
   },
-  "Builder106/ocaml-limit": {
-    "lang": "OCaml",
-    "pushed_at": "2026-07-13T15:44:38Z",
-    "stars": 3
+  'Builder106/ocaml-limit': {
+    lang: 'OCaml',
+    pushed_at: '2026-08-14T05:18:41Z',
+    stars: 2,
   },
-  "Builder106/qforge": {
-    "lang": "C",
-    "pushed_at": "2026-07-13T15:44:36Z",
-    "stars": 0
+  'Builder106/qforge': {
+    lang: 'C',
+    pushed_at: '2026-08-14T03:24:30Z',
+    stars: 0,
   },
-  "Builder106/micro-match": {
-    "lang": "TypeScript",
-    "pushed_at": "2026-07-16T20:46:47Z",
-    "stars": 0
+  'Builder106/micro-match': {
+    lang: 'TypeScript',
+    pushed_at: '2026-08-13T20:39:03Z',
+    stars: 0,
   },
-  "Builder106/staija": {
-    "lang": "TypeScript",
-    "pushed_at": "2026-07-16T05:35:52Z",
-    "stars": 0
+  'Builder106/staija': {
+    lang: 'TypeScript',
+    pushed_at: '2026-08-14T05:44:25Z',
+    stars: 0,
   },
-  "Builder106/study-sprint": {
-    "lang": "TypeScript",
-    "pushed_at": "2026-07-13T15:44:29Z",
-    "stars": 0
+  'Builder106/study-sprint': {
+    lang: 'TypeScript',
+    pushed_at: '2026-08-13T20:48:34Z',
+    stars: 0,
   },
-  "Builder106/capitol-alpha": {
-    "lang": "Jupyter Notebook",
-    "pushed_at": "2026-06-28T18:17:43Z",
-    "stars": 0
+  'Builder106/capitol-alpha': {
+    lang: 'Jupyter Notebook',
+    pushed_at: '2026-08-13T00:12:57Z',
+    stars: 1,
   },
-  "Builder106/datafest-2026": {
-    "lang": "R",
-    "pushed_at": "2026-07-16T20:38:07Z",
-    "stars": 0
+  'Builder106/datafest-2026': {
+    lang: 'R',
+    pushed_at: '2026-08-13T01:14:34Z',
+    stars: 1,
   },
-  "Builder106/linux-bench-hub": {
-    "lang": "HTML",
-    "pushed_at": "2026-07-14T15:42:17Z",
-    "stars": 0
+  'Builder106/linux-bench-hub': {
+    lang: 'HTML',
+    pushed_at: '2026-08-13T00:27:55Z',
+    stars: 0,
   },
-  "Builder106/clear-hash": {
-    "lang": "Rust",
-    "pushed_at": "2026-07-14T15:55:55Z",
-    "stars": 0
+  'Builder106/clear-hash': {
+    lang: 'Rust',
+    pushed_at: '2026-08-13T21:17:37Z',
+    stars: 0,
   },
-  "Builder106/halberd": {
-    "lang": "Go",
-    "pushed_at": "2026-07-13T15:44:51Z",
-    "stars": 0
+  'Builder106/halberd': {
+    lang: 'Go',
+    pushed_at: '2026-08-13T21:04:31Z',
+    stars: 0,
   },
-  "Builder106/quarry": {
-    "lang": "TypeScript",
-    "pushed_at": "2026-07-13T15:44:54Z",
-    "stars": 0
+  'Builder106/quarry': {
+    lang: 'TypeScript',
+    pushed_at: '2026-08-13T00:18:21Z',
+    stars: 0,
   },
-  "Builder106/enclave": {
-    "lang": "TypeScript",
-    "pushed_at": "2026-07-14T16:01:44Z",
-    "stars": 0
+  'Builder106/enclave': {
+    lang: 'TypeScript',
+    pushed_at: '2026-08-14T02:39:21Z',
+    stars: 0,
   },
-  "Builder106/helm": {
-    "lang": "HTML",
-    "pushed_at": "2026-07-13T15:49:23Z",
-    "stars": 0
+  'Builder106/helm': {
+    lang: 'HTML',
+    pushed_at: '2026-08-13T00:12:42Z',
+    stars: 0,
   },
-  "Builder106/imc-prosperity": {
-    "lang": "Python",
-    "pushed_at": "2026-07-14T15:56:14Z",
-    "stars": 0
-  }
+  'Builder106/imc-prosperity': {
+    lang: 'Python',
+    pushed_at: '2026-08-14T03:18:55Z',
+    stars: 1,
+  },
 };

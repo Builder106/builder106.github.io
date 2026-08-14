@@ -33,7 +33,7 @@ import {
   siVuedotjs,
   siWebassembly,
   type SimpleIcon,
-} from "simple-icons";
+} from 'simple-icons';
 
 export interface ResolvedStackIcon {
   path: string;
@@ -83,41 +83,41 @@ const SLUG_ICON: Record<string, SimpleIcon> = {
 // Lowercased project.stack tag -> SLUG_ICON key. Multiple tags (version
 // suffixes, alternate names) intentionally point at the same slug.
 const TAG_TO_SLUG: Record<string, string> = {
-  appwrite: "appwrite",
-  bun: "bun",
-  c99: "c",
-  "deno 2": "deno",
-  docker: "docker",
-  duckdb: "duckdb",
-  fastapi: "fastapi",
-  firebase: "firebase",
-  "gemini 3.1 flash lite": "googlegemini",
-  "github actions": "githubactions",
-  go: "go",
-  jupyter: "jupyter",
-  mcp: "modelcontextprotocol",
-  "next.js": "nextdotjs",
-  "next.js 16": "nextdotjs",
-  node: "nodedotjs",
-  ocaml: "ocaml",
-  ollama: "ollama",
-  pandas: "pandas",
-  python: "python",
-  r: "r",
-  react: "react",
-  "react 19": "react",
-  "ruby on rails": "rubyonrails",
-  rust: "rust",
-  scipy: "scipy",
-  solidity: "solidity",
-  streamlit: "streamlit",
-  supabase: "supabase",
-  sveltekit: "svelte",
-  tailwind: "tailwindcss",
-  typescript: "typescript",
-  vite: "vite",
-  "vue 3": "vuedotjs",
-  webassembly: "webassembly",
+  appwrite: 'appwrite',
+  bun: 'bun',
+  c99: 'c',
+  'deno 2': 'deno',
+  docker: 'docker',
+  duckdb: 'duckdb',
+  fastapi: 'fastapi',
+  firebase: 'firebase',
+  'gemini 3.1 flash lite': 'googlegemini',
+  'github actions': 'githubactions',
+  go: 'go',
+  jupyter: 'jupyter',
+  mcp: 'modelcontextprotocol',
+  'next.js': 'nextdotjs',
+  'next.js 16': 'nextdotjs',
+  node: 'nodedotjs',
+  ocaml: 'ocaml',
+  ollama: 'ollama',
+  pandas: 'pandas',
+  python: 'python',
+  r: 'r',
+  react: 'react',
+  'react 19': 'react',
+  'ruby on rails': 'rubyonrails',
+  rust: 'rust',
+  scipy: 'scipy',
+  solidity: 'solidity',
+  streamlit: 'streamlit',
+  supabase: 'supabase',
+  sveltekit: 'svelte',
+  tailwind: 'tailwindcss',
+  typescript: 'typescript',
+  vite: 'vite',
+  'vue 3': 'vuedotjs',
+  webassembly: 'webassembly',
 };
 
 // Simple Icons ships one canonical brand hex per icon; several (Next.js,
@@ -181,7 +181,7 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 }
 
 function toHex(n: number): string {
-  return n.toString(16).padStart(2, "0");
+  return n.toString(16).padStart(2, '0');
 }
 
 function clampLightness(hex: string): string {

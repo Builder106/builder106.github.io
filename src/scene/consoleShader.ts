@@ -1,4 +1,4 @@
-import { Color, ShaderMaterial } from "three";
+import { Color, ShaderMaterial } from 'three';
 
 // Custom ShaderMaterial for the central curved monitor. Renders a
 // "control panel" HUD: faint background grid, dual oscilloscope
@@ -131,7 +131,7 @@ export interface ConsoleUniforms {
 }
 
 export function createConsoleMaterial(
-  _isMobile: boolean = false,
+  _isMobile: boolean = false
 ): ShaderMaterial & { uniforms: ConsoleUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,
@@ -140,8 +140,8 @@ export function createConsoleMaterial(
       uTime: { value: 0 },
       uHover: { value: 0 },
       uDim: { value: 0 },
-      uCoreColor: { value: new Color("#d4faff") },
-      uBaseColor: { value: new Color("#1f8ca8") },
+      uCoreColor: { value: new Color('#d4faff') },
+      uBaseColor: { value: new Color('#1f8ca8') },
     },
     toneMapped: false,
   });

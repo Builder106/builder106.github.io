@@ -6,7 +6,7 @@ import {
   buildLlmsTxt,
   buildSemanticContentHTML,
   buildStructuredDataJSON,
-} from "./src/utils/semanticHtml";
+} from "./src/utils/semanticHtml.ts";
 
 // Resolve the current HEAD's short SHA, message, and ISO timestamp at
 // build/dev time. Surfaced in the terminal-panel dashboard so the
@@ -114,7 +114,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(import.meta.dirname, "src"),
     },
   },
   define: {

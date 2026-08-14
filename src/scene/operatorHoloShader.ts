@@ -1,10 +1,4 @@
-import {
-  AdditiveBlending,
-  Color,
-  DoubleSide,
-  ShaderMaterial,
-  type Texture,
-} from "three";
+import { AdditiveBlending, Color, DoubleSide, ShaderMaterial, type Texture } from 'three';
 
 // Operator-holo material: applied to the OperatorHolo plane (above the
 // HoloPedestal stand beside the desk, parented to Desk in Blender) at
@@ -144,7 +138,7 @@ export interface OperatorHoloUniforms {
 }
 
 export function createOperatorHoloMaterial(
-  texture: Texture,
+  texture: Texture
 ): ShaderMaterial & { uniforms: OperatorHoloUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,
@@ -152,7 +146,7 @@ export function createOperatorHoloMaterial(
     uniforms: {
       uTexture: { value: texture },
       uTime: { value: 0 },
-      uTint: { value: new Color("#1f8ca8") },
+      uTint: { value: new Color('#1f8ca8') },
     },
     side: DoubleSide,
     transparent: true,

@@ -1,6 +1,6 @@
-import { Vector3 } from "three";
-import { type SceneAnchor } from "./anchors";
-import { type SceneVariant } from "./sceneVariant";
+import { Vector3 } from 'three';
+import { type SceneAnchor } from './anchors';
+import { type SceneVariant } from './sceneVariant';
 
 // Default isometric vantage. Looking at the origin from the front-right,
 // pulled back + up enough to fit the full four-wall room. Y is up (Three.js
@@ -37,8 +37,8 @@ export interface CameraTarget {
   lookAt: Vector3;
 }
 
-export function defaultCameraTarget(variant: SceneVariant = "landscape"): CameraTarget {
-  if (variant === "portrait") {
+export function defaultCameraTarget(variant: SceneVariant = 'landscape'): CameraTarget {
+  if (variant === 'portrait') {
     return {
       position: PORTRAIT_CAMERA_POSITION.clone(),
       lookAt: PORTRAIT_CAMERA_TARGET.clone(),
@@ -59,10 +59,10 @@ export function defaultCameraTarget(variant: SceneVariant = "landscape"): Camera
 //     the rack rather than behind it.
 export function projectCameraTarget(
   anchor: SceneAnchor,
-  variant: SceneVariant = "landscape",
+  variant: SceneVariant = 'landscape'
 ): CameraTarget {
   let interiorDir: Vector3;
-  if (variant === "portrait") {
+  if (variant === 'portrait') {
     interiorDir = new Vector3(0, 0, 1);
   } else if (anchor.position.z > 4.7) {
     // AI/ML front-wing racks face the entrance (+Z) rather than the room
@@ -70,13 +70,11 @@ export function projectCameraTarget(
     // rack face — stepping toward room centre would land it behind the screen.
     interiorDir = new Vector3(0, 0, 1);
   } else {
-    interiorDir = new Vector3(-anchor.position.x, 0, -anchor.position.z)
-      .normalize();
+    interiorDir = new Vector3(-anchor.position.x, 0, -anchor.position.z).normalize();
     if (interiorDir.lengthSq() < 0.0001) interiorDir.set(0, 0, 1);
   }
 
-  const position = anchor.position.clone()
-    .addScaledVector(interiorDir, ANCHOR_PULLBACK);
+  const position = anchor.position.clone().addScaledVector(interiorDir, ANCHOR_PULLBACK);
   position.y += ANCHOR_RISE;
 
   return { position, lookAt: anchor.position.clone() };
@@ -85,8 +83,7 @@ export function projectCameraTarget(
 // Terminal-specific framing: stand directly in front of the monitor.
 export function terminalCameraTarget(anchor: SceneAnchor): CameraTarget {
   const interiorDir = new Vector3(0, 0, 1); // monitor faces -Z, camera sits at +Z
-  const position = anchor.position.clone()
-    .addScaledVector(interiorDir, TERMINAL_PULLBACK);
+  const position = anchor.position.clone().addScaledVector(interiorDir, TERMINAL_PULLBACK);
   position.y += TERMINAL_RISE;
   return { position, lookAt: anchor.position.clone() };
 }

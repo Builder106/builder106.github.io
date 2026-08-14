@@ -1,5 +1,5 @@
-import { useEffect, useRef, type ReactNode } from "react";
-import "./Panel.css";
+import { useEffect, useRef, type ReactNode } from 'react';
+import './Panel.css';
 
 interface PanelShellProps {
   open: boolean;
@@ -38,17 +38,17 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
       }, 50);
 
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape") {
+        if (e.key === 'Escape') {
           e.preventDefault();
           onClose();
         }
       };
 
-      window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener('keydown', handleKeyDown);
       return () => {
         window.clearTimeout(focusTimer);
-        window.removeEventListener("keydown", handleKeyDown);
-        if (previousFocusRef.current && typeof previousFocusRef.current.focus === "function") {
+        window.removeEventListener('keydown', handleKeyDown);
+        if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
           previousFocusRef.current.focus();
         }
       };
@@ -58,7 +58,7 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
   return (
     <div
       ref={rootRef}
-      className={`panel ${open ? "panel--open" : ""} ${variantClass ?? ""}`.trim()}
+      className={`panel ${open ? 'panel--open' : ''} ${variantClass ?? ''}`.trim()}
       role="dialog"
       aria-hidden={!open}
     >
@@ -75,9 +75,7 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
             in (currently just the control console). Sibling of the
             scrollable body so it floats over content without moving
             with scroll. */}
-        {variantClass?.includes("console") && (
-          <span className="panel__overlay-scan" aria-hidden />
-        )}
+        {variantClass?.includes('console') && <span className="panel__overlay-scan" aria-hidden />}
 
         <header className="panel__header">
           <div className="panel__chrome">
@@ -86,7 +84,12 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
             <span className="panel__chrome-dot panel__chrome-dot--green" />
           </div>
           <h2 className="panel__title">{title}</h2>
-          <button ref={closeButtonRef} className="panel__close" onClick={onClose} aria-label="Close">
+          <button
+            ref={closeButtonRef}
+            className="panel__close"
+            onClick={onClose}
+            aria-label="Close"
+          >
             <span aria-hidden>esc</span>
           </button>
         </header>

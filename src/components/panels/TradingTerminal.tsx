@@ -1,3 +1,10 @@
+import { getTrack, TRACKS, type TrackId } from '@/components/useAisleAudio';
+import { AISLE_ORDER, CLUSTER_DISPLAY, projects, type ProjectCluster } from '@/data/projects';
+import { repoStats } from '@/data/repoStats.generated';
+import type { ActivePanel } from '@/scene/activePanel';
+import { aisleScroll } from '@/scene/aisleScroll';
+import { useSceneVariant } from '@/scene/sceneVariant';
+import { SESSION_START_MS } from '@/scene/sessionStart';
 import {
   useCallback,
   useEffect,
@@ -6,15 +13,8 @@ import {
   useState,
   type FormEvent,
   type KeyboardEvent,
-} from "react";
-import { AISLE_ORDER, projects, CLUSTER_DISPLAY, type ProjectCluster } from "@/data/projects";
-import { repoStats } from "@/data/repoStats.generated";
-import { aisleScroll } from "@/scene/aisleScroll";
-import type { ActivePanel } from "@/scene/activePanel";
-import { useSceneVariant } from "@/scene/sceneVariant";
-import { SESSION_START_MS } from "@/scene/sessionStart";
-import { getTrack, TRACKS, type TrackId } from "@/components/useAisleAudio";
-import { PanelShell } from "./PanelShell";
+} from 'react';
+import { PanelShell } from './PanelShell';
 
 interface TradingTerminalProps {
   open: boolean;
@@ -63,7 +63,7 @@ function dominantRackId(progress: number): string | null {
 // for this one usage.
 function relativeTime(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
-  if (ms < 0) return "just now";
+  if (ms < 0) return 'just now';
   const s = Math.floor(ms / 1000);
   if (s < 60) return `${s}s ago`;
   const m = Math.floor(s / 60);
@@ -84,12 +84,12 @@ function formatUptime(ms: number): string {
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  const pad = (n: number) => String(n).padStart(2, "0");
+  const pad = (n: number) => String(n).padStart(2, '0');
   return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
 type LogEntry = {
-  kind: "input" | "output" | "system" | "error" | "ok" | "banner";
+  kind: 'input' | 'output' | 'system' | 'error' | 'ok' | 'banner';
   text: string;
 };
 
@@ -102,14 +102,14 @@ const BUILD_TIMESTAMP = __BUILD_TIMESTAMP__;
 // build / boot lines below give the user something to *read* before
 // they start typing instead of a near-empty void with one hint line.
 const INITIAL_LOG: LogEntry[] = [
-  { kind: "banner", text: " ╭─◇ control_console ◇─╮" },
-  { kind: "banner", text: " │  ov @ portfolio    │" },
-  { kind: "banner", text: " ╰────────────────────╯" },
-  { kind: "system", text: `boot: build ${SHORT_SHA}` },
-  { kind: "system", text: "audio synth + aisleScroll attached." },
-  { kind: "system", text: "ready. type 'help' for commands." },
+  { kind: 'banner', text: ' ╭─◇ control_console ◇─╮' },
+  { kind: 'banner', text: ' │  ov @ portfolio    │' },
+  { kind: 'banner', text: ' ╰────────────────────╯' },
+  { kind: 'system', text: `boot: build ${SHORT_SHA}` },
+  { kind: 'system', text: 'audio synth + aisleScroll attached.' },
+  { kind: 'system', text: "ready. type 'help' for commands." },
   // Subtle nudge that secrets exist. Doesn't list any of them.
-  { kind: "system", text: "(some commands are not in 'help'. try old-school unix.)" },
+  { kind: 'system', text: "(some commands are not in 'help'. try old-school unix.)" },
 ];
 
 // Keys of every hidden command — used by the `secrets` meta-command to
@@ -117,32 +117,32 @@ const INITIAL_LOG: LogEntry[] = [
 // not in this list get pruned on load so removed-in-newer-builds entries
 // don't permanently count toward your total).
 const SECRET_KEYS = [
-  "whoami",
-  "ls",
-  "date",
-  "uptime",
-  "history",
-  "pwd",
-  "uname",
-  "sudo",
-  "rm",
-  "editor",
-  "coffee",
-  "tea",
-  "make",
-  "greet",
-  "exit",
-  "42",
-  "matrix",
-  "wave",
-  "konami",
-  "xyzzy",
-  "iddqd",
-  "ascii",
-  "cowsay",
-  "fortune",
-  "stats",
-  "credits",
+  'whoami',
+  'ls',
+  'date',
+  'uptime',
+  'history',
+  'pwd',
+  'uname',
+  'sudo',
+  'rm',
+  'editor',
+  'coffee',
+  'tea',
+  'make',
+  'greet',
+  'exit',
+  '42',
+  'matrix',
+  'wave',
+  'konami',
+  'xyzzy',
+  'iddqd',
+  'ascii',
+  'cowsay',
+  'fortune',
+  'stats',
+  'credits',
 ] as const;
 
 // Visible-command names tab-completion suggests on the first token.
@@ -151,75 +151,75 @@ const SECRET_KEYS = [
 // triggered we add its aliases (see SECRET_TO_ALIASES) so the user
 // can tab-complete back to it on future sessions.
 const VISIBLE_COMMANDS = [
-  "help",
-  "clear",
-  "about",
-  "open",
-  "goto",
-  "home",
-  "end",
-  "scroll",
-  "mute",
-  "unmute",
-  "secrets",
+  'help',
+  'clear',
+  'about',
+  'open',
+  'goto',
+  'home',
+  'end',
+  'scroll',
+  'mute',
+  'unmute',
+  'secrets',
 ];
 
 const SECRET_TO_ALIASES: Record<string, string[]> = {
-  whoami:  ["whoami"],
-  ls:      ["ls", "dir"],
-  pwd:     ["pwd"],
-  date:    ["date"],
-  uptime:  ["uptime"],
-  history: ["history"],
-  uname:   ["uname"],
-  sudo:    ["sudo"],
-  rm:      ["rm"],
-  editor:  ["vim", "vi", "emacs", "nano", "ed"],
-  coffee:  ["coffee"],
-  tea:     ["tea"],
-  make:    ["make"],
-  greet:   ["hello", "hi", "hey", "yo"],
-  exit:    ["exit", "quit", "q", "bye"],
-  "42":    ["42"],
-  matrix:  ["matrix"],
-  wave:    ["wave"],
-  konami:  ["konami"],
-  xyzzy:   ["xyzzy"],
-  iddqd:   ["iddqd"],
-  ascii:   ["ascii", "logo"],
-  cowsay:  ["cowsay"],
-  fortune: ["fortune"],
-  stats:   ["stats"],
-  credits: ["credits"],
+  whoami: ['whoami'],
+  ls: ['ls', 'dir'],
+  pwd: ['pwd'],
+  date: ['date'],
+  uptime: ['uptime'],
+  history: ['history'],
+  uname: ['uname'],
+  sudo: ['sudo'],
+  rm: ['rm'],
+  editor: ['vim', 'vi', 'emacs', 'nano', 'ed'],
+  coffee: ['coffee'],
+  tea: ['tea'],
+  make: ['make'],
+  greet: ['hello', 'hi', 'hey', 'yo'],
+  exit: ['exit', 'quit', 'q', 'bye'],
+  '42': ['42'],
+  matrix: ['matrix'],
+  wave: ['wave'],
+  konami: ['konami'],
+  xyzzy: ['xyzzy'],
+  iddqd: ['iddqd'],
+  ascii: ['ascii', 'logo'],
+  cowsay: ['cowsay'],
+  fortune: ['fortune'],
+  stats: ['stats'],
+  credits: ['credits'],
 };
 
 // Second-token completion targets when the first token is `open` or
 // `goto`. Mixes the project ids (the obvious case) with the four
 // special keywords those commands also accept.
-const GOTO_TARGETS = [
-  "contact",
-  "entrance",
-  "end",
-  "terminal",
-];
+const GOTO_TARGETS = ['contact', 'entrance', 'end', 'terminal'];
 
-const SECRETS_STORAGE_KEY = "ov_console_secrets_v1";
+const SECRETS_STORAGE_KEY = 'ov_console_secrets_v1';
 
 function loadDiscoveredSecrets(): Set<string> {
-  if (typeof window === "undefined") return new Set();
+  if (typeof window === 'undefined') return new Set();
   try {
     const raw = window.localStorage.getItem(SECRETS_STORAGE_KEY);
     if (!raw) return new Set();
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return new Set();
-    return new Set(parsed.filter((k): k is string => typeof k === "string" && SECRET_KEYS.includes(k as typeof SECRET_KEYS[number])));
+    return new Set(
+      parsed.filter(
+        (k): k is string =>
+          typeof k === 'string' && SECRET_KEYS.includes(k as (typeof SECRET_KEYS)[number])
+      )
+    );
   } catch {
     return new Set();
   }
 }
 
 function saveDiscoveredSecrets(secrets: Set<string>): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(SECRETS_STORAGE_KEY, JSON.stringify([...secrets]));
   } catch {
@@ -229,32 +229,32 @@ function saveDiscoveredSecrets(secrets: Set<string>): void {
 
 // Random fortune lines for the `fortune` command.
 const FORTUNES = [
-  "the cake is a lie.",
-  "write tests. then write the code. or just guess.",
+  'the cake is a lie.',
+  'write tests. then write the code. or just guess.',
   "if at first you don't succeed, blame the cache.",
-  "premature abstraction is the root of all evil.",
-  "the best code is no code at all.",
-  "you cannot grep dead trees.",
-  "RTFM — read the friendly manual.",
-  "weeks of coding can save you hours of planning.",
-  "real artists ship.",
-  "there are two hard problems in computer science: cache invalidation, naming things, and off-by-one errors.",
+  'premature abstraction is the root of all evil.',
+  'the best code is no code at all.',
+  'you cannot grep dead trees.',
+  'RTFM — read the friendly manual.',
+  'weeks of coding can save you hours of planning.',
+  'real artists ship.',
+  'there are two hard problems in computer science: cache invalidation, naming things, and off-by-one errors.',
 ];
 
 // Big "OV" block letters for the `ascii` command.
 const ASCII_BANNER = [
-  " ██████╗ ██╗   ██╗",
-  "██╔═══██╗██║   ██║",
-  "██║   ██║██║   ██║",
-  "██║   ██║╚██╗ ██╔╝",
-  "╚██████╔╝ ╚████╔╝ ",
-  " ╚═════╝   ╚═══╝  ",
+  ' ██████╗ ██╗   ██╗',
+  '██╔═══██╗██║   ██║',
+  '██║   ██║██║   ██║',
+  '██║   ██║╚██╗ ██╔╝',
+  '╚██████╔╝ ╚████╔╝ ',
+  ' ╚═════╝   ╚═══╝  ',
 ];
 
 // Six rows of pseudo-random katakana / hex for the `matrix` rain effect.
-const MATRIX_CHARS = "アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF";
+const MATRIX_CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF';
 function matrixLine(width = 36): string {
-  let s = "";
+  let s = '';
   for (let i = 0; i < width; i++) {
     s += MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)];
   }
@@ -280,8 +280,8 @@ export function TradingTerminal({
 
   const activeRackId = useMemo(() => dominantRackId(progress), [progress]);
   const activeRack = useMemo(
-    () => (activeRackId ? projects.find((p) => p.id === activeRackId) ?? null : null),
-    [activeRackId],
+    () => (activeRackId ? (projects.find(p => p.id === activeRackId) ?? null) : null),
+    [activeRackId]
   );
 
   // The aisleScroll-driven telemetry only does anything in portrait
@@ -300,7 +300,7 @@ export function TradingTerminal({
   // portrait, so no reason to re-render.
   const [uptimeMs, setUptimeMs] = useState(() => Date.now() - SESSION_START_MS);
   useEffect(() => {
-    if (!open || variant !== "landscape") return;
+    if (!open || variant !== 'landscape') return;
     const id = window.setInterval(() => {
       setUptimeMs(Date.now() - SESSION_START_MS);
     }, 1000);
@@ -309,7 +309,7 @@ export function TradingTerminal({
 
   // Track switcher derived state.
   const currentTrack = getTrack(trackId);
-  const trackIndex = TRACKS.findIndex((t) => t.id === trackId);
+  const trackIndex = TRACKS.findIndex(t => t.id === trackId);
   const nextTrack = TRACKS[(trackIndex + 1) % TRACKS.length];
   const prevTrack = TRACKS[(trackIndex - 1 + TRACKS.length) % TRACKS.length];
 
@@ -317,7 +317,7 @@ export function TradingTerminal({
   // input is uncontrolled-via-ref + cycles through past inputs on
   // ArrowUp/ArrowDown.
   const [log, setLog] = useState<LogEntry[]>(INITIAL_LOG);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const inputHistory = useRef<string[]>([]);
   const historyCursor = useRef<number>(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -329,7 +329,7 @@ export function TradingTerminal({
   // progress.
   const discoveredSecrets = useRef<Set<string>>(loadDiscoveredSecrets());
   const markSecret = useCallback((key: string) => {
-    if (!SECRET_KEYS.includes(key as typeof SECRET_KEYS[number])) return;
+    if (!SECRET_KEYS.includes(key as (typeof SECRET_KEYS)[number])) return;
     if (discoveredSecrets.current.has(key)) return;
     discoveredSecrets.current.add(key);
     saveDiscoveredSecrets(discoveredSecrets.current);
@@ -343,7 +343,7 @@ export function TradingTerminal({
   const [, setHeartbeat] = useState(0);
   useEffect(() => {
     if (!open) return;
-    const id = window.setInterval(() => setHeartbeat((t) => t + 1), 30_000);
+    const id = window.setInterval(() => setHeartbeat(t => t + 1), 30_000);
     return () => window.clearInterval(id);
   }, [open]);
 
@@ -352,9 +352,9 @@ export function TradingTerminal({
   // widget renders with the --flash class which runs a one-shot CSS
   // glow animation, giving the prompt visible coupling to the
   // dashboard.
-  const [flashedWidget, setFlashedWidget] = useState<"telemetry" | "audio" | null>(null);
+  const [flashedWidget, setFlashedWidget] = useState<'telemetry' | 'audio' | null>(null);
   const flashTimeoutRef = useRef<number | null>(null);
-  const flashWidget = useCallback((key: "telemetry" | "audio") => {
+  const flashWidget = useCallback((key: 'telemetry' | 'audio') => {
     setFlashedWidget(key);
     if (flashTimeoutRef.current !== null) {
       window.clearTimeout(flashTimeoutRef.current);
@@ -384,8 +384,7 @@ export function TradingTerminal({
   useEffect(() => {
     if (!open) return;
     const isTouchPrimary =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(pointer: coarse)").matches;
+      typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
     if (!isTouchPrimary) {
       inputRef.current?.focus({ preventScroll: true });
     }
@@ -415,43 +414,49 @@ export function TradingTerminal({
   // of text on the same tick.
   const playSandwichCeremony = useCallback(() => {
     const beats: Array<{ delay: number; entry: LogEntry }> = [
-      { delay: 180, entry: { kind: "system", text: "[sudo] password for ov: ••••••••••" } },
-      { delay: 400, entry: { kind: "output", text: "reading pantry lists...      done" } },
-      { delay: 80,  entry: { kind: "output", text: "building dependency tree...  done" } },
-      { delay: 80,  entry: { kind: "output", text: "reading state info...        done" } },
-      { delay: 220, entry: { kind: "output", text: "the following NEW packages will be assembled:" } },
-      { delay: 80,  entry: { kind: "ok",     text: "  bread lettuce tomato cheese mayo turkey" } },
-      { delay: 80,  entry: { kind: "output", text: "0 upgraded, 6 newly assembled, 0 to remove." } },
-      { delay: 80,  entry: { kind: "output", text: "need to get 312 kcal of ingredients." } },
-      { delay: 260, entry: { kind: "output", text: "get:1 pantry/stable bread       [ok]" } },
-      { delay: 100, entry: { kind: "output", text: "get:2 pantry/stable lettuce     [ok]" } },
-      { delay: 100, entry: { kind: "output", text: "get:3 pantry/stable tomato      [ok]" } },
-      { delay: 100, entry: { kind: "output", text: "get:4 pantry/stable cheese      [ok]" } },
-      { delay: 100, entry: { kind: "output", text: "get:5 pantry/stable mayo        [ok]" } },
-      { delay: 100, entry: { kind: "output", text: "get:6 pantry/stable turkey      [ok]" } },
-      { delay: 220, entry: { kind: "output", text: "assembling sandwich..." } },
-      { delay: 160, entry: { kind: "output", text: "  [████████████████] toast      100%" } },
-      { delay: 160, entry: { kind: "output", text: "  [████████████████] mayo       100%" } },
-      { delay: 160, entry: { kind: "output", text: "  [████████████████] turkey     100%" } },
-      { delay: 160, entry: { kind: "output", text: "  [████████████████] cheese     100%" } },
-      { delay: 160, entry: { kind: "output", text: "  [████████████████] greens     100%" } },
-      { delay: 160, entry: { kind: "output", text: "  [████████████████] top slice  100%" } },
-      { delay: 280, entry: { kind: "banner", text: "       _________________" } },
-      { delay: 55,  entry: { kind: "banner", text: "      /  . . . . . . .  \\" } },
-      { delay: 55,  entry: { kind: "banner", text: "     /___________________\\" } },
-      { delay: 55,  entry: { kind: "banner", text: "     |~ ~ ~ ~ ~ ~ ~ ~ ~ ~|" } },
-      { delay: 55,  entry: { kind: "banner", text: "     |###################|" } },
-      { delay: 55,  entry: { kind: "banner", text: "     |@ @ @ @ @ @ @ @ @ @|" } },
-      { delay: 55,  entry: { kind: "banner", text: "     |~ ~ ~ ~ ~ ~ ~ ~ ~ ~|" } },
-      { delay: 55,  entry: { kind: "banner", text: "     \\___________________/" } },
-      { delay: 300, entry: { kind: "ok",     text: "✓ sandwich ready. bon appétit." } },
-      { delay: 120, entry: { kind: "system", text: "1 sandwich assembled. total time: 4.7s. calories: yes." } },
+      { delay: 180, entry: { kind: 'system', text: '[sudo] password for ov: ••••••••••' } },
+      { delay: 400, entry: { kind: 'output', text: 'reading pantry lists...      done' } },
+      { delay: 80, entry: { kind: 'output', text: 'building dependency tree...  done' } },
+      { delay: 80, entry: { kind: 'output', text: 'reading state info...        done' } },
+      {
+        delay: 220,
+        entry: { kind: 'output', text: 'the following NEW packages will be assembled:' },
+      },
+      { delay: 80, entry: { kind: 'ok', text: '  bread lettuce tomato cheese mayo turkey' } },
+      { delay: 80, entry: { kind: 'output', text: '0 upgraded, 6 newly assembled, 0 to remove.' } },
+      { delay: 80, entry: { kind: 'output', text: 'need to get 312 kcal of ingredients.' } },
+      { delay: 260, entry: { kind: 'output', text: 'get:1 pantry/stable bread       [ok]' } },
+      { delay: 100, entry: { kind: 'output', text: 'get:2 pantry/stable lettuce     [ok]' } },
+      { delay: 100, entry: { kind: 'output', text: 'get:3 pantry/stable tomato      [ok]' } },
+      { delay: 100, entry: { kind: 'output', text: 'get:4 pantry/stable cheese      [ok]' } },
+      { delay: 100, entry: { kind: 'output', text: 'get:5 pantry/stable mayo        [ok]' } },
+      { delay: 100, entry: { kind: 'output', text: 'get:6 pantry/stable turkey      [ok]' } },
+      { delay: 220, entry: { kind: 'output', text: 'assembling sandwich...' } },
+      { delay: 160, entry: { kind: 'output', text: '  [████████████████] toast      100%' } },
+      { delay: 160, entry: { kind: 'output', text: '  [████████████████] mayo       100%' } },
+      { delay: 160, entry: { kind: 'output', text: '  [████████████████] turkey     100%' } },
+      { delay: 160, entry: { kind: 'output', text: '  [████████████████] cheese     100%' } },
+      { delay: 160, entry: { kind: 'output', text: '  [████████████████] greens     100%' } },
+      { delay: 160, entry: { kind: 'output', text: '  [████████████████] top slice  100%' } },
+      { delay: 280, entry: { kind: 'banner', text: '       _________________' } },
+      { delay: 55, entry: { kind: 'banner', text: '      /  . . . . . . .  \\' } },
+      { delay: 55, entry: { kind: 'banner', text: '     /___________________\\' } },
+      { delay: 55, entry: { kind: 'banner', text: '     |~ ~ ~ ~ ~ ~ ~ ~ ~ ~|' } },
+      { delay: 55, entry: { kind: 'banner', text: '     |###################|' } },
+      { delay: 55, entry: { kind: 'banner', text: '     |@ @ @ @ @ @ @ @ @ @|' } },
+      { delay: 55, entry: { kind: 'banner', text: '     |~ ~ ~ ~ ~ ~ ~ ~ ~ ~|' } },
+      { delay: 55, entry: { kind: 'banner', text: '     \\___________________/' } },
+      { delay: 300, entry: { kind: 'ok', text: '✓ sandwich ready. bon appétit.' } },
+      {
+        delay: 120,
+        entry: { kind: 'system', text: '1 sandwich assembled. total time: 4.7s. calories: yes.' },
+      },
     ];
     let elapsed = 0;
     for (const beat of beats) {
       elapsed += beat.delay;
       const id = window.setTimeout(() => {
-        setLog((prev) => [...prev, beat.entry]);
+        setLog(prev => [...prev, beat.entry]);
       }, elapsed);
       animationTimersRef.current.push(id);
     }
@@ -466,75 +471,87 @@ export function TradingTerminal({
       const arg = args[0]?.toLowerCase();
 
       switch (c) {
-        case "help":
+        case 'help':
           return [
-            { kind: "output", text: "commands:" },
-            { kind: "output", text: "  nav    open <id> | goto <target> | home | end | scroll <0..1>" },
-            { kind: "output", text: "  audio  mute | unmute" },
-            { kind: "output", text: "  meta   about | help | clear | secrets" },
-            { kind: "system", text: "(tab completes commands + project ids. more commands hidden.)" },
+            { kind: 'output', text: 'commands:' },
+            {
+              kind: 'output',
+              text: '  nav    open <id> | goto <target> | home | end | scroll <0..1>',
+            },
+            { kind: 'output', text: '  audio  mute | unmute' },
+            { kind: 'output', text: '  meta   about | help | clear | secrets' },
+            {
+              kind: 'system',
+              text: '(tab completes commands + project ids. more commands hidden.)',
+            },
           ];
-        case "clear":
-          return [{ kind: "system", text: "__clear__" }];
-        case "about":
+        case 'clear':
+          return [{ kind: 'system', text: '__clear__' }];
+        case 'about':
           return [
-            { kind: "output", text: "Olayinka David Vaughan — software engineer." },
-            { kind: "output", text: "Quant, SWE, analyst, security, and AI/ML projects on a 3D rack-by-rack tour." },
-            { kind: "output", text: "github @Builder106 · linkedin /in/yinka-vaughan/" },
+            { kind: 'output', text: 'Olayinka David Vaughan — software engineer.' },
+            {
+              kind: 'output',
+              text: 'Quant, SWE, analyst, security, and AI/ML projects on a 3D rack-by-rack tour.',
+            },
+            { kind: 'output', text: 'github @Builder106 · linkedin /in/yinka-vaughan/' },
           ];
-        case "open":
-        case "goto": {
-          if (!arg) return [{ kind: "error", text: "usage: open <project-id> | contact | entrance | end" }];
-          if (arg === "contact" || arg === "ping") {
-            onNavigate({ kind: "contact" });
-            return [{ kind: "ok", text: "→ opening contact panel" }];
+        case 'open':
+        case 'goto': {
+          if (!arg)
+            return [{ kind: 'error', text: 'usage: open <project-id> | contact | entrance | end' }];
+          if (arg === 'contact' || arg === 'ping') {
+            onNavigate({ kind: 'contact' });
+            return [{ kind: 'ok', text: '→ opening contact panel' }];
           }
-          if (arg === "terminal" || arg === "console") {
-            return [{ kind: "system", text: "already in the control console." }];
+          if (arg === 'terminal' || arg === 'console') {
+            return [{ kind: 'system', text: 'already in the control console.' }];
           }
-          if (arg === "entrance" || arg === "home" || arg === "start") {
+          if (arg === 'entrance' || arg === 'home' || arg === 'start') {
             aisleScroll.set(0);
-            flashWidget("telemetry");
-            return [{ kind: "ok", text: "→ scrolling to corridor entrance" }];
+            flashWidget('telemetry');
+            return [{ kind: 'ok', text: '→ scrolling to corridor entrance' }];
           }
-          if (arg === "end" || arg === "back") {
+          if (arg === 'end' || arg === 'back') {
             aisleScroll.set(1);
-            flashWidget("telemetry");
-            return [{ kind: "ok", text: "→ scrolling to far end of aisle" }];
+            flashWidget('telemetry');
+            return [{ kind: 'ok', text: '→ scrolling to far end of aisle' }];
           }
-          const match = projects.find((p) => p.id === arg);
+          const match = projects.find(p => p.id === arg);
           if (match) {
-            onNavigate({ kind: "project", projectId: match.id });
-            return [{ kind: "ok", text: `→ opening ${match.name}` }];
+            onNavigate({ kind: 'project', projectId: match.id });
+            return [{ kind: 'ok', text: `→ opening ${match.name}` }];
           }
-          return [{ kind: "error", text: `unknown target '${arg}'. try: ${AISLE_ORDER.join(", ")}` }];
+          return [
+            { kind: 'error', text: `unknown target '${arg}'. try: ${AISLE_ORDER.join(', ')}` },
+          ];
         }
-        case "home":
+        case 'home':
           aisleScroll.set(0);
-          flashWidget("telemetry");
-          return [{ kind: "ok", text: "→ corridor entrance" }];
-        case "end":
+          flashWidget('telemetry');
+          return [{ kind: 'ok', text: '→ corridor entrance' }];
+        case 'end':
           aisleScroll.set(1);
-          flashWidget("telemetry");
-          return [{ kind: "ok", text: "→ far end of aisle" }];
-        case "scroll": {
-          const n = Number.parseFloat(arg ?? "");
-          if (Number.isNaN(n)) return [{ kind: "error", text: "usage: scroll <0..1>" }];
+          flashWidget('telemetry');
+          return [{ kind: 'ok', text: '→ far end of aisle' }];
+        case 'scroll': {
+          const n = Number.parseFloat(arg ?? '');
+          if (Number.isNaN(n)) return [{ kind: 'error', text: 'usage: scroll <0..1>' }];
           const clamped = Math.max(0, Math.min(1, n));
           aisleScroll.set(clamped);
-          flashWidget("telemetry");
-          return [{ kind: "ok", text: `→ scrolled to ${(clamped * 100).toFixed(0)}%` }];
+          flashWidget('telemetry');
+          return [{ kind: 'ok', text: `→ scrolled to ${(clamped * 100).toFixed(0)}%` }];
         }
-        case "mute":
-          if (!audioEnabled) return [{ kind: "system", text: "audio is already muted." }];
+        case 'mute':
+          if (!audioEnabled) return [{ kind: 'system', text: 'audio is already muted.' }];
           onToggleAudio();
-          flashWidget("audio");
-          return [{ kind: "ok", text: "→ audio muted" }];
-        case "unmute":
-          if (audioEnabled) return [{ kind: "system", text: "audio is already on." }];
+          flashWidget('audio');
+          return [{ kind: 'ok', text: '→ audio muted' }];
+        case 'unmute':
+          if (audioEnabled) return [{ kind: 'system', text: 'audio is already on.' }];
           onToggleAudio();
-          flashWidget("audio");
-          return [{ kind: "ok", text: "→ audio unmuted" }];
+          flashWidget('audio');
+          return [{ kind: 'ok', text: '→ audio unmuted' }];
 
         // ─── Hidden commands (Easter eggs) ─────────────────────────
         // Intentionally not listed in `help`. The welcome banner hints
@@ -542,302 +559,336 @@ export function TradingTerminal({
         // marks it as discovered for the `secrets` meta-command, which
         // persists progress across sessions via localStorage.
 
-        case "whoami":
-          markSecret("whoami");
-          return [{ kind: "output", text: "ov · software engineer · level 1 · github.com/Builder106" }];
+        case 'whoami':
+          markSecret('whoami');
+          return [
+            { kind: 'output', text: 'ov · software engineer · level 1 · github.com/Builder106' },
+          ];
 
-        case "ls":
-        case "dir": {
-          markSecret("ls");
+        case 'ls':
+        case 'dir': {
+          markSecret('ls');
           // Group the aisle ids by their project cluster so the listing
           // stays correct as clusters are added (was hardcoded slices).
-          const lsOrder: ProjectCluster[] = ["quant", "swe", "analyst", "security", "ml"];
+          const lsOrder: ProjectCluster[] = ['quant', 'swe', 'analyst', 'security', 'ml'];
           const byCluster = lsOrder
-            .map((c) => ({
+            .map(c => ({
               c,
-              ids: AISLE_ORDER.filter(
-                (id) => projects.find((p) => p.id === id)?.cluster === c,
-              ),
+              ids: AISLE_ORDER.filter(id => projects.find(p => p.id === id)?.cluster === c),
             }))
-            .filter((g) => g.ids.length > 0);
+            .filter(g => g.ids.length > 0);
           return [
-            { kind: "output", text: "projects/" },
-            ...byCluster.map((g) => ({
-              kind: "output" as const,
-              text: `  ${g.ids.join("   ")}   [${CLUSTER_DISPLAY[g.c]}]`,
+            { kind: 'output', text: 'projects/' },
+            ...byCluster.map(g => ({
+              kind: 'output' as const,
+              text: `  ${g.ids.join('   ')}   [${CLUSTER_DISPLAY[g.c]}]`,
             })),
-            { kind: "output", text: "" },
-            { kind: "output", text: "use 'open <id>' to view." },
+            { kind: 'output', text: '' },
+            { kind: 'output', text: "use 'open <id>' to view." },
           ];
         }
 
-        case "pwd":
-          markSecret("pwd");
-          return [{ kind: "output", text: "/portfolio/control_console" }];
+        case 'pwd':
+          markSecret('pwd');
+          return [{ kind: 'output', text: '/portfolio/control_console' }];
 
-        case "date":
-          markSecret("date");
-          return [{ kind: "output", text: new Date().toString() }];
+        case 'date':
+          markSecret('date');
+          return [{ kind: 'output', text: new Date().toString() }];
 
-        case "uptime": {
-          markSecret("uptime");
+        case 'uptime': {
+          markSecret('uptime');
           const buildAt = new Date(BUILD_TIMESTAMP).getTime();
           const elapsedMs = Math.max(0, Date.now() - buildAt);
           const d = Math.floor(elapsedMs / 86_400_000);
           const h = Math.floor(elapsedMs / 3_600_000) % 24;
           const m = Math.floor(elapsedMs / 60_000) % 60;
-          return [{
-            kind: "output",
-            text: `up ${d}d ${h}h ${m}m, 1 user, load avg: 0.42, 0.45, 0.39`,
-          }];
+          return [
+            {
+              kind: 'output',
+              text: `up ${d}d ${h}h ${m}m, 1 user, load avg: 0.42, 0.45, 0.39`,
+            },
+          ];
         }
 
-        case "history":
-          markSecret("history");
+        case 'history':
+          markSecret('history');
           if (inputHistory.current.length === 0) {
-            return [{ kind: "system", text: "no history yet." }];
+            return [{ kind: 'system', text: 'no history yet.' }];
           }
           return inputHistory.current
             .slice()
             .reverse()
             .map((cmd, i) => ({
-              kind: "output" as const,
+              kind: 'output' as const,
               text: `  ${(i + 1).toString().padStart(3)}  ${cmd}`,
             }));
 
-        case "uname": {
-          markSecret("uname");
-          if (arg === "-a") {
-            return [{
-              kind: "output",
-              text: `Portfolio 1.0.0 ${SHORT_SHA} #1 SMP WebGL2 r3f+vite ${new Date().getFullYear()} x86_64`,
-            }];
+        case 'uname': {
+          markSecret('uname');
+          if (arg === '-a') {
+            return [
+              {
+                kind: 'output',
+                text: `Portfolio 1.0.0 ${SHORT_SHA} #1 SMP WebGL2 r3f+vite ${new Date().getFullYear()} x86_64`,
+              },
+            ];
           }
-          return [{ kind: "output", text: "Portfolio" }];
+          return [{ kind: 'output', text: 'Portfolio' }];
         }
 
-        case "sudo": {
-          markSecret("sudo");
-          if (args.join(" ").toLowerCase() === "make me a sandwich") {
+        case 'sudo': {
+          markSecret('sudo');
+          if (args.join(' ').toLowerCase() === 'make me a sandwich') {
             playSandwichCeremony();
             return [];
           }
-          return [{
-            kind: "error",
-            text: "sudo: olayinka is not in the sudoers file. this incident will be reported.",
-          }];
-        }
-
-        case "rm": {
-          markSecret("rm");
-          if (trimmed.toLowerCase().includes("-rf") || trimmed.includes("/")) {
-            return [{ kind: "error", text: "rm: refusing to operate recursively. (this isn't your machine, friend.)" }];
-          }
-          return [{ kind: "error", text: `rm: cannot remove '${args.join(" ") || "."}': read-only portfolio.` }];
-        }
-
-        case "vim":
-        case "vi":
-        case "emacs":
-        case "nano":
-        case "ed":
-          markSecret("editor");
           return [
-            { kind: "error", text: `${c}: there's no escape from here.` },
-            { kind: "system", text: "(press :wq — wait, that's just a vim joke.)" },
+            {
+              kind: 'error',
+              text: 'sudo: olayinka is not in the sudoers file. this incident will be reported.',
+            },
+          ];
+        }
+
+        case 'rm': {
+          markSecret('rm');
+          if (trimmed.toLowerCase().includes('-rf') || trimmed.includes('/')) {
+            return [
+              {
+                kind: 'error',
+                text: "rm: refusing to operate recursively. (this isn't your machine, friend.)",
+              },
+            ];
+          }
+          return [
+            {
+              kind: 'error',
+              text: `rm: cannot remove '${args.join(' ') || '.'}': read-only portfolio.`,
+            },
+          ];
+        }
+
+        case 'vim':
+        case 'vi':
+        case 'emacs':
+        case 'nano':
+        case 'ed':
+          markSecret('editor');
+          return [
+            { kind: 'error', text: `${c}: there's no escape from here.` },
+            { kind: 'system', text: "(press :wq — wait, that's just a vim joke.)" },
           ];
 
-        case "coffee":
-          markSecret("coffee");
-          return [{ kind: "error", text: "418 i'm a teapot. (rfc 2324, march 1998.)" }];
+        case 'coffee':
+          markSecret('coffee');
+          return [{ kind: 'error', text: "418 i'm a teapot. (rfc 2324, march 1998.)" }];
 
-        case "tea":
-          markSecret("tea");
-          return [{ kind: "ok", text: "brewing... actually no, this is a portfolio." }];
+        case 'tea':
+          markSecret('tea');
+          return [{ kind: 'ok', text: 'brewing... actually no, this is a portfolio.' }];
 
-        case "make": {
-          markSecret("make");
-          if (trimmed.toLowerCase() === "make me a sandwich") {
+        case 'make': {
+          markSecret('make');
+          if (trimmed.toLowerCase() === 'make me a sandwich') {
             // xkcd 149 — the unprivileged half of the gag.
-            return [{ kind: "system", text: "What? Make it yourself." }];
+            return [{ kind: 'system', text: 'What? Make it yourself.' }];
           }
-          return [{ kind: "error", text: `make: *** No rule to make target '${args[0] ?? ""}'. Stop.` }];
+          return [
+            { kind: 'error', text: `make: *** No rule to make target '${args[0] ?? ''}'. Stop.` },
+          ];
         }
 
-        case "hello":
-        case "hi":
-        case "hey":
-        case "yo":
-          markSecret("greet");
-          return [{ kind: "output", text: "hi, traveler. type 'help' to explore. or keep poking around." }];
+        case 'hello':
+        case 'hi':
+        case 'hey':
+        case 'yo':
+          markSecret('greet');
+          return [
+            {
+              kind: 'output',
+              text: "hi, traveler. type 'help' to explore. or keep poking around.",
+            },
+          ];
 
-        case "exit":
-        case "quit":
-        case "q":
-        case "bye":
-          markSecret("exit");
+        case 'exit':
+        case 'quit':
+        case 'q':
+        case 'bye':
+          markSecret('exit');
           onClose();
-          return [{ kind: "ok", text: "→ goodbye" }];
+          return [{ kind: 'ok', text: '→ goodbye' }];
 
-        case "42":
-        case "fortytwo":
-          markSecret("42");
+        case '42':
+        case 'fortytwo':
+          markSecret('42');
           return [
-            { kind: "ok", text: "the answer to life, the universe, and everything." },
-            { kind: "system", text: "now what was the question?" },
+            { kind: 'ok', text: 'the answer to life, the universe, and everything.' },
+            { kind: 'system', text: 'now what was the question?' },
           ];
 
-        case "matrix":
-          markSecret("matrix");
+        case 'matrix':
+          markSecret('matrix');
           return [
-            { kind: "ok", text: matrixLine() },
-            { kind: "ok", text: matrixLine() },
-            { kind: "ok", text: matrixLine() },
-            { kind: "ok", text: matrixLine() },
-            { kind: "ok", text: matrixLine() },
-            { kind: "ok", text: matrixLine() },
-            { kind: "system", text: "wake up, neo." },
+            { kind: 'ok', text: matrixLine() },
+            { kind: 'ok', text: matrixLine() },
+            { kind: 'ok', text: matrixLine() },
+            { kind: 'ok', text: matrixLine() },
+            { kind: 'ok', text: matrixLine() },
+            { kind: 'ok', text: matrixLine() },
+            { kind: 'system', text: 'wake up, neo.' },
           ];
 
-        case "wave":
-          markSecret("wave");
+        case 'wave':
+          markSecret('wave');
           // ServerRoom listens for "ov-force-wave" on window and
           // triggers the idle-attractor spotlight wave without
           // waiting for the 15 s idle gate. Lets you confirm the
           // wave actually fires + visually lands without sitting
           // through the timer.
-          if (typeof window !== "undefined") {
-            window.dispatchEvent(new CustomEvent("ov-force-wave"));
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('ov-force-wave'));
           }
           return [
-            { kind: "ok", text: "→ idle wave triggered" },
-            { kind: "system", text: "close this panel to see the rack spotlight." },
+            { kind: 'ok', text: '→ idle wave triggered' },
+            { kind: 'system', text: 'close this panel to see the rack spotlight.' },
           ];
 
-        case "konami":
-          markSecret("konami");
+        case 'konami':
+          markSecret('konami');
           return [
-            { kind: "banner", text: "  ↑ ↑ ↓ ↓ ← → ← → B A  " },
-            { kind: "ok", text: "konami code recognized. +30 lives." },
-            { kind: "system", text: "(it's cosmetic.)" },
+            { kind: 'banner', text: '  ↑ ↑ ↓ ↓ ← → ← → B A  ' },
+            { kind: 'ok', text: 'konami code recognized. +30 lives.' },
+            { kind: 'system', text: "(it's cosmetic.)" },
           ];
 
-        case "xyzzy":
-          markSecret("xyzzy");
-          return [{ kind: "system", text: "nothing happens." }];
+        case 'xyzzy':
+          markSecret('xyzzy');
+          return [{ kind: 'system', text: 'nothing happens.' }];
 
-        case "iddqd":
-          markSecret("iddqd");
+        case 'iddqd':
+          markSecret('iddqd');
           return [
-            { kind: "ok", text: "degreelessness mode on." },
-            { kind: "system", text: "god mode is purely decorative here." },
+            { kind: 'ok', text: 'degreelessness mode on.' },
+            { kind: 'system', text: 'god mode is purely decorative here.' },
           ];
 
-        case "ascii":
-        case "logo":
-          markSecret("ascii");
-          return ASCII_BANNER.map((line) => ({ kind: "banner" as const, text: line }));
+        case 'ascii':
+        case 'logo':
+          markSecret('ascii');
+          return ASCII_BANNER.map(line => ({ kind: 'banner' as const, text: line }));
 
-        case "cowsay": {
-          markSecret("cowsay");
-          const text = args.join(" ") || "moo";
+        case 'cowsay': {
+          markSecret('cowsay');
+          const text = args.join(' ') || 'moo';
           const len = text.length;
-          const top = " " + "_".repeat(len + 2);
-          const bot = " " + "-".repeat(len + 2);
+          const top = ' ' + '_'.repeat(len + 2);
+          const bot = ' ' + '-'.repeat(len + 2);
           return [
-            { kind: "banner", text: top },
-            { kind: "banner", text: `< ${text} >` },
-            { kind: "banner", text: bot },
-            { kind: "banner", text: "        \\   ^__^" },
-            { kind: "banner", text: "         \\  (oo)\\_______" },
-            { kind: "banner", text: "            (__)\\       )\\/\\" },
-            { kind: "banner", text: "                ||----w |" },
-            { kind: "banner", text: "                ||     ||" },
+            { kind: 'banner', text: top },
+            { kind: 'banner', text: `< ${text} >` },
+            { kind: 'banner', text: bot },
+            { kind: 'banner', text: '        \\   ^__^' },
+            { kind: 'banner', text: '         \\  (oo)\\_______' },
+            { kind: 'banner', text: '            (__)\\       )\\/\\' },
+            { kind: 'banner', text: '                ||----w |' },
+            { kind: 'banner', text: '                ||     ||' },
           ];
         }
 
-        case "fortune": {
-          markSecret("fortune");
+        case 'fortune': {
+          markSecret('fortune');
           const pick = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
-          return [{ kind: "output", text: pick }];
+          return [{ kind: 'output', text: pick }];
         }
 
-        case "stats": {
-          markSecret("stats");
-          const clusterOrder: ProjectCluster[] = ["quant", "swe", "analyst", "security", "ml"];
+        case 'stats': {
+          markSecret('stats');
+          const clusterOrder: ProjectCluster[] = ['quant', 'swe', 'analyst', 'security', 'ml'];
           const split = clusterOrder
-            .map((c) => ({ c, n: projects.filter((p) => p.cluster === c).length }))
-            .filter((x) => x.n > 0)
-            .map((x) => `${x.n} ${CLUSTER_DISPLAY[x.c]}`)
-            .join(" · ");
+            .map(c => ({ c, n: projects.filter(p => p.cluster === c).length }))
+            .filter(x => x.n > 0)
+            .map(x => `${x.n} ${CLUSTER_DISPLAY[x.c]}`)
+            .join(' · ');
           return [
-            { kind: "output", text: `projects deployed: ${projects.length}` },
-            { kind: "output", text: `cluster split:     ${split}` },
-            { kind: "output", text: `build:             ${SHORT_SHA} · ${relativeTime(BUILD_TIMESTAMP)}` },
-            { kind: "output", text: "frame budget:      16.6 ms (60 fps target)" },
-            { kind: "output", text: "node_modules/:     yes" },
-            { kind: "output", text: "coffee consumed:   NaN ml" },
+            { kind: 'output', text: `projects deployed: ${projects.length}` },
+            { kind: 'output', text: `cluster split:     ${split}` },
+            {
+              kind: 'output',
+              text: `build:             ${SHORT_SHA} · ${relativeTime(BUILD_TIMESTAMP)}`,
+            },
+            { kind: 'output', text: 'frame budget:      16.6 ms (60 fps target)' },
+            { kind: 'output', text: 'node_modules/:     yes' },
+            { kind: 'output', text: 'coffee consumed:   NaN ml' },
           ];
         }
 
-        case "credits":
-          markSecret("credits");
+        case 'credits':
+          markSecret('credits');
           return [
-            { kind: "output", text: "built with:" },
-            { kind: "output", text: "  react-three-fiber + drei  (3D scene)" },
-            { kind: "output", text: "  three.js                  (WebGL)" },
-            { kind: "output", text: "  vite + react              (build / ui)" },
-            { kind: "output", text: "  blender                   (rack model)" },
-            { kind: "output", text: "" },
-            { kind: "output", text: "ambient music:" },
-            { kind: "output", text: "  Vermillion Gaze — Sun Waves (full release, 4 tracks)" },
-            { kind: "output", text: "  CC-BY 4.0 · archive.org/details/SunWaves" },
-            { kind: "output", text: "" },
-            { kind: "output", text: "source: github.com/Builder106/builder106.github.io" },
+            { kind: 'output', text: 'built with:' },
+            { kind: 'output', text: '  react-three-fiber + drei  (3D scene)' },
+            { kind: 'output', text: '  three.js                  (WebGL)' },
+            { kind: 'output', text: '  vite + react              (build / ui)' },
+            { kind: 'output', text: '  blender                   (rack model)' },
+            { kind: 'output', text: '' },
+            { kind: 'output', text: 'ambient music:' },
+            { kind: 'output', text: '  Vermillion Gaze — Sun Waves (full release, 4 tracks)' },
+            { kind: 'output', text: '  CC-BY 4.0 · archive.org/details/SunWaves' },
+            { kind: 'output', text: '' },
+            { kind: 'output', text: 'source: github.com/Builder106/builder106.github.io' },
           ];
 
-        case "secrets": {
+        case 'secrets': {
           // Meta-command — never marks itself as found. Reports how
           // many hidden commands the user has triggered overall.
           const total = SECRET_KEYS.length;
           const found = discoveredSecrets.current.size;
           const pct = Math.round((found / total) * 100);
           const out: LogEntry[] = [
-            { kind: "output", text: `secrets discovered: ${found}/${total} (${pct}%)` },
+            { kind: 'output', text: `secrets discovered: ${found}/${total} (${pct}%)` },
           ];
           if (found === total) {
-            out.push({ kind: "ok", text: "you've found them all. legend." });
+            out.push({ kind: 'ok', text: "you've found them all. legend." });
           } else if (found >= Math.ceil(total / 2)) {
-            out.push({ kind: "system", text: "halfway there. keep poking." });
+            out.push({ kind: 'system', text: 'halfway there. keep poking.' });
           } else if (found > 0) {
-            out.push({ kind: "system", text: "keep exploring. there are more." });
+            out.push({ kind: 'system', text: 'keep exploring. there are more.' });
           } else {
-            out.push({ kind: "system", text: "none yet. try old-school unix commands?" });
+            out.push({ kind: 'system', text: 'none yet. try old-school unix commands?' });
           }
           return out;
         }
 
         // ─── Fallback ──────────────────────────────────────────────
         default:
-          return [{ kind: "error", text: `unknown command '${c}'. type 'help'.` }];
+          return [{ kind: 'error', text: `unknown command '${c}'. type 'help'.` }];
       }
     },
-    [audioEnabled, onClose, onNavigate, onToggleAudio, markSecret, flashWidget, playSandwichCeremony],
+    [
+      audioEnabled,
+      onClose,
+      onNavigate,
+      onToggleAudio,
+      markSecret,
+      flashWidget,
+      playSandwichCeremony,
+    ]
   );
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const value = input;
-    setInput("");
+    setInput('');
     if (!value.trim()) return;
     inputHistory.current = [value, ...inputHistory.current].slice(0, 50);
     historyCursor.current = -1;
     const outputs = runCommand(value);
-    if (outputs.length === 1 && outputs[0].text === "__clear__") {
+    if (outputs.length === 1 && outputs[0].text === '__clear__') {
       setLog(INITIAL_LOG);
       return;
     }
-    setLog((prev) => [...prev, { kind: "input", text: value }, ...outputs]);
+    setLog(prev => [...prev, { kind: 'input', text: value }, ...outputs]);
   };
 
   // Tab-cycle state. When the user hits Tab and the input has multiple
@@ -860,23 +911,23 @@ export function TradingTerminal({
   const handleTab = useCallback(() => {
     const value = input;
     const parts = value.split(/\s+/);
-    const lastPart = (parts[parts.length - 1] ?? "").toLowerCase();
-    const prefix = parts.slice(0, -1).join(" ");
-    const firstWord = parts[0]?.toLowerCase() ?? "";
+    const lastPart = (parts[parts.length - 1] ?? '').toLowerCase();
+    const prefix = parts.slice(0, -1).join(' ');
+    const firstWord = parts[0]?.toLowerCase() ?? '';
 
     // Choose the completion namespace based on cursor position.
     let pool: string[];
     if (parts.length === 1) {
       // First token — match against commands.
       pool = completionCommands();
-    } else if (firstWord === "open" || firstWord === "goto") {
+    } else if (firstWord === 'open' || firstWord === 'goto') {
       // Second token of nav commands — project ids + special targets.
       pool = [...AISLE_ORDER, ...GOTO_TARGETS].sort();
     } else {
       return;
     }
 
-    const candidates = pool.filter((c) => c.startsWith(lastPart));
+    const candidates = pool.filter(c => c.startsWith(lastPart));
     if (candidates.length === 0) {
       tabCycle.current = null;
       return;
@@ -904,25 +955,25 @@ export function TradingTerminal({
   }, [completionCommands, input]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Tab") {
+    if (e.key === 'Tab') {
       e.preventDefault();
       handleTab();
       return;
     }
-    if (e.key === "ArrowUp") {
+    if (e.key === 'ArrowUp') {
       e.preventDefault();
       tabCycle.current = null;
       const next = Math.min(historyCursor.current + 1, inputHistory.current.length - 1);
       historyCursor.current = next;
-      if (next >= 0) setInput(inputHistory.current[next] ?? "");
+      if (next >= 0) setInput(inputHistory.current[next] ?? '');
       return;
     }
-    if (e.key === "ArrowDown") {
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
       tabCycle.current = null;
       const next = Math.max(historyCursor.current - 1, -1);
       historyCursor.current = next;
-      setInput(next === -1 ? "" : inputHistory.current[next] ?? "");
+      setInput(next === -1 ? '' : (inputHistory.current[next] ?? ''));
       return;
     }
     // Any other key invalidates the tab cycle so the next Tab
@@ -935,10 +986,10 @@ export function TradingTerminal({
   // the widget doesn't dominate the dashboard on a narrow viewport.
   const repoRows = useMemo(() => {
     return projects
-      .map((p) => {
+      .map(p => {
         const repoUrl = p.links.repo;
         if (!repoUrl) return null;
-        const slug = repoUrl.replace(/^https?:\/\/github\.com\//, "");
+        const slug = repoUrl.replace(/^https?:\/\/github\.com\//, '');
         const stats = repoStats[slug];
         if (!stats) return null;
         return { project: p, slug, stats };
@@ -948,18 +999,23 @@ export function TradingTerminal({
       .slice(0, 6);
   }, []);
 
-
   // Prefix glyph per entry kind so a glance at the column tells you
   // what each line is without reading the text. Kept aligned (two
   // chars wide) so multi-line outputs stay visually columnar.
-  const prefixFor = (kind: LogEntry["kind"]): string => {
+  const prefixFor = (kind: LogEntry['kind']): string => {
     switch (kind) {
-      case "input": return "›";
-      case "ok": return "✓";
-      case "error": return "✗";
-      case "system": return "·";
-      case "banner": return " ";
-      default: return " ";
+      case 'input':
+        return '›';
+      case 'ok':
+        return '✓';
+      case 'error':
+        return '✗';
+      case 'system':
+        return '·';
+      case 'banner':
+        return ' ';
+      default:
+        return ' ';
     }
   };
 
@@ -979,9 +1035,7 @@ export function TradingTerminal({
             </div>
             <div className="console-pill__value">{SHORT_SHA}</div>
             <div className="console-pill__sub" title={BUILD_MESSAGE}>
-              {BUILD_MESSAGE.length > 50
-                ? `${BUILD_MESSAGE.slice(0, 48)}…`
-                : BUILD_MESSAGE}
+              {BUILD_MESSAGE.length > 50 ? `${BUILD_MESSAGE.slice(0, 48)}…` : BUILD_MESSAGE}
             </div>
             <div className="console-pill__meta">{relativeTime(BUILD_TIMESTAMP)}</div>
           </div>
@@ -998,10 +1052,10 @@ export function TradingTerminal({
                 different signal. */}
           <div
             className={`console-pill console-pill--telemetry ${
-              flashedWidget === "telemetry" ? "console-pill--flash" : ""
+              flashedWidget === 'telemetry' ? 'console-pill--flash' : ''
             }`}
           >
-            {variant === "portrait" ? (
+            {variant === 'portrait' ? (
               <>
                 <div className="console-pill__header">
                   <span className="console-pill__title">telemetry</span>
@@ -1027,7 +1081,7 @@ export function TradingTerminal({
                   <button
                     type="button"
                     className={`console-pill__sub-link console-pill__sub-link--${activeRack.cluster}`}
-                    onClick={() => onNavigate({ kind: "project", projectId: activeRack.id })}
+                    onClick={() => onNavigate({ kind: 'project', projectId: activeRack.id })}
                   >
                     {activeRack.name}
                     <span className="console-pill__sub-cluster"> · {activeRack.cluster}</span>
@@ -1042,9 +1096,7 @@ export function TradingTerminal({
                   <span className="console-pill__title">session</span>
                   <span className="console-pill__dot console-pill__dot--live" aria-hidden />
                 </div>
-                <div className="console-pill__value">
-                  {formatUptime(uptimeMs)}
-                </div>
+                <div className="console-pill__value">{formatUptime(uptimeMs)}</div>
                 <div className="console-pill__sub">uptime · since boot</div>
               </>
             )}
@@ -1052,26 +1104,22 @@ export function TradingTerminal({
 
           <div
             className={`console-pill console-pill--audio ${
-              flashedWidget === "audio" ? "console-pill--flash" : ""
+              flashedWidget === 'audio' ? 'console-pill--flash' : ''
             }`}
           >
             <div className="console-pill__header">
               <span className="console-pill__title">audio</span>
               <span
                 className={`console-pill__dot ${
-                  audioEnabled ? "console-pill__dot--ok" : "console-pill__dot--muted"
+                  audioEnabled ? 'console-pill__dot--ok' : 'console-pill__dot--muted'
                 }`}
                 aria-hidden
               />
             </div>
             <div className="console-pill__value">
-              {audioEnabled ? "online" : "muted"}
-              <button
-                type="button"
-                className="console-pill__action"
-                onClick={onToggleAudio}
-              >
-                {audioEnabled ? "mute" : "unmute"}
+              {audioEnabled ? 'online' : 'muted'}
+              <button type="button" className="console-pill__action" onClick={onToggleAudio}>
+                {audioEnabled ? 'mute' : 'unmute'}
               </button>
             </div>
             {/* Track cycler. ‹ and › step through TRACKS; the middle
@@ -1119,14 +1167,16 @@ export function TradingTerminal({
               <button
                 type="button"
                 className={`repo-row repo-row--${project.cluster}`}
-                onClick={() => onNavigate({ kind: "project", projectId: project.id })}
+                onClick={() => onNavigate({ kind: 'project', projectId: project.id })}
               >
                 <span className="repo-row__stripe" aria-hidden />
                 <span className="repo-row__cluster">{project.cluster}</span>
                 <span className="repo-row__name">{project.name}</span>
-                <span className="repo-row__lang">{stats.lang ?? "—"}</span>
+                <span className="repo-row__lang">{stats.lang ?? '—'}</span>
                 <span className="repo-row__time">{relativeTime(stats.pushed_at)}</span>
-                <span className="repo-row__arrow" aria-hidden>›</span>
+                <span className="repo-row__arrow" aria-hidden>
+                  ›
+                </span>
               </button>
             </li>
           ))}
@@ -1137,12 +1187,11 @@ export function TradingTerminal({
         <div className="panel__section-label">prompt</div>
         <div className="console-log" ref={logRef} aria-live="polite">
           {log.map((entry, i) => (
-            <div
-              key={i}
-              className={`console-log__entry console-log__entry--${entry.kind}`}
-            >
-              {entry.kind !== "banner" && (
-                <span className="console-log__prefix" aria-hidden>{prefixFor(entry.kind)}</span>
+            <div key={i} className={`console-log__entry console-log__entry--${entry.kind}`}>
+              {entry.kind !== 'banner' && (
+                <span className="console-log__prefix" aria-hidden>
+                  {prefixFor(entry.kind)}
+                </span>
               )}
               <span className="console-log__text">{entry.text}</span>
             </div>
@@ -1161,7 +1210,7 @@ export function TradingTerminal({
             ref={inputRef}
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             className="console-input"
             placeholder="type a command (try 'help')"

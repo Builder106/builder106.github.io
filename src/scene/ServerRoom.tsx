@@ -1,6 +1,16 @@
-import { useGLTF, useCursor, useTexture, Html, MeshReflectorMaterial, Grid, Sparkles, Stars } from "@react-three/drei";
-import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { AISLE_ORDER, CLUSTER_DISPLAY, projects } from '@/data/projects';
+import {
+  Grid,
+  Html,
+  MeshReflectorMaterial,
+  Sparkles,
+  Stars,
+  useCursor,
+  useGLTF,
+  useTexture,
+} from '@react-three/drei';
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   AdditiveBlending,
   AmbientLight,
@@ -21,19 +31,18 @@ import {
   Vector3,
   type Material,
   type ShaderMaterial,
-} from "three";
-import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from "./anchors";
-import { resolveClick, type ClickTarget } from "./clickResolver";
-import { aisleScroll } from "./aisleScroll";
-import { createConsoleMaterial, type ConsoleUniforms } from "./consoleShader";
-import { createWaveBeamMaterial, type WaveBeamUniforms } from "./waveBeamShader";
-import { createWaveFloorMaterial, type WaveFloorUniforms } from "./waveFloorShader";
-import { createOperatorHoloMaterial, type OperatorHoloUniforms } from "./operatorHoloShader";
-import { MODEL_URLS, type SceneVariant } from "./sceneVariant";
-import { AISLE_ORDER, CLUSTER_DISPLAY, projects } from "@/data/projects";
+} from 'three';
+import { aisleScroll } from './aisleScroll';
+import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from './anchors';
+import { resolveClick, type ClickTarget } from './clickResolver';
+import { createConsoleMaterial, type ConsoleUniforms } from './consoleShader';
+import { createOperatorHoloMaterial, type OperatorHoloUniforms } from './operatorHoloShader';
+import { MODEL_URLS, type SceneVariant } from './sceneVariant';
+import { createWaveBeamMaterial, type WaveBeamUniforms } from './waveBeamShader';
+import { createWaveFloorMaterial, type WaveFloorUniforms } from './waveFloorShader';
 
-import { DistantRacks } from "./components/DistantRacks";
-import { TrofferLights } from "./components/TrofferLights";
+import { DistantRacks } from './components/DistantRacks';
+import { TrofferLights } from './components/TrofferLights';
 
 // Preload the one glb both variants now resolve to (portrait used to
 // load a separate amphitheater file — retired, see sceneVariant.ts).
@@ -41,15 +50,11 @@ import { TrofferLights } from "./components/TrofferLights";
 // ships KHR_draco_mesh_compression, so the decoder must be available or
 // the scene won't parse. Self-hosted (not the gstatic CDN) to keep the
 // site free of third-party runtime dependencies.
-useGLTF.preload(MODEL_URLS.landscape, "/draco/");
+useGLTF.preload(MODEL_URLS.landscape, '/draco/');
 
 // Materials whose emission should bypass ACES tonemapping.
 function isUntonedMaterial(name: string): boolean {
-  return (
-    name === "M_Screen" ||
-    name.startsWith("M_Cable_") ||
-    name.startsWith("M_StatusLED_")
-  );
+  return name === 'M_Screen' || name.startsWith('M_Cable_') || name.startsWith('M_StatusLED_');
 }
 
 // Hover behavior tuning. DIM is aggressive on purpose — we want the
@@ -63,11 +68,11 @@ const HOVER_TIME_CONSTANT = 0.07;
 // pushed ~30% above the prior baseline because dark-blue base colors
 // reflect only a small fraction of incident light per channel.
 const LIGHTS = {
-  hemi:        { idle: 2.2,  dim: 0.55 },
-  ambient:     { idle: 0.95, dim: 0.22 },
-  pointKey:    { idle: 1.2,  dim: 0.18 },   // central cyan accent
-  topDown:     { idle: 3.4,  dim: 0.85 },
-  ceilingGrid: { idle: 8.0,  dim: 1.6 },
+  hemi: { idle: 2.2, dim: 0.55 },
+  ambient: { idle: 0.95, dim: 0.22 },
+  pointKey: { idle: 1.2, dim: 0.18 }, // central cyan accent
+  topDown: { idle: 3.4, dim: 0.85 },
+  ceilingGrid: { idle: 8.0, dim: 1.6 },
 };
 
 // Four ceiling light positions in a symmetric grid above the room.
@@ -75,9 +80,9 @@ const LIGHTS = {
 // and front-to-back rather than biased to one corner.
 const CEILING_LIGHTS = [
   [-3.5, 4.4, -3.5],
-  [ 3.5, 4.4, -3.5],
-  [-3.5, 4.4,  3.5],
-  [ 3.5, 4.4,  3.5],
+  [3.5, 4.4, -3.5],
+  [-3.5, 4.4, 3.5],
+  [3.5, 4.4, 3.5],
 ] as const;
 
 interface Interactive {
@@ -91,15 +96,15 @@ interface Interactive {
 
 function hoverKeyForState(state: ClickTarget): string | null {
   if (state === null) return null;
-  if (state.kind === "terminal") return "terminal";
-  if (state.kind === "linkedin") return "linkedin";
+  if (state.kind === 'terminal') return 'terminal';
+  if (state.kind === 'linkedin') return 'linkedin';
   return `project:${state.projectId}`;
 }
 
 function hoverKeyForMesh(name: string): string | null {
   const m = name.match(/^Screen_(.+)$/);
   if (m) return `project:${m[1]}`;
-  if (name === "Monitor") return "terminal";
+  if (name === 'Monitor') return 'terminal';
   return null;
 }
 
@@ -132,8 +137,8 @@ function ledProjectId(name: string): string | null {
 function adsrPulse(t: number): number {
   if (t <= 0 || t >= 1) return 0;
   if (t < 0.08) return t / 0.08;
-  if (t < 0.40) return 1.0;
-  const dt = (t - 0.40) / 0.60;
+  if (t < 0.4) return 1.0;
+  const dt = (t - 0.4) / 0.6;
   return 1.0 - dt * dt;
 }
 
@@ -160,23 +165,18 @@ function strobeFlash(t: number): number {
 // drive each rack's floor-glow + LED tint for per-project identity,
 // independent of the cluster wave.
 const WAVE_CLUSTER_COLORS: Record<string, string> = {
-  quant:    "#36d4ff",   // cyan
-  swe:      "#ff5cc8",   // pink
-  analyst:  "#ffc24c",   // gold  (was cyan — broke the quant collision)
-  security: "#46e85c",   // emerald green — kept clear of quant's blue-cyan
-  ml:       "#a06bff",   // violet — AI/ML wing, clear of the other four hues
+  quant: '#36d4ff', // cyan
+  swe: '#ff5cc8', // pink
+  analyst: '#ffc24c', // gold  (was cyan — broke the quant collision)
+  security: '#46e85c', // emerald green — kept clear of quant's blue-cyan
+  ml: '#a06bff', // violet — AI/ML wing, clear of the other four hues
 };
 
-function waveColorForProject(
-  projectId: string,
-  byId: Map<string, { cluster?: string }>,
-): string {
+function waveColorForProject(projectId: string, byId: Map<string, { cluster?: string }>): string {
   const project = byId.get(projectId);
-  const cluster = project?.cluster ?? "quant";
+  const cluster = project?.cluster ?? 'quant';
   return WAVE_CLUSTER_COLORS[cluster] ?? WAVE_CLUSTER_COLORS.quant;
 }
-
-
 
 // Deterministic transforms for the distant-rack scatter. Generated
 // DistantRacks is imported from ./components/DistantRacks
@@ -187,8 +187,6 @@ function waveColorForProject(
 // surfaces; swe + analyst + security + AI/ML clusters follow in cluster
 // groupings so the colour-coding reads as you walk.
 export { AISLE_ORDER };
-
-
 
 // Aisle geometry. Racks line both sides of a centre corridor, each pair
 // sharing the same Z position. AISLE_HALF_WIDTH is the lateral offset
@@ -222,11 +220,7 @@ const AISLE_HALF_WIDTH = 1.2;
 // Per-rack-id sets of mesh-name predicates: anything matching gets moved
 // into the rack's transform group when we re-lay-out for portrait.
 function isRackMesh(name: string, id: string): boolean {
-  return (
-    name === `Rack_${id}` ||
-    name === `Screen_${id}` ||
-    name.startsWith(`StatusLED_${id}_`)
-  );
+  return name === `Rack_${id}` || name === `Screen_${id}` || name.startsWith(`StatusLED_${id}_`);
 }
 
 // Whitelist of mesh-name patterns that should remain visible after the
@@ -250,20 +244,21 @@ function isRackMesh(name: string, id: string): boolean {
 // camera reads them), drop on portrait.
 function isPortraitKeepMesh(name: string): boolean {
   if (
-    name.startsWith("Rack_") ||
-    name.startsWith("Screen_") ||
-    name.startsWith("StatusLED_") ||
-    name.startsWith("BackgroundTower_") ||
-    (name.startsWith("Cable_") && !name.startsWith("Cable_Ceil")) ||
-    name.startsWith("DeskNameplate_") ||
-    name === "Monitor" ||
-    name === "OperatorHolo" ||
-    name === "HoloPedestal" ||
-    name === "Desk" ||
-    name === "Floor" ||
-    name === "DistantRackBody" ||
-    name === "DistantRackLED"
-  ) return true;
+    name.startsWith('Rack_') ||
+    name.startsWith('Screen_') ||
+    name.startsWith('StatusLED_') ||
+    name.startsWith('BackgroundTower_') ||
+    (name.startsWith('Cable_') && !name.startsWith('Cable_Ceil')) ||
+    name.startsWith('DeskNameplate_') ||
+    name === 'Monitor' ||
+    name === 'OperatorHolo' ||
+    name === 'HoloPedestal' ||
+    name === 'Desk' ||
+    name === 'Floor' ||
+    name === 'DistantRackBody' ||
+    name === 'DistantRackLED'
+  )
+    return true;
   return false;
 }
 
@@ -273,13 +268,13 @@ function isPortraitKeepMesh(name: string): boolean {
 // in the landscape composition).
 function wallNormalFor(anchorPos: Vector3): Vector3 {
   const ANCHOR_PLANE = 4.7;
-  const distToLeft  = Math.abs(anchorPos.x + ANCHOR_PLANE);
+  const distToLeft = Math.abs(anchorPos.x + ANCHOR_PLANE);
   const distToRight = Math.abs(anchorPos.x - ANCHOR_PLANE);
-  const distToBack  = Math.abs(anchorPos.z + ANCHOR_PLANE);
+  const distToBack = Math.abs(anchorPos.z + ANCHOR_PLANE);
   const distToFront = Math.abs(anchorPos.z - ANCHOR_PLANE);
   const minDist = Math.min(distToLeft, distToRight, distToBack, distToFront);
-  if (minDist === distToLeft)  return new Vector3(1, 0, 0);   // left wall faces +X
-  if (minDist === distToRight) return new Vector3(-1, 0, 0);  // right wall faces -X
+  if (minDist === distToLeft) return new Vector3(1, 0, 0); // left wall faces +X
+  if (minDist === distToRight) return new Vector3(-1, 0, 0); // right wall faces -X
   // Back wall AND the AI/ML front wing both face +Z (the front-wing racks are
   // turned to face the entrance camera), so both fall through to +Z. distToFront
   // is kept in the min only so a front anchor isn't misread as a side wall.
@@ -297,9 +292,9 @@ function applyAisleLayout(scene: Object3D): void {
   // Cache anchor refs by id so we can update them in lockstep with the
   // meshes they pin. Anchors are Object3D empties named "anchor_<id>".
   const anchorByName = new Map<string, Object3D>();
-  scene.traverse((node) => {
-    if (node.name.startsWith("anchor_")) {
-      anchorByName.set(node.name.slice("anchor_".length), node);
+  scene.traverse(node => {
+    if (node.name.startsWith('anchor_')) {
+      anchorByName.set(node.name.slice('anchor_'.length), node);
     }
   });
 
@@ -310,7 +305,7 @@ function applyAisleLayout(scene: Object3D): void {
   for (const id of AISLE_ORDER) {
     meshesByRack.set(id, []);
   }
-  scene.traverse((node) => {
+  scene.traverse(node => {
     if (!(node instanceof Mesh)) return;
     for (const id of AISLE_ORDER) {
       if (isRackMesh(node.name, id)) {
@@ -340,7 +335,7 @@ function applyAisleLayout(scene: Object3D): void {
     const origPivot = tmpWorld.clone().sub(normal);
     // Rotation that turns the rack's outward normal into +X — the
     // direction a left-side rack must face to address the corridor.
-    const leftAngle = (Math.PI / 2) - Math.atan2(normal.x, normal.z);
+    const leftAngle = Math.PI / 2 - Math.atan2(normal.x, normal.z);
     const targetZ = AISLE_Z_START - i * AISLE_SPACING;
 
     const group = new Group();
@@ -375,9 +370,9 @@ function applyAisleLayout(scene: Object3D): void {
     // the original — one label per project, anchored off the left side.
     // The mirror's meshes keep their real names (Rack_<id> etc.) so
     // hovering or clicking either side still resolves to the project.
-    mirror.traverse((node) => {
-      if (node.name.startsWith("anchor_")) {
-        node.name = "_mirror_" + node.name;
+    mirror.traverse(node => {
+      if (node.name.startsWith('anchor_')) {
+        node.name = '_mirror_' + node.name;
       }
     });
   }
@@ -385,7 +380,7 @@ function applyAisleLayout(scene: Object3D): void {
   // Pull the terminal/desk forward so it sits *in front of* the first
   // aisle rack. The terminal anchor name is `anchor_terminal`; the
   // Monitor + Desk meshes share its frame in the authored scene.
-  const terminalAnchor = anchorByName.get("terminal");
+  const terminalAnchor = anchorByName.get('terminal');
   if (terminalAnchor) {
     terminalAnchor.getWorldPosition(tmpWorld);
     const termPivot = tmpWorld.clone();
@@ -396,9 +391,9 @@ function applyAisleLayout(scene: Object3D): void {
     // portrait via isPortraitKeepMesh (mobile-perf cut), so there's
     // no point reparenting them.
     const termMeshes: Object3D[] = [];
-    scene.traverse((node) => {
+    scene.traverse(node => {
       if (!(node instanceof Mesh)) return;
-      if (node.name === "Monitor" || node.name === "Desk") {
+      if (node.name === 'Monitor' || node.name === 'Desk') {
         termMeshes.push(node);
       }
     });
@@ -418,8 +413,8 @@ function applyAisleLayout(scene: Object3D): void {
   // the aisle end, and spin it so the portrait faces the approaching
   // camera. Names are preserved, so the LinkedIn click target still
   // resolves (clickResolver walks up to OperatorHolo / HoloPedestal).
-  const holo = scene.getObjectByName("OperatorHolo");
-  const pedestal = scene.getObjectByName("HoloPedestal");
+  const holo = scene.getObjectByName('OperatorHolo');
+  const pedestal = scene.getObjectByName('HoloPedestal');
   if (holo && pedestal) {
     pedestal.getWorldPosition(tmpWorld);
     const holoGroup = new Group();
@@ -440,7 +435,7 @@ function applyAisleLayout(scene: Object3D): void {
   // Hide everything not in the keep-list. Run *after* the rack
   // repositions so we don't accidentally hide meshes we were about to
   // move.
-  scene.traverse((node) => {
+  scene.traverse(node => {
     if (!(node instanceof Mesh)) return;
     if (!isPortraitKeepMesh(node.name)) {
       node.visible = false;
@@ -461,21 +456,21 @@ export function ServerRoom({
   onSelect,
   panelOpen,
   isMobile = false,
-  variant = "landscape",
+  variant = 'landscape',
 }: ServerRoomProps) {
-  const { scene: originalScene } = useGLTF(MODEL_URLS[variant], "/draco/");
+  const { scene: originalScene } = useGLTF(MODEL_URLS[variant], '/draco/');
   // Portrait viewports get a procedural aisle layout (racks repositioned
   // into a single -Z column with the desk pulled forward) baked onto a
   // cloned scene. Landscape uses the authored geometry unchanged. Clone
   // is keyed on the loaded glb identity so a re-load (variant flip,
   // HMR) produces a fresh transform.
   const scene = useMemo(() => {
-    if (variant !== "portrait") return originalScene;
+    if (variant !== 'portrait') return originalScene;
     const cloned = originalScene.clone(true);
     try {
       applyAisleLayout(cloned);
     } catch (err) {
-      console.error("[aisle] applyAisleLayout threw:", err);
+      console.error('[aisle] applyAisleLayout threw:', err);
     }
     return cloned;
   }, [originalScene, variant]);
@@ -490,11 +485,11 @@ export function ServerRoom({
     for (const p of projects) if (p.logo) out[p.id] = p.logo;
     return out;
   }, []);
-  const logoTextures = useTexture(logoUrlMap) as Record<string, import("three").Texture>;
+  const logoTextures = useTexture(logoUrlMap) as Record<string, import('three').Texture>;
   // Operator portrait — fed into the OperatorHolo shader as uTexture.
   // Single-image useTexture call; the SRGB + anisotropy fix-up happens
   // alongside the rack logos below.
-  const pfpTexture = useTexture("/LinkedIn_PFP.png") as import("three").Texture;
+  const pfpTexture = useTexture('/LinkedIn_PFP.png') as import('three').Texture;
   useLayoutEffect(() => {
     // Anisotropic filtering + sRGB colour space. The colour-space
     // step matters because drei's <Image> internally sets
@@ -538,11 +533,13 @@ export function ServerRoom({
   // scene.traverse() every frame. (Earlier version traversed each
   // frame; that's a measurable cost when the scene has hundreds of
   // meshes after applyAisleLayout.)
-  const towerStripsRef = useRef<{
-    mat: MeshStandardMaterial;
-    phase: number;
-    speed: number;
-  }[]>([]);
+  const towerStripsRef = useRef<
+    {
+      mat: MeshStandardMaterial;
+      phase: number;
+      speed: number;
+    }[]
+  >([]);
   // Wall-clock accumulator for the BackgroundTower_*_strip pulse in
   // useFrame. We don't cache material refs — instead we traverse the
   // scene each frame and modify materials in place (cached refs were
@@ -550,7 +547,9 @@ export function ServerRoom({
   // useFrame block for details).
   const elapsedRef = useRef(0);
   const monitorShaderRef = useRef<(ShaderMaterial & { uniforms: ConsoleUniforms }) | null>(null);
-  const operatorHoloShaderRef = useRef<(ShaderMaterial & { uniforms: OperatorHoloUniforms }) | null>(null);
+  const operatorHoloShaderRef = useRef<
+    (ShaderMaterial & { uniforms: OperatorHoloUniforms }) | null
+  >(null);
   const [hover, setHover] = useState<ClickTarget>(null);
   const [anchorMap, setAnchorMap] = useState<Map<string, SceneAnchor>>(new Map());
 
@@ -605,15 +604,15 @@ export function ServerRoom({
   // to the dim target — the lookup missed and waveIntensity stayed 0.
   const slotIndexByKey = useMemo(() => {
     const m = new Map<string, number>();
-    if (variant === "portrait") {
+    if (variant === 'portrait') {
       AISLE_ORDER.forEach((id, i) => m.set(`project:${id}`, i));
     } else {
-      const order = ["quant", "swe", "analyst", "security", "ml"] as const;
+      const order = ['quant', 'swe', 'analyst', 'security', 'ml'] as const;
       for (const p of projects) {
-        const idx = order.indexOf(p.cluster as typeof order[number]);
+        const idx = order.indexOf(p.cluster as (typeof order)[number]);
         if (idx >= 0) m.set(`project:${p.id}`, idx);
       }
-      m.set("terminal", 0);
+      m.set('terminal', 0);
     }
     return m;
   }, [variant]);
@@ -621,37 +620,41 @@ export function ServerRoom({
   // One volumetric cone beam per slot, apex at the ceiling and base on
   // the floor, positioned over the rack pair for that slot. Pulsed by
   // the slot's ADSR window during a wave; intensity 0 otherwise.
-  const slotBeamsRef = useRef<{
-    mesh: Mesh;
-    uniforms: WaveBeamUniforms;
-    slot: number;
-  }[]>([]);
+  const slotBeamsRef = useRef<
+    {
+      mesh: Mesh;
+      uniforms: WaveBeamUniforms;
+      slot: number;
+    }[]
+  >([]);
 
   // One floor disc per slot, sat ~2 cm above the reflective floor.
   // Radial-gradient shader produces a "neon puddle" under the rack
   // pair during its slot; the disc is in the scene above the floor
   // so the MeshReflectorMaterial's mirror reflection picks it up too.
-  const slotDiscsRef = useRef<{
-    mesh: Mesh;
-    uniforms: WaveFloorUniforms;
-    slot: number;
-  }[]>([]);
+  const slotDiscsRef = useRef<
+    {
+      mesh: Mesh;
+      uniforms: WaveFloorUniforms;
+      slot: number;
+    }[]
+  >([]);
 
   // Per-slot rack body materials. Cloned at scene-build time so each
   // slot's body emissive is independently driven by the wave. Each
   // entry holds both the original and the mirrored rack's material
   // (same slot fires both racks of the pair in portrait).
-  const slotBodiesRef = useRef<{
-    materials: MeshStandardMaterial[];
-    accentColor: Color;
-    slot: number;
-  }[]>([]);
+  const slotBodiesRef = useRef<
+    {
+      materials: MeshStandardMaterial[];
+      accentColor: Color;
+      slot: number;
+    }[]
+  >([]);
 
-  const waveSlotDelayS =
-    variant === "portrait" ? WAVE_RACK_DELAY_S : WAVE_CLUSTER_DELAY_S;
-  const waveSlotCount = variant === "portrait" ? AISLE_ORDER.length : 5;
-  const WAVE_TOTAL_S =
-    waveSlotCount * waveSlotDelayS + WAVE_PULSE_DUR_S + 0.4;
+  const waveSlotDelayS = variant === 'portrait' ? WAVE_RACK_DELAY_S : WAVE_CLUSTER_DELAY_S;
+  const waveSlotCount = variant === 'portrait' ? AISLE_ORDER.length : 5;
+  const WAVE_TOTAL_S = waveSlotCount * waveSlotDelayS + WAVE_PULSE_DUR_S + 0.4;
 
   // Universal "user did something" listener. Captures pointer/touch/
   // key/wheel at the document level, plus aisleScroll progress
@@ -671,16 +674,16 @@ export function ServerRoom({
     const onKey = () => reset();
     const onWheel = () => reset();
     const onScrollProgress = () => reset();
-    document.addEventListener("pointerdown", onPointer);
-    document.addEventListener("touchstart", onTouch, { passive: true });
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("wheel", onWheel, { passive: true });
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('touchstart', onTouch, { passive: true });
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('wheel', onWheel, { passive: true });
     const unsubScroll = aisleScroll.subscribe(onScrollProgress);
     return () => {
-      document.removeEventListener("pointerdown", onPointer);
-      document.removeEventListener("touchstart", onTouch);
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("wheel", onWheel);
+      document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('touchstart', onTouch);
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('wheel', onWheel);
       unsubScroll();
     };
   }, []);
@@ -696,13 +699,13 @@ export function ServerRoom({
   // the pool of light each portrait ceiling fixture casts on the
   // ceiling grid above it. One texture, reused by every fixture.
   const ceilGlowTex = useMemo(() => {
-    const c = document.createElement("canvas");
+    const c = document.createElement('canvas');
     c.width = c.height = 128;
-    const ctx = c.getContext("2d")!;
+    const ctx = c.getContext('2d')!;
     const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-    g.addColorStop(0, "rgba(255,255,255,0.85)");
-    g.addColorStop(0.45, "rgba(255,255,255,0.26)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
+    g.addColorStop(0, 'rgba(255,255,255,0.85)');
+    g.addColorStop(0.45, 'rgba(255,255,255,0.26)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 128, 128);
     const tex = new CanvasTexture(c);
@@ -722,11 +725,11 @@ export function ServerRoom({
       // moment of the forced fire.
       lastInteractionRef.current = performance.now();
     };
-    window.addEventListener("ov-force-wave", onForce);
-    return () => window.removeEventListener("ov-force-wave", onForce);
+    window.addEventListener('ov-force-wave', onForce);
+    return () => window.removeEventListener('ov-force-wave', onForce);
   }, []);
 
-  const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
+  const projectsById = useMemo(() => new Map(projects.map(p => [p.id, p])), []);
 
   // Mobile-adjusted light intensities. We compensate for the dropped
   // ceiling-grid lights by boosting the remaining top-down sources;
@@ -735,11 +738,17 @@ export function ServerRoom({
   const lightLevels = useMemo(() => {
     const m = isMobile;
     return {
-      hemi:    { idle: LIGHTS.hemi.idle    * (m ? 1.45 : 1), dim: LIGHTS.hemi.dim    * (m ? 1.45 : 1) },
-      ambient: { idle: LIGHTS.ambient.idle * (m ? 1.40 : 1), dim: LIGHTS.ambient.dim * (m ? 1.40 : 1) },
-      key:     { idle: LIGHTS.pointKey.idle,                  dim: LIGHTS.pointKey.dim },
-      topDown: { idle: LIGHTS.topDown.idle * (m ? 1.50 : 1),  dim: LIGHTS.topDown.dim * (m ? 1.50 : 1) },
-      ceiling: { idle: LIGHTS.ceilingGrid.idle,               dim: LIGHTS.ceilingGrid.dim },
+      hemi: { idle: LIGHTS.hemi.idle * (m ? 1.45 : 1), dim: LIGHTS.hemi.dim * (m ? 1.45 : 1) },
+      ambient: {
+        idle: LIGHTS.ambient.idle * (m ? 1.4 : 1),
+        dim: LIGHTS.ambient.dim * (m ? 1.4 : 1),
+      },
+      key: { idle: LIGHTS.pointKey.idle, dim: LIGHTS.pointKey.dim },
+      topDown: {
+        idle: LIGHTS.topDown.idle * (m ? 1.5 : 1),
+        dim: LIGHTS.topDown.dim * (m ? 1.5 : 1),
+      },
+      ceiling: { idle: LIGHTS.ceilingGrid.idle, dim: LIGHTS.ceilingGrid.dim },
     };
   }, [isMobile]);
 
@@ -763,16 +772,19 @@ export function ServerRoom({
 
   useLayoutEffect(() => {
     const interactives: Interactive[] = [];
-    const bodyMap = new Map<number, {
-      materials: MeshStandardMaterial[];
-      accentColor: Color;
-      slot: number;
-    }>();
+    const bodyMap = new Map<
+      number,
+      {
+        materials: MeshStandardMaterial[];
+        accentColor: Color;
+        slot: number;
+      }
+    >();
     let bodyGeom: BufferGeometry | null = null;
     let bodyMat: Material | null = null;
     let ledGeom: BufferGeometry | null = null;
     let ledMat: Material | null = null;
-    scene.traverse((obj) => {
+    scene.traverse(obj => {
       if (!(obj instanceof Mesh)) return;
 
       // BackgroundTower_*_strip meshes: cache the material + per-
@@ -780,7 +792,7 @@ export function ServerRoom({
       // towerStripsRef and skips the per-frame scene.traverse + per-
       // strip strHash that earlier versions did. Setting toneMapped
       // here (instead of every frame) is also a small win.
-      if (obj.name.startsWith("BackgroundTower_") && obj.name.endsWith("_strip")) {
+      if (obj.name.startsWith('BackgroundTower_') && obj.name.endsWith('_strip')) {
         const mat = obj.material;
         if (mat instanceof MeshStandardMaterial) {
           mat.toneMapped = false;
@@ -797,7 +809,7 @@ export function ServerRoom({
       // The static glb floor is hidden — a separate JSX <mesh> with
       // MeshReflectorMaterial (below) renders the reflective floor
       // instead, so the racks and cables actually mirror onto it.
-      if (obj.name === "Floor") {
+      if (obj.name === 'Floor') {
         obj.visible = false;
         return;
       }
@@ -806,13 +818,13 @@ export function ServerRoom({
       // parked location far outside the room. Hide them and stash
       // refs to their geometry + material so InstancedMesh can scatter
       // copies in the void.
-      if (obj.name === "DistantRackBody") {
+      if (obj.name === 'DistantRackBody') {
         obj.visible = false;
         bodyGeom = obj.geometry;
         bodyMat = obj.material as Material;
         return;
       }
-      if (obj.name === "DistantRackLED") {
+      if (obj.name === 'DistantRackLED') {
         obj.visible = false;
         ledGeom = obj.geometry;
         // Clone the material so the dim-for-distance treatment doesn't
@@ -834,7 +846,7 @@ export function ServerRoom({
       // (oscilloscope traces, bar graph, status dots) so the desk
       // monitor reads as "this is actively driving the room." From
       // here on it's hover-driven through uniforms, not emissive.
-      if (obj.name === "Monitor") {
+      if (obj.name === 'Monitor') {
         const consoleMat = createConsoleMaterial(isMobile);
         obj.material = consoleMat;
         monitorShaderRef.current = consoleMat;
@@ -847,7 +859,7 @@ export function ServerRoom({
       // additive blend, scan lines + vignette + slow flicker so it
       // reads as a projected operator-ID hologram rather than a flat
       // photo pinned to the air.
-      if (obj.name === "OperatorHolo") {
+      if (obj.name === 'OperatorHolo') {
         const holoMat = createOperatorHoloMaterial(pfpTexture);
         obj.material = holoMat;
         operatorHoloShaderRef.current = holoMat;
@@ -868,15 +880,16 @@ export function ServerRoom({
       // to zero — the racks never glow no matter how high we push
       // emissiveIntensity. Nulling emissiveMap on the clone makes
       // the wash paint uniformly across the rack body.
-      if (obj.name.startsWith("Rack_")) {
-        const projectId = obj.name.slice("Rack_".length);
+      if (obj.name.startsWith('Rack_')) {
+        const projectId = obj.name.slice('Rack_'.length);
         const slot = slotIndexByKey.get(`project:${projectId}`);
         if (slot === undefined) return;
         const accent = waveColorForProject(projectId, projectsById);
         const accentColor = new Color(accent);
-        const body = obj.material instanceof MeshStandardMaterial
-          ? obj.material.clone()
-          : new MeshStandardMaterial({ color: 0x111111 });
+        const body =
+          obj.material instanceof MeshStandardMaterial
+            ? obj.material.clone()
+            : new MeshStandardMaterial({ color: 0x111111 });
         body.emissive = new Color(1, 1, 1);
         body.emissiveIntensity = 0;
         body.emissiveMap = null;
@@ -923,11 +936,11 @@ export function ServerRoom({
           cloned.emissive = new Color(accent);
           cloned.color = new Color(accent).multiplyScalar(0.35);
         } else if (slot < 80) {
-          cloned.emissive = new Color("#ffb347");
-          cloned.color = new Color("#7a4f1e");
+          cloned.emissive = new Color('#ffb347');
+          cloned.color = new Color('#7a4f1e');
         } else {
-          cloned.emissive = new Color("#3aff8a");
-          cloned.color = new Color("#1a5a32");
+          cloned.emissive = new Color('#3aff8a');
+          cloned.color = new Color('#1a5a32');
         }
         cloned.emissiveIntensity = (cloned.emissiveIntensity ?? 1.0) * dimFactor;
         return;
@@ -964,7 +977,7 @@ export function ServerRoom({
     const discs: { mesh: Mesh; uniforms: WaveFloorUniforms; slot: number }[] = [];
     let sharedBeamGeom: ConeGeometry | null = null;
     let sharedDiscGeom: CircleGeometry | null = null;
-    if (variant === "portrait") {
+    if (variant === 'portrait') {
       const beamHeight = 4.4;
       const beamRadius = 1.8;
       const discRadius = 2.2;
@@ -1021,7 +1034,7 @@ export function ServerRoom({
       sharedBeamGeom?.dispose();
       sharedDiscGeom?.dispose();
     };
-  }, [scene, rootScene, variant, projectsById, pfpTexture]);
+  }, [scene, rootScene, variant, projectsById, pfpTexture, isMobile, slotIndexByKey]);
 
   // Re-emit anchors every time the loaded glTF scene changes — this is what
   // makes a portrait↔landscape variant flip pick up the new layout instead
@@ -1032,8 +1045,8 @@ export function ServerRoom({
     onAnchorsReady?.(collected);
     assertAnchorCoverage(
       collected,
-      projects.filter((p) => p.inScene !== false).map((p) => p.id),
-      variant,
+      projects.filter(p => p.inScene !== false).map(p => p.id),
+      variant
     );
   }, [scene, onAnchorsReady, variant]);
 
@@ -1164,24 +1177,20 @@ export function ServerRoom({
     const tNow = elapsedRef.current;
     for (const strip of towerStripsRef.current) {
       const wave = 0.5 + 0.5 * Math.sin(tNow * strip.speed + strip.phase);
-      const t = 0.35 + 0.65 * wave;   // 0.35 — 1.00 of base brightness
-      strip.mat.emissive.setRGB(0.30 * t, 0.95 * t, 1.00 * t);
+      const t = 0.35 + 0.65 * wave; // 0.35 — 1.00 of base brightness
+      strip.mat.emissive.setRGB(0.3 * t, 0.95 * t, 1.0 * t);
       strip.mat.emissiveIntensity = 2.0;
     }
 
     // Runtime fill / key lights.
-    const lerpLight = (
-      light: { intensity: number } | null,
-      idle: number,
-      dim: number,
-    ) => {
+    const lerpLight = (light: { intensity: number } | null, idle: number, dim: number) => {
       if (!light) return;
       const t = isHovering ? dim : idle;
       light.intensity += (t - light.intensity) * k;
     };
-    lerpLight(hemiRef.current,    lightLevels.hemi.idle,    lightLevels.hemi.dim);
+    lerpLight(hemiRef.current, lightLevels.hemi.idle, lightLevels.hemi.dim);
     lerpLight(ambientRef.current, lightLevels.ambient.idle, lightLevels.ambient.dim);
-    lerpLight(keyRef.current,     lightLevels.key.idle,     lightLevels.key.dim);
+    lerpLight(keyRef.current, lightLevels.key.idle, lightLevels.key.dim);
     lerpLight(topDownRef.current, lightLevels.topDown.idle, lightLevels.topDown.dim);
     for (const ceil of ceilingRefs.current) {
       lerpLight(ceil, lightLevels.ceiling.idle, lightLevels.ceiling.dim);
@@ -1193,8 +1202,8 @@ export function ServerRoom({
     const shader = monitorShaderRef.current;
     if (shader) {
       shader.uniforms.uTime.value += delta;
-      const hoverTarget = activeKey === "terminal" ? 1 : 0;
-      const dimTarget = isHovering && activeKey !== "terminal" ? 1 : 0;
+      const hoverTarget = activeKey === 'terminal' ? 1 : 0;
+      const dimTarget = isHovering && activeKey !== 'terminal' ? 1 : 0;
       shader.uniforms.uHover.value += (hoverTarget - shader.uniforms.uHover.value) * k;
       shader.uniforms.uDim.value += (dimTarget - shader.uniforms.uDim.value) * k;
     }
@@ -1232,7 +1241,7 @@ export function ServerRoom({
           out from [18,45] → [24,65] so the floor stays readable in
           the mid-ground instead of crushing to black right past the
           room edge. */}
-      <fog attach="fog" args={["#0a0d18", 32, 70]} />
+      <fog attach="fog" args={['#0a0d18', 32, 70]} />
 
       <primitive
         object={scene}
@@ -1250,7 +1259,7 @@ export function ServerRoom({
           slab — it starts at z=0 (between the first two rack pairs)
           and recedes into the fog. Length is along Z so each strip is
           a long tube parallel to the aisle. */}
-      {variant === "portrait" && (
+      {variant === 'portrait' && (
         <group name="aisle-atmosphere">
           {/* Overhead fluorescent strips, spaced ~2.34 m apart down the
               aisle (−i·AISLE_SPACING·0.9). The count spans the full
@@ -1299,18 +1308,9 @@ export function ServerRoom({
               the depth read. Runs from just ahead of the terminal
               (z≈+4) all the way to the terminus wall behind the holo,
               so the runway leads the eye to the destination. */}
-          <mesh
-            position={[0, 0.005, (4 + AISLE_TERMINUS_Z) / 2]}
-            rotation={[-Math.PI / 2, 0, 0]}
-          >
+          <mesh position={[0, 0.005, (4 + AISLE_TERMINUS_Z) / 2]} rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[0.18, 4 - AISLE_TERMINUS_Z]} />
-            <meshBasicMaterial
-              color="#4cf2ff"
-              toneMapped={false}
-              transparent
-              opacity={0.55}
-              fog
-            />
+            <meshBasicMaterial color="#4cf2ff" toneMapped={false} transparent opacity={0.55} fog />
           </mesh>
 
           {/* Drifting dust in the aisle volume. Subtle cyan motes
@@ -1361,7 +1361,6 @@ export function ServerRoom({
             <planeGeometry args={[16, 0.1]} />
             <meshBasicMaterial color="#4cf2ff" toneMapped={false} fog />
           </mesh>
-
         </group>
       )}
 
@@ -1372,11 +1371,7 @@ export function ServerRoom({
           read clearly. */}
       <hemisphereLight
         ref={hemiRef}
-        args={[
-          "#d4dbe8",
-          "#525870",
-          isMobile ? LIGHTS.hemi.idle * 1.45 : LIGHTS.hemi.idle,
-        ]}
+        args={['#d4dbe8', '#525870', isMobile ? LIGHTS.hemi.idle * 1.45 : LIGHTS.hemi.idle]}
       />
       <ambientLight
         ref={ambientRef}
@@ -1417,7 +1412,7 @@ export function ServerRoom({
           mirrors them evenly — a lone side cast is what got the HDRI
           environment removed (see below). Keyed to the portrait layout
           so it also lifts narrow-desktop, not just mobile. */}
-      {variant === "portrait" && (
+      {variant === 'portrait' && (
         <>
           <directionalLight position={[10, 9, 0]} intensity={6.0} color="#e6ecf8" />
           <directionalLight position={[-10, 9, 0]} intensity={6.0} color="#e6ecf8" />
@@ -1429,17 +1424,20 @@ export function ServerRoom({
           lights, so 4 extra point lights compound across 161 mesh
           primitives. The directional + hemi + cyan key cover the
           essentials. */}
-      {!isMobile && CEILING_LIGHTS.map((pos, i) => (
-        <pointLight
-          key={i}
-          ref={(el) => { ceilingRefs.current[i] = el; }}
-          position={pos}
-          intensity={LIGHTS.ceilingGrid.idle}
-          color="#cfd8f5"
-          distance={12}
-          decay={1.4}
-        />
-      ))}
+      {!isMobile &&
+        CEILING_LIGHTS.map((pos, i) => (
+          <pointLight
+            key={i}
+            ref={el => {
+              ceilingRefs.current[i] = el;
+            }}
+            position={pos}
+            intensity={LIGHTS.ceilingGrid.idle}
+            color="#cfd8f5"
+            distance={12}
+            decay={1.4}
+          />
+        ))}
 
       {/* HDRI environment removed: its directional cast was being
           mirrored by the reflective floor as a bright right-side
@@ -1454,20 +1452,21 @@ export function ServerRoom({
           subtly stains the rack's lower panels. Skipped on mobile —
           every extra point light compounds across every fragment in
           the scene. */}
-      {!isMobile && Array.from(anchorMap.entries()).map(([id, anchor]) => {
-        const project = projectsById.get(id);
-        if (!project?.color) return null;
-        return (
-          <pointLight
-            key={`glow-${id}`}
-            position={[anchor.position.x, 0.25, anchor.position.z]}
-            color={project.color}
-            intensity={1.6}
-            distance={2.6}
-            decay={2.0}
-          />
-        );
-      })}
+      {!isMobile &&
+        Array.from(anchorMap.entries()).map(([id, anchor]) => {
+          const project = projectsById.get(id);
+          if (!project?.color) return null;
+          return (
+            <pointLight
+              key={`glow-${id}`}
+              position={[anchor.position.x, 0.25, anchor.position.z]}
+              color={project.color}
+              intensity={1.6}
+              distance={2.6}
+              decay={2.0}
+            />
+          );
+        })}
 
       {/* Per-rack brand badges: each project's logo as a textured plane
           mounted on the rack's front face, near the top. Sized to live
@@ -1481,7 +1480,7 @@ export function ServerRoom({
         const tex = logoTextures[id];
         if (!tex) return null;
         const y = anchor.position.y + 0.4;
-        if (variant === "portrait") {
+        if (variant === 'portrait') {
           const FRONT_OFFSET = AISLE_HALF_WIDTH - 0.01;
           return (
             <group key={`logo-${id}`}>
@@ -1507,19 +1506,22 @@ export function ServerRoom({
         const ax = anchor.position.x;
         const az = anchor.position.z;
         const ANCHOR_PLANE = 4.7;
-        const distToLeft  = Math.abs(ax + ANCHOR_PLANE);
+        const distToLeft = Math.abs(ax + ANCHOR_PLANE);
         const distToRight = Math.abs(ax - ANCHOR_PLANE);
-        const distToBack  = Math.abs(az + ANCHOR_PLANE);
+        const distToBack = Math.abs(az + ANCHOR_PLANE);
         const distToFront = Math.abs(az - ANCHOR_PLANE);
         const minDist = Math.min(distToLeft, distToRight, distToBack, distToFront);
         const FACE_OFFSET = 0.99;
         let nx: number, nz: number;
         if (minDist === distToLeft) {
-          nx = 1; nz = 0;          // left wall, face +X
+          nx = 1;
+          nz = 0; // left wall, face +X
         } else if (minDist === distToRight) {
-          nx = -1; nz = 0;         // right wall, face -X
+          nx = -1;
+          nz = 0; // right wall, face -X
         } else {
-          nx = 0; nz = 1;          // back OR front wall, face +Z (toward camera)
+          nx = 0;
+          nz = 1; // back OR front wall, face +Z (toward camera)
         }
         const x = anchor.position.x - nx * FACE_OFFSET;
         const z = anchor.position.z - nz * FACE_OFFSET;
@@ -1589,7 +1591,7 @@ export function ServerRoom({
           mirrors the floor, so the aisle reads as an enclosed data hall.
           Deliberately darker than the floor grid so it recedes as a
           ceiling rather than competing with it. */}
-      {variant === "portrait" && (
+      {variant === 'portrait' && (
         <Grid
           position={[0, 6.2, 0]}
           cellSize={1}
@@ -1626,7 +1628,7 @@ export function ServerRoom({
           Portrait skips it entirely — the corridor's overhead-light
           strips + backwall block the sky from view anyway, so the
           stars are pure cost with zero visual contribution. */}
-      {variant !== "portrait" && (
+      {variant !== 'portrait' && (
         <Stars
           radius={80}
           depth={40}
@@ -1669,173 +1671,177 @@ export function ServerRoom({
               adjacent racks reads as noise. The project name + the
               colour-coded rack body carry the cluster identity already.
         */}
-      {!panelOpen && Array.from(anchorMap.entries()).map(([id, anchor]) => {
-        const isPortrait = variant === "portrait";
-        // Labels render via drei <Html> with distanceFactor: scale =
-        // distanceFactor / distance-from-camera. Portrait labels share
-        // world y + x at every depth, so adjacent ones project to
-        // near-identical screen slots — the smaller we keep them, the
-        // less they pile up. 3.5 reads as legible at the front of the
-        // aisle without making 2 deep racks' labels collide.
-        const labelDistance = isPortrait ? 3.5 : 9;
-        // Depth-based opacity for portrait aisle labels. drei <Html>
-        // elements live in DOM, not WebGL, so they don't naturally
-        // respect 3D occlusion — without this every rack's label would
-        // pile on top of every other label in the back of the aisle.
-        // Map anchor.z (running from ~+5 at the desk to ~-20 at the
-        // farthest rack) to opacity 1.0 → 0.0 with a knee that keeps
-        // the front three racks fully readable and fades the back six
-        // toward the fog. Landscape always renders at full opacity.
-        let labelOpacity = 1;
-        // Camera Z lerped across the scroll progress, used by both
-        // rack-label and terminal-label opacity. Hoisted here so both
-        // branches below can use it without recomputing.
-        const camZ = 8.5 + (-23 - 8.5) * scrollProgress;
-        // Portrait label-opacity rule. ahead = cameraZ − rackBodyZ;
-        // positive when the rack is in front of the camera, negative
-        // when the camera has scrolled past it.
-        //
-        // Critical constraint: the rack pair sits at x = ±AISLE_HALF_WIDTH
-        // (1.2 m). The portrait horizontal half-FOV is ~18°, so a rack
-        // body's lateral angle atan(1.2 / ahead) only fits inside the
-        // frame when ahead > 1.2 / tan(18°) ≈ 3.7 m. When the camera
-        // is closer than that, the rack bodies swing off the sides of
-        // the screen, but a label at x = 0 stays anchored in the
-        // centre — which produced the original "label hovering above
-        // the wrong rack" effect: OCaml LOB's body was off-screen
-        // lateral while its label was still visible.
-        //
-        // So: only show a label when its rack body would itself be
-        // on-screen (ahead > 3.7). Peak readability falls inside that
-        // visible window at 4–7 m ahead, which is close enough that
-        // the rack pair fills a meaningful chunk of the frame and the
-        // label reads as "the rack I'm walking past" rather than
-        // "the rack far down the aisle."
-        //
-        //   ahead < 3.7        → 0  (rack body off-screen lateral)
-        //   ahead in [3.7, 4.7] → fade in 0 → 1
-        //   ahead in [4.7, 6.0] → peak (narrow — one label dominates)
-        //   ahead in [6.0, 8.0] → fade out 1 → 0
-        //   ahead > 8.0        → 0
-        // Tightened from a wide [5,9] peak: with racks 2.6 m apart, the
-        // old window held ~3 labels at full strength, and since portrait
-        // labels all sit at x=0 they stacked into a centred cluster. The
-        // narrow peak leaves the rack the camera is passing dominant and
-        // at most one faint neighbour handing off.
-        const portraitOpacityForAhead = (ahead: number): number => {
-          if (ahead < 3.7) return 0;
-          if (ahead < 4.7) return ahead - 3.7;          // fade in over 1.0 m
-          if (ahead < 6.0) return 1;                    // narrow peak
-          if (ahead < 8.0) return (8.0 - ahead) / 2.0;  // fade out over 2.0 m
-          return 0;
-        };
-        // Both opacity and label render-position reference the *rack
-        // body* z, not anchor.z. The anchor is authored 1 m in front
-        // of the rack body — using it as the opacity reference means
-        // a label fades out a metre before the camera actually reaches
-        // its rack, so the label visually feels like it belongs to
-        // the rack ahead of it instead of the one it names. Subtracting
-        // 1 puts both calculations on the rack body.
-        const rackZ = anchor.position.z - 1;
-        if (isPortrait && id === "terminal") {
-          const ahead = camZ - rackZ;
-          labelOpacity = portraitOpacityForAhead(ahead);
-          if (labelOpacity < 0.2) return null;
-        }
-        if (isPortrait && id !== "terminal") {
-          // Rack-label opacity peaks when the camera is 2-4 m in
-          // front of the *rack body* (not the anchor 1 m further
-          // ahead). Earlier off-by-one meant labels disappeared 1 m
-          // before the camera actually reached their rack, which
-          // visually associated them with the wrong rack pair.
-          const ahead = camZ - rackZ;
-          labelOpacity = portraitOpacityForAhead(ahead);
-        }
-        // Below ~0.2 opacity the rack label is too faded to read and
-        // too tiny on screen to be a valid tap target. Drop it entirely.
-        if (labelOpacity < 0.2 && id !== "terminal") return null;
-        if (id === "terminal") {
-          // Terminal anchor is closer to the camera than the rack
-          // labels (~5 m vs ~7 m). Portrait: distanceFactor 2.6 makes
-          // the "console" badge ~85% bigger than the front rack label
-          // (which was the prior 1.4 target) — the desk monitor is
-          // the room's control surface, so its label should read as
-          // the dominant on-screen anchor when nothing's hovered.
-          const terminalDistance = isPortrait ? 2.6 : labelDistance;
+      {!panelOpen &&
+        Array.from(anchorMap.entries()).map(([id, anchor]) => {
+          const isPortrait = variant === 'portrait';
+          // Labels render via drei <Html> with distanceFactor: scale =
+          // distanceFactor / distance-from-camera. Portrait labels share
+          // world y + x at every depth, so adjacent ones project to
+          // near-identical screen slots — the smaller we keep them, the
+          // less they pile up. 3.5 reads as legible at the front of the
+          // aisle without making 2 deep racks' labels collide.
+          const labelDistance = isPortrait ? 3.5 : 9;
+          // Depth-based opacity for portrait aisle labels. drei <Html>
+          // elements live in DOM, not WebGL, so they don't naturally
+          // respect 3D occlusion — without this every rack's label would
+          // pile on top of every other label in the back of the aisle.
+          // Map anchor.z (running from ~+5 at the desk to ~-20 at the
+          // farthest rack) to opacity 1.0 → 0.0 with a knee that keeps
+          // the front three racks fully readable and fades the back six
+          // toward the fog. Landscape always renders at full opacity.
+          let labelOpacity = 1;
+          // Camera Z lerped across the scroll progress, used by both
+          // rack-label and terminal-label opacity. Hoisted here so both
+          // branches below can use it without recomputing.
+          const camZ = 8.5 + (-23 - 8.5) * scrollProgress;
+          // Portrait label-opacity rule. ahead = cameraZ − rackBodyZ;
+          // positive when the rack is in front of the camera, negative
+          // when the camera has scrolled past it.
+          //
+          // Critical constraint: the rack pair sits at x = ±AISLE_HALF_WIDTH
+          // (1.2 m). The portrait horizontal half-FOV is ~18°, so a rack
+          // body's lateral angle atan(1.2 / ahead) only fits inside the
+          // frame when ahead > 1.2 / tan(18°) ≈ 3.7 m. When the camera
+          // is closer than that, the rack bodies swing off the sides of
+          // the screen, but a label at x = 0 stays anchored in the
+          // centre — which produced the original "label hovering above
+          // the wrong rack" effect: OCaml LOB's body was off-screen
+          // lateral while its label was still visible.
+          //
+          // So: only show a label when its rack body would itself be
+          // on-screen (ahead > 3.7). Peak readability falls inside that
+          // visible window at 4–7 m ahead, which is close enough that
+          // the rack pair fills a meaningful chunk of the frame and the
+          // label reads as "the rack I'm walking past" rather than
+          // "the rack far down the aisle."
+          //
+          //   ahead < 3.7        → 0  (rack body off-screen lateral)
+          //   ahead in [3.7, 4.7] → fade in 0 → 1
+          //   ahead in [4.7, 6.0] → peak (narrow — one label dominates)
+          //   ahead in [6.0, 8.0] → fade out 1 → 0
+          //   ahead > 8.0        → 0
+          // Tightened from a wide [5,9] peak: with racks 2.6 m apart, the
+          // old window held ~3 labels at full strength, and since portrait
+          // labels all sit at x=0 they stacked into a centred cluster. The
+          // narrow peak leaves the rack the camera is passing dominant and
+          // at most one faint neighbour handing off.
+          const portraitOpacityForAhead = (ahead: number): number => {
+            if (ahead < 3.7) return 0;
+            if (ahead < 4.7) return ahead - 3.7; // fade in over 1.0 m
+            if (ahead < 6.0) return 1; // narrow peak
+            if (ahead < 8.0) return (8.0 - ahead) / 2.0; // fade out over 2.0 m
+            return 0;
+          };
+          // Both opacity and label render-position reference the *rack
+          // body* z, not anchor.z. The anchor is authored 1 m in front
+          // of the rack body — using it as the opacity reference means
+          // a label fades out a metre before the camera actually reaches
+          // its rack, so the label visually feels like it belongs to
+          // the rack ahead of it instead of the one it names. Subtracting
+          // 1 puts both calculations on the rack body.
+          const rackZ = anchor.position.z - 1;
+          if (isPortrait && id === 'terminal') {
+            const ahead = camZ - rackZ;
+            labelOpacity = portraitOpacityForAhead(ahead);
+            if (labelOpacity < 0.2) return null;
+          }
+          if (isPortrait && id !== 'terminal') {
+            // Rack-label opacity peaks when the camera is 2-4 m in
+            // front of the *rack body* (not the anchor 1 m further
+            // ahead). Earlier off-by-one meant labels disappeared 1 m
+            // before the camera actually reached their rack, which
+            // visually associated them with the wrong rack pair.
+            const ahead = camZ - rackZ;
+            labelOpacity = portraitOpacityForAhead(ahead);
+          }
+          // Below ~0.2 opacity the rack label is too faded to read and
+          // too tiny on screen to be a valid tap target. Drop it entirely.
+          if (labelOpacity < 0.2 && id !== 'terminal') return null;
+          if (id === 'terminal') {
+            // Terminal anchor is closer to the camera than the rack
+            // labels (~5 m vs ~7 m). Portrait: distanceFactor 2.6 makes
+            // the "console" badge ~85% bigger than the front rack label
+            // (which was the prior 1.4 target) — the desk monitor is
+            // the room's control surface, so its label should read as
+            // the dominant on-screen anchor when nothing's hovered.
+            const terminalDistance = isPortrait ? 2.6 : labelDistance;
+            return (
+              <Html
+                key={id}
+                position={[0, 2.55, anchor.position.z - 0.7]}
+                center
+                distanceFactor={terminalDistance}
+                style={{
+                  userSelect: 'none',
+                  opacity: labelOpacity,
+                  transition: 'opacity 220ms ease',
+                  pointerEvents: labelOpacity < 0.2 ? 'none' : 'auto',
+                }}
+              >
+                <button
+                  type="button"
+                  className="rack-label rack-label--terminal"
+                  onClick={() => onSelect?.({ kind: 'terminal' })}
+                >
+                  <span className="rack-label__name">console</span>
+                </button>
+              </Html>
+            );
+          }
+          const project = projectsById.get(id);
+          if (!project) return null;
+          // Portrait centres each label in the aisle (x=0) so it reads
+          // as a label for the *pair* of racks at that depth rather than
+          // floating over the left rack only. The label's Z also shifts
+          // 1m back from the anchor (which was authored 1m *in front* of
+          // the rack face) so the label sits directly above the rack
+          // body — otherwise as the camera approaches the anchor, the
+          // label projects to a screen position one rack pair forward
+          // and looks like it's labelling the *next* rack instead.
+          const labelX = isPortrait ? 0 : anchor.position.x;
+          // Use the same rackZ already computed above for opacity, so
+          // both opacity and visual position track the same world Z.
+          const labelZ = isPortrait ? rackZ : anchor.position.z;
+          // Y-offset: 1.7 m on landscape (label hovers above the wall-
+          // mounted rack as a callout), 1.1 m on portrait (label sits
+          // just above the rack top so it reads as a nameplate for the
+          // rack pair, not as a balloon floating in mid-air over it).
+          const labelY = anchor.position.y + (isPortrait ? 1.1 : 1.7);
+          // Depth hierarchy (#2): couple label size to its depth-opacity so
+          // the dominant (passing) label reads full-size while a fading
+          // neighbour shrinks back, on top of the distanceFactor's natural
+          // nearer-is-bigger scaling. Landscape opacity is always 1, so the
+          // factor is a no-op there.
+          const rackLabelDistance = labelDistance * (0.72 + 0.28 * labelOpacity);
           return (
             <Html
               key={id}
-              position={[0, 2.55, anchor.position.z - 0.7]}
+              position={[labelX, labelY, labelZ]}
               center
-              distanceFactor={terminalDistance}
+              distanceFactor={rackLabelDistance}
               style={{
-                userSelect: "none",
+                userSelect: 'none',
                 opacity: labelOpacity,
-                transition: "opacity 220ms ease",
-                pointerEvents: labelOpacity < 0.2 ? "none" : "auto",
+                transition: 'opacity 220ms ease',
+                // Disable interaction on fully-faded labels so users can't
+                // accidentally tap an invisible button.
+                pointerEvents: labelOpacity < 0.2 ? 'none' : 'auto',
               }}
             >
               <button
                 type="button"
-                className="rack-label rack-label--terminal"
-                onClick={() => onSelect?.({ kind: "terminal" })}
+                className="rack-label"
+                onClick={() => onSelect?.({ kind: 'project', projectId: id })}
               >
-                <span className="rack-label__name">console</span>
+                <span className="rack-label__name">{project.name}</span>
+                <span className="rack-label__cluster">
+                  {'// '}
+                  {CLUSTER_DISPLAY[project.cluster]}
+                </span>
               </button>
             </Html>
           );
-        }
-        const project = projectsById.get(id);
-        if (!project) return null;
-        // Portrait centres each label in the aisle (x=0) so it reads
-        // as a label for the *pair* of racks at that depth rather than
-        // floating over the left rack only. The label's Z also shifts
-        // 1m back from the anchor (which was authored 1m *in front* of
-        // the rack face) so the label sits directly above the rack
-        // body — otherwise as the camera approaches the anchor, the
-        // label projects to a screen position one rack pair forward
-        // and looks like it's labelling the *next* rack instead.
-        const labelX = isPortrait ? 0 : anchor.position.x;
-        // Use the same rackZ already computed above for opacity, so
-        // both opacity and visual position track the same world Z.
-        const labelZ = isPortrait ? rackZ : anchor.position.z;
-        // Y-offset: 1.7 m on landscape (label hovers above the wall-
-        // mounted rack as a callout), 1.1 m on portrait (label sits
-        // just above the rack top so it reads as a nameplate for the
-        // rack pair, not as a balloon floating in mid-air over it).
-        const labelY = anchor.position.y + (isPortrait ? 1.1 : 1.7);
-        // Depth hierarchy (#2): couple label size to its depth-opacity so
-        // the dominant (passing) label reads full-size while a fading
-        // neighbour shrinks back, on top of the distanceFactor's natural
-        // nearer-is-bigger scaling. Landscape opacity is always 1, so the
-        // factor is a no-op there.
-        const rackLabelDistance = labelDistance * (0.72 + 0.28 * labelOpacity);
-        return (
-          <Html
-            key={id}
-            position={[labelX, labelY, labelZ]}
-            center
-            distanceFactor={rackLabelDistance}
-            style={{
-              userSelect: "none",
-              opacity: labelOpacity,
-              transition: "opacity 220ms ease",
-              // Disable interaction on fully-faded labels so users can't
-              // accidentally tap an invisible button.
-              pointerEvents: labelOpacity < 0.2 ? "none" : "auto",
-            }}
-          >
-            <button
-              type="button"
-              className="rack-label"
-              onClick={() => onSelect?.({ kind: "project", projectId: id })}
-            >
-              <span className="rack-label__name">{project.name}</span>
-              <span className="rack-label__cluster">// {CLUSTER_DISPLAY[project.cluster]}</span>
-            </button>
-          </Html>
-        );
-      })}
+        })}
     </group>
   );
 }

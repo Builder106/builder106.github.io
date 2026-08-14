@@ -1,9 +1,4 @@
-import {
-  AdditiveBlending,
-  Color,
-  DoubleSide,
-  ShaderMaterial,
-} from "three";
+import { AdditiveBlending, Color, DoubleSide, ShaderMaterial } from 'three';
 
 // Volumetric overhead beam for the idle-attractor wave. A cone mesh
 // (apex at the ceiling, base at the floor) renders with this material;
@@ -74,7 +69,7 @@ export interface WaveBeamUniforms {
 
 export function createWaveBeamMaterial(
   color: string,
-  height: number,
+  height: number
 ): ShaderMaterial & { uniforms: WaveBeamUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,

@@ -1,4 +1,4 @@
-import { Object3D, Vector3 } from "three";
+import { Object3D, Vector3 } from 'three';
 
 // Blender Empty objects exported with names like "anchor_<id>" become
 // invisible Object3D nodes in the .glb. This module finds them and exposes
@@ -9,7 +9,7 @@ import { Object3D, Vector3 } from "three";
 
 // Underscore separator (not a dot) because Three.js's GLTFLoader strips
 // dots from node names — it reserves them for animation property paths.
-export const ANCHOR_PREFIX = "anchor_";
+export const ANCHOR_PREFIX = 'anchor_';
 
 export interface SceneAnchor {
   id: string;
@@ -19,7 +19,7 @@ export interface SceneAnchor {
 
 export function collectAnchors(root: Object3D): Map<string, SceneAnchor> {
   const out = new Map<string, SceneAnchor>();
-  root.traverse((node) => {
+  root.traverse(node => {
     if (!node.name.startsWith(ANCHOR_PREFIX)) return;
     const id = node.name.slice(ANCHOR_PREFIX.length);
     const position = new Vector3();
@@ -39,15 +39,14 @@ export function collectAnchors(root: Object3D): Map<string, SceneAnchor> {
 export function assertAnchorCoverage(
   anchors: Map<string, SceneAnchor>,
   projectIds: readonly string[],
-  variant: string,
+  variant: string
 ): void {
   if (!import.meta.env.DEV) return;
-  const missing = projectIds.filter((id) => !anchors.has(id));
+  const missing = projectIds.filter(id => !anchors.has(id));
   if (missing.length === 0) return;
-  // eslint-disable-next-line no-console
   console.error(
-    `[scene/${variant}] Missing anchor_<id> for projects: ${missing.join(", ")}. ` +
+    `[scene/${variant}] Missing anchor_<id> for projects: ${missing.join(', ')}. ` +
       `Each project in src/data/projects.ts requires a matching anchor in the ` +
-      `Blender scene — see docs/blender-contract.md.`,
+      `Blender scene — see docs/blender-contract.md.`
   );
 }

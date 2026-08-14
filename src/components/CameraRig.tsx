@@ -1,7 +1,7 @@
-import { useFrame, useThree } from "@react-three/fiber";
-import { useRef } from "react";
-import { Vector3 } from "three";
-import { type CameraTarget, defaultCameraTarget } from "@/scene/cameraRig";
+import { type CameraTarget, defaultCameraTarget } from '@/scene/cameraRig';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useRef } from 'react';
+import { Vector3 } from 'three';
 
 interface CameraRigProps {
   target: CameraTarget | null;

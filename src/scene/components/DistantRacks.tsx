@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { BufferGeometry, Material, Object3D } from "three";
+import { useMemo } from 'react';
+import { BufferGeometry, Material, Object3D } from 'three';
 
 function mulberry32(seed: number) {
   return () => {
@@ -47,18 +47,12 @@ export interface DistantRacksProps {
   isMobile: boolean;
 }
 
-export function DistantRacks({
-  bodyGeom,
-  bodyMat,
-  ledGeom,
-  ledMat,
-  isMobile,
-}: DistantRacksProps) {
+export function DistantRacks({ bodyGeom, bodyMat, ledGeom, ledMat, isMobile }: DistantRacksProps) {
   const transforms = useMemo(() => buildDistantRackTransforms(isMobile), [isMobile]);
 
   const matrices = useMemo(() => {
     const dummy = new Object3D();
-    return transforms.map((t) => {
+    return transforms.map(t => {
       dummy.position.set(t.position[0], t.position[1], t.position[2]);
       dummy.rotation.set(0, t.rotationY, 0);
       dummy.scale.setScalar(t.scale);
@@ -74,7 +68,7 @@ export function DistantRacks({
       <instancedMesh
         args={[bodyGeom, bodyMat, matrices.length]}
         frustumCulled={false}
-        ref={(m) => {
+        ref={m => {
           if (!m) return;
           matrices.forEach((mat, i) => m.setMatrixAt(i, mat));
           m.instanceMatrix.needsUpdate = true;
@@ -83,7 +77,7 @@ export function DistantRacks({
       <instancedMesh
         args={[ledGeom, ledMat, matrices.length]}
         frustumCulled={false}
-        ref={(m) => {
+        ref={m => {
           if (!m) return;
           matrices.forEach((mat, i) => m.setMatrixAt(i, mat));
           m.instanceMatrix.needsUpdate = true;

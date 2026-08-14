@@ -1,23 +1,23 @@
-import { useEffect, useRef, useState } from "react";
-import { PanelShell } from "./PanelShell";
+import { useEffect, useRef, useState } from 'react';
+import { PanelShell } from './PanelShell';
 
 interface ContactPingProps {
   open: boolean;
   onClose: () => void;
 }
 
-const NAME = "Olayinka David Vaughan";
-const ROLE = "economics + cs · wesleyan ‘28";
-const EMAIL = "vaughanolayinka@gmail.com";
-const PHONE = "+1 475 331 4070";
-const RESUME = "/Olayinka_Vaughan_Resume.pdf";
-const MAILTO_SUBJECT = "hi yinka";
-const MAILTO_BODY = "saw your portfolio — wanted to reach out.";
+const NAME = 'Olayinka David Vaughan';
+const ROLE = 'economics + cs · wesleyan ‘28';
+const EMAIL = 'vaughanolayinka@gmail.com';
+const PHONE = '+1 475 331 4070';
+const RESUME = '/Olayinka_Vaughan_Resume.pdf';
+const MAILTO_SUBJECT = 'hi yinka';
+const MAILTO_BODY = 'saw your portfolio — wanted to reach out.';
 
 const ELSEWHERE = [
-  { label: "github",   href: "https://github.com/Builder106" },
-  { label: "linkedin", href: "https://www.linkedin.com/in/yinka-vaughan/" },
-  { label: "devpost",  href: "https://devpost.com/olayinkav" },
+  { label: 'github', href: 'https://github.com/Builder106' },
+  { label: 'linkedin', href: 'https://www.linkedin.com/in/yinka-vaughan/' },
+  { label: 'devpost', href: 'https://devpost.com/olayinkav' },
 ];
 
 // In-canvas contact panel, same chrome as the other panels.
@@ -34,7 +34,7 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(value);
-      setTimeout(() => setCopied((c) => (c === value ? null : c)), 1400);
+      setTimeout(() => setCopied(c => (c === value ? null : c)), 1400);
     } catch {
       /* clipboard blocked — fallback is the visible value itself */
     }
@@ -54,16 +54,16 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
       // wildly — most updates are ±1 ms.
       baselineRef.current = Math.max(
         9,
-        Math.min(18, baselineRef.current + (Math.random() < 0.5 ? -1 : 1)),
+        Math.min(18, baselineRef.current + (Math.random() < 0.5 ? -1 : 1))
       );
-      const jitter = Math.random() < 0.85 ? 0 : (Math.random() < 0.5 ? -1 : 1);
+      const jitter = Math.random() < 0.85 ? 0 : Math.random() < 0.5 ? -1 : 1;
       setLatency(baselineRef.current + jitter);
     }, 1100);
     return () => window.clearInterval(id);
   }, [open]);
 
   const mailtoHref = `mailto:${EMAIL}?subject=${encodeURIComponent(
-    MAILTO_SUBJECT,
+    MAILTO_SUBJECT
   )}&body=${encodeURIComponent(MAILTO_BODY)}`;
 
   return (
@@ -109,10 +109,7 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
         <ul className="contact-methods">
           <li className="contact-method">
             <span className="contact-method__key">email</span>
-            <a
-              className="contact-method__value"
-              href={mailtoHref}
-            >
+            <a className="contact-method__value" href={mailtoHref}>
               {EMAIL}
             </a>
             <button
@@ -121,15 +118,12 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
               onClick={() => copy(EMAIL)}
               aria-label="Copy email address"
             >
-              {copied === EMAIL ? "copied" : "copy"}
+              {copied === EMAIL ? 'copied' : 'copy'}
             </button>
           </li>
           <li className="contact-method">
             <span className="contact-method__key">phone</span>
-            <a
-              className="contact-method__value"
-              href={`tel:${PHONE.replace(/\s/g, "")}`}
-            >
+            <a className="contact-method__value" href={`tel:${PHONE.replace(/\s/g, '')}`}>
               {PHONE}
             </a>
             <button
@@ -138,7 +132,7 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
               onClick={() => copy(PHONE)}
               aria-label="Copy phone number"
             >
-              {copied === PHONE ? "copied" : "copy"}
+              {copied === PHONE ? 'copied' : 'copy'}
             </button>
           </li>
         </ul>
@@ -150,7 +144,7 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
       <section className="panel__section">
         <div className="panel__section-label">elsewhere</div>
         <div className="contact-elsewhere">
-          {ELSEWHERE.map((link) => (
+          {ELSEWHERE.map(link => (
             <a
               key={link.label}
               className="contact-chip"
@@ -159,7 +153,9 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
               rel="noreferrer"
             >
               <span className="contact-chip__label">{link.label}</span>
-              <span className="contact-chip__arrow" aria-hidden>→</span>
+              <span className="contact-chip__arrow" aria-hidden>
+                →
+              </span>
             </a>
           ))}
         </div>
@@ -171,9 +167,13 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
           rather than a blank one. */}
       <section className="contact-ctas">
         <a className="contact-cta contact-cta--primary" href={mailtoHref}>
-          <span className="contact-cta__prompt" aria-hidden>$</span>
+          <span className="contact-cta__prompt" aria-hidden>
+            $
+          </span>
           <span>send email</span>
-          <span className="contact-cta__arrow" aria-hidden>→</span>
+          <span className="contact-cta__arrow" aria-hidden>
+            →
+          </span>
         </a>
         <a
           className="contact-cta contact-cta--secondary"
@@ -182,7 +182,9 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
           rel="noreferrer"
         >
           <span>view resume</span>
-          <span className="contact-cta__arrow" aria-hidden>→</span>
+          <span className="contact-cta__arrow" aria-hidden>
+            →
+          </span>
         </a>
       </section>
     </PanelShell>

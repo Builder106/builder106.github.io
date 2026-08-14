@@ -87,11 +87,15 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .hud__hint--fine { display: inline-flex; }
+  .hud__hint--fine {
+    display: inline-flex;
+  }
 }
 
 @media (pointer: coarse), (hover: none) {
-  .hud__hint--coarse { display: inline-flex; }
+  .hud__hint--coarse {
+    display: inline-flex;
+  }
 }
 
 .hud__hint-key {
@@ -136,7 +140,10 @@
   border-radius: 4px;
   color: var(--neon-cyan);
   cursor: pointer;
-  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
 }
 
 .hud__audio:hover,
@@ -160,7 +167,9 @@
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: background 150ms ease, border-color 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
 }
 
 .hud__ping:hover {

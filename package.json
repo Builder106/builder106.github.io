@@ -19,7 +19,11 @@
     "voice:eleven:create": "node scripts/tts/render-elevenlabs.mjs --create-voice",
     "demo:voiceover:eleven": "node scripts/tts/render-elevenlabs.mjs",
     "demo:mux": "ffmpeg -y -hide_banner -loglevel error -i e2e/demo/output/01-hero-master-tour.mp4 -i e2e/demo/output/narration.wav -filter_complex \"[1:a]silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,adelay=3000,apad[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -b:a 192k -shortest e2e/demo/output/01-hero-master-tour-narrated.mp4 && cp e2e/demo/output/01-hero-master-tour-narrated.mp4 public/demo.mp4",
-    "demo:mux:eleven": "ffmpeg -y -hide_banner -loglevel error -i e2e/demo/output/01-hero-master-tour.mp4 -i e2e/demo/output/narration-eleven.mp3 -filter_complex \"[1:a]silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,adelay=3000,apad[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -b:a 192k -shortest e2e/demo/output/01-hero-master-tour-narrated.mp4 && cp e2e/demo/output/01-hero-master-tour-narrated.mp4 public/demo.mp4"
+    "demo:mux:eleven": "ffmpeg -y -hide_banner -loglevel error -i e2e/demo/output/01-hero-master-tour.mp4 -i e2e/demo/output/narration-eleven.mp3 -filter_complex \"[1:a]silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,adelay=3000,apad[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -b:a 192k -shortest e2e/demo/output/01-hero-master-tour-narrated.mp4 && cp e2e/demo/output/01-hero-master-tour-narrated.mp4 public/demo.mp4",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -38,9 +42,16 @@
     "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
     "playwright-bdd": "^9.2.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-organize-imports": "^4.1.0",
     "replicate": "^1.4.0",
     "typescript": "~6.0.3",
+    "typescript-eslint": "^8.18.2",
     "vite": "^8.2.1",
     "vitest": "^4.1.10"
   }

@@ -1,4 +1,4 @@
-import { AdditiveBlending, Color, DoubleSide, ShaderMaterial } from "three";
+import { AdditiveBlending, Color, DoubleSide, ShaderMaterial } from 'three';
 
 // Floor disc color-wash for the idle-attractor wave. A circular plane
 // per slot, laid flat on the floor (rotated -π/2 around X by the
@@ -54,7 +54,7 @@ export interface WaveFloorUniforms {
 }
 
 export function createWaveFloorMaterial(
-  color: string,
+  color: string
 ): ShaderMaterial & { uniforms: WaveFloorUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,

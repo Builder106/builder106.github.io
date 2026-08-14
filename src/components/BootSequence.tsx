@@ -1,21 +1,21 @@
-import { useEffect, useRef, useState } from "react";
-import "./BootSequence.css";
+import { useEffect, useRef, useState } from 'react';
+import './BootSequence.css';
 
 // Minimum on-screen time so the bootup actually reads as a sequence and
 // doesn't disappear in 200ms on a fast machine. Tune to taste.
 const MIN_DURATION_MS = 2200;
 
 const LINES = [
-  { text: "[boot] initializing nvram....................[ok]", delay: 120 },
-  { text: "[boot] mounting /dev/sda1 → /................[ok]", delay: 90 },
-  { text: "[boot] loading kernel modules................[ok]", delay: 110 },
-  { text: "[net]  bringing up eth0......................[ok]", delay: 130 },
-  { text: "[stack] python  3.12.....linked..............[ok]", delay: 70 },
-  { text: "[stack] ocaml   5.2.0....linked..............[ok]", delay: 70 },
-  { text: "[stack] typescript  5.6..linked..............[ok]", delay: 70 },
-  { text: "[stack] r       4.4.....linked...............[ok]", delay: 70 },
-  { text: "[net]  connecting to yinkavaughan.me.........[ok]", delay: 200 },
-  { text: "[ok]   handshake complete. opening shell.", delay: 240 },
+  { text: '[boot] initializing nvram....................[ok]', delay: 120 },
+  { text: '[boot] mounting /dev/sda1 → /................[ok]', delay: 90 },
+  { text: '[boot] loading kernel modules................[ok]', delay: 110 },
+  { text: '[net]  bringing up eth0......................[ok]', delay: 130 },
+  { text: '[stack] python  3.12.....linked..............[ok]', delay: 70 },
+  { text: '[stack] ocaml   5.2.0....linked..............[ok]', delay: 70 },
+  { text: '[stack] typescript  5.6..linked..............[ok]', delay: 70 },
+  { text: '[stack] r       4.4.....linked...............[ok]', delay: 70 },
+  { text: '[net]  connecting to yinkavaughan.me.........[ok]', delay: 200 },
+  { text: '[ok]   handshake complete. opening shell.', delay: 240 },
 ];
 
 interface BootSequenceProps {
@@ -53,7 +53,7 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
   }, [onComplete]);
 
   return (
-    <div className={`boot-sequence ${fading ? "boot-sequence--fading" : ""}`}>
+    <div className={`boot-sequence ${fading ? 'boot-sequence--fading' : ''}`}>
       <div className="boot-sequence__inner">
         <div className="boot-sequence__header">
           <span className="boot-sequence__prompt">yinka@portfolio</span>

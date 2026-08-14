@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 // Ambient bed for the data-centre aisle. The catalogue below is the
 // full "Sun Waves" release by Vermillion Gaze on archive.org, CC-BY 4.0
@@ -16,11 +16,7 @@ import { useEffect, useRef } from "react";
 // Attribution is surfaced in the audio pill's meta line and in the
 // console's `credits` command.
 
-export type TrackId =
-  | "mechanical-sunsets"
-  | "hymn-to-the-sun"
-  | "vicissitudes"
-  | "wavelength";
+export type TrackId = 'mechanical-sunsets' | 'hymn-to-the-sun' | 'vicissitudes' | 'wavelength';
 
 export interface Track {
   readonly id: TrackId;
@@ -34,53 +30,51 @@ export interface Track {
 
 export const TRACKS: readonly Track[] = [
   {
-    id: "mechanical-sunsets",
-    url: "https://archive.org/download/SunWaves/MechanicalSunsets.mp3",
-    title: "Mechanical Sunsets",
-    artist: "Vermillion Gaze",
-    album: "Sun Waves",
-    license: "CC-BY 4.0",
-    source: "archive.org/details/SunWaves",
+    id: 'mechanical-sunsets',
+    url: 'https://archive.org/download/SunWaves/MechanicalSunsets.mp3',
+    title: 'Mechanical Sunsets',
+    artist: 'Vermillion Gaze',
+    album: 'Sun Waves',
+    license: 'CC-BY 4.0',
+    source: 'archive.org/details/SunWaves',
   },
   {
-    id: "hymn-to-the-sun",
-    url: "https://archive.org/download/SunWaves/HymnToTheSun.mp3",
-    title: "Hymn to the Sun",
-    artist: "Vermillion Gaze",
-    album: "Sun Waves",
-    license: "CC-BY 4.0",
-    source: "archive.org/details/SunWaves",
+    id: 'hymn-to-the-sun',
+    url: 'https://archive.org/download/SunWaves/HymnToTheSun.mp3',
+    title: 'Hymn to the Sun',
+    artist: 'Vermillion Gaze',
+    album: 'Sun Waves',
+    license: 'CC-BY 4.0',
+    source: 'archive.org/details/SunWaves',
   },
   {
-    id: "vicissitudes",
-    url: "https://archive.org/download/SunWaves/VicissitudesOnTheTamagawa.mp3",
-    title: "Vicissitudes on the Tamagawa",
-    artist: "Vermillion Gaze",
-    album: "Sun Waves",
-    license: "CC-BY 4.0",
-    source: "archive.org/details/SunWaves",
+    id: 'vicissitudes',
+    url: 'https://archive.org/download/SunWaves/VicissitudesOnTheTamagawa.mp3',
+    title: 'Vicissitudes on the Tamagawa',
+    artist: 'Vermillion Gaze',
+    album: 'Sun Waves',
+    license: 'CC-BY 4.0',
+    source: 'archive.org/details/SunWaves',
   },
   {
-    id: "wavelength",
-    url: "https://archive.org/download/SunWaves/Wavelength.mp3",
-    title: "Wavelength",
-    artist: "Vermillion Gaze",
-    album: "Sun Waves",
-    license: "CC-BY 4.0",
-    source: "archive.org/details/SunWaves",
+    id: 'wavelength',
+    url: 'https://archive.org/download/SunWaves/Wavelength.mp3',
+    title: 'Wavelength',
+    artist: 'Vermillion Gaze',
+    album: 'Sun Waves',
+    license: 'CC-BY 4.0',
+    source: 'archive.org/details/SunWaves',
   },
 ];
 
-export const DEFAULT_TRACK_ID: TrackId = "mechanical-sunsets";
+export const DEFAULT_TRACK_ID: TrackId = 'mechanical-sunsets';
 
 export function getTrack(id: TrackId): Track {
-  return TRACKS.find((t) => t.id === id) ?? TRACKS[0];
+  return TRACKS.find(t => t.id === id) ?? TRACKS[0];
 }
 
 export function isTrackId(value: unknown): value is TrackId {
-  return (
-    typeof value === "string" && TRACKS.some((t) => t.id === value)
-  );
+  return typeof value === 'string' && TRACKS.some(t => t.id === value);
 }
 
 const TARGET_VOLUME = 0.4;
@@ -107,13 +101,7 @@ function rampGain(audio: HTMLAudioElement, to: number, seconds: number): number 
   return id;
 }
 
-export function useAisleAudio({
-  enabled,
-  trackId,
-}: {
-  enabled: boolean;
-  trackId: TrackId;
-}): void {
+export function useAisleAudio({ enabled, trackId }: { enabled: boolean; trackId: TrackId }): void {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeIdRef = useRef<number | null>(null);
   // Set to true once the first user gesture has reached the audio
@@ -147,8 +135,8 @@ export function useAisleAudio({
     const a = new Audio();
     a.src = trackUrlRef.current;
     a.loop = true;
-    a.preload = "auto";
-    a.crossOrigin = "anonymous";
+    a.preload = 'auto';
+    a.crossOrigin = 'anonymous';
     a.volume = 0;
     audioRef.current = a;
 
@@ -167,15 +155,15 @@ export function useAisleAudio({
       fadeIdRef.current = rampGain(a, TARGET_VOLUME, FADE_IN_SECONDS);
     };
     const cleanup = () => {
-      document.removeEventListener("pointerdown", start);
-      document.removeEventListener("touchstart", start);
-      document.removeEventListener("keydown", start);
-      document.removeEventListener("wheel", start);
+      document.removeEventListener('pointerdown', start);
+      document.removeEventListener('touchstart', start);
+      document.removeEventListener('keydown', start);
+      document.removeEventListener('wheel', start);
     };
-    document.addEventListener("pointerdown", start, { once: true });
-    document.addEventListener("touchstart", start, { once: true });
-    document.addEventListener("keydown", start, { once: true });
-    document.addEventListener("wheel", start, { once: true });
+    document.addEventListener('pointerdown', start, { once: true });
+    document.addEventListener('touchstart', start, { once: true });
+    document.addEventListener('keydown', start, { once: true });
+    document.addEventListener('wheel', start, { once: true });
 
     return cleanup;
   }, []);
@@ -230,9 +218,8 @@ export function useAisleAudio({
       const a = audioRef.current;
       if (a) {
         a.pause();
-        a.src = "";
+        a.src = '';
       }
     };
   }, []);
 }
-
