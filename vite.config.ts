@@ -187,8 +187,9 @@ export default defineConfig({
     __BUILD_TIMESTAMP__: JSON.stringify(BUILD_META.timestamp),
   },
   build: {
-    target: "es2022",
+    target: "esnext",
     sourcemap: false,
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         manualChunks(id) {
