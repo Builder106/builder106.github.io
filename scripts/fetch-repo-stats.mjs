@@ -23,7 +23,7 @@ const outPath = resolve(repoRoot, "src/data/repoStats.generated.ts");
 // regex over `repo: "https://github.com/<owner>/<name>"` is sufficient.
 function extractRepoSlugs() {
   const src = readFileSync(projectsPath, "utf8");
-  const re = /repo:\s*"https:\/\/github\.com\/([^"]+)"/g;
+  const re = /repo:\s*['"]https:\/\/github\.com\/([^'"]+)['"]/g;
   const slugs = new Set();
   for (const m of src.matchAll(re)) slugs.add(m[1]);
   return [...slugs];

@@ -2,11 +2,74 @@ import { defineConfig, type Plugin } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { execSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { projects } from "./src/data/projects.ts";
 import {
   buildLlmsTxt,
   buildSemanticContentHTML,
   buildStructuredDataJSON,
 } from "./src/utils/semanticHtml.ts";
+
+interface RepoStatEntry {
+  stars: number;
+  lang: string | null;
+  pushed_at: string;
+}
+
+// Fetch star counts, primary language, and last-push timestamp for each project's
+// GitHub repo directly from typed project objects. Writes to `repoStats.generated.ts`.
+// Gracefully skips overwriting if offline or unauthenticated so committed stats remain.
+function syncRepoStats(): void {
+  const slugs = Array.from(
+    new Set(
+      projects
+        .map((p) => p.links.repo)
+        .filter((url): url is string => Boolean(url && url.startsWith("https://github.com/")))
+        .map((url) => url.replace("https://github.com/", "")),
+    ),
+  );
+
+  const stats: Record<string, RepoStatEntry> = {};
+  for (const slug of slugs) {
+    try {
+      const out = execSync(
+        `gh api repos/${slug} --jq '{stars: .stargazers_count, lang: .language, pushed_at: .pushed_at}'`,
+        { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+      );
+      stats[slug] = JSON.parse(out);
+    } catch {
+      // Offline, rate limited, or unauthenticated; continue
+    }
+  }
+
+  const outPath = path.resolve(import.meta.dirname, "src/data/repoStats.generated.ts");
+  if (Object.keys(stats).length === 0) {
+    return;
+  }
+
+  const header =
+    "// Auto-generated at build time from projects.ts and GitHub API.\n" +
+    "// Don't edit by hand.\n\n";
+  const body = `export interface RepoStats {
+  stars: number;
+  lang: string | null;
+  pushed_at: string;
+}
+
+export const repoStats: Record<string, RepoStats> = ${JSON.stringify(stats, null, 2)};
+`;
+
+  writeFileSync(outPath, header + body, "utf8");
+}
+
+function syncRepoStatsPlugin(): Plugin {
+  return {
+    name: "sync-repo-stats",
+    buildStart() {
+      syncRepoStats();
+    },
+  };
+}
 
 // Resolve the current HEAD's short SHA, message, and ISO timestamp at
 // build/dev time. Surfaced in the terminal-panel dashboard so the
@@ -111,6 +174,7 @@ export default defineConfig({
     injectSemanticContent(),
     injectStructuredData(),
     emitLlmsTxt(),
+    syncRepoStatsPlugin(),
   ],
   resolve: {
     alias: {
