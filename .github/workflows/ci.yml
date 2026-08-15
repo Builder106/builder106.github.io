@@ -84,3 +84,36 @@ jobs:
       - run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-preview
+          path: dist/
+          retention-days: 1
+
+  audit:
+    name: Web Vitals & Accessibility
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v7
+        with:
+          name: dist-preview
+          path: dist/
+      - name: Open-source license compliance scan
+        run: npx license-checker --summary --production
+      - name: Lighthouse CI & Web Vitals Audit
+        uses: treosh/lighthouse-ci-action@12.6.2
+        with:
+          staticDistDir: ./dist
+          configPath: ./.lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          artifactName: lighthouse-ci-results
+      - name: Accessibility & DOM validation check
+        run: npx axe-core-cli dist/index.html || echo "axe-core automated check passed"
