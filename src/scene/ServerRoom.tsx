@@ -1617,7 +1617,6 @@ export function ServerRoom({
         />
       )}
 
-
       {/* Distant data-center skyline: rack-shaped templates authored
           in Blender, instanced ~80x in a 22–50m ring around the room.
           The body mesh is matte dark; the LED accent strip is bright
