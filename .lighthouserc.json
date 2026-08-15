@@ -2,6 +2,7 @@
   "ci": {
     "collect": {
       "staticDistDir": "./dist",
+      "isUrlPattern": ".*(index\\.html$|404\\.html$|oss-contribution-tracker/index\\.html$)",
       "numberOfRuns": 3,
       "settings": {
         "skipAudits": ["uses-http2"]
