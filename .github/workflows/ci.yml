@@ -110,7 +110,6 @@ jobs:
       - name: Lighthouse CI & Web Vitals Audit
         uses: treosh/lighthouse-ci-action@12.6.2
         with:
-          staticDistDir: ./dist
           configPath: ./.lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
