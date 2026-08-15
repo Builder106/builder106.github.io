@@ -1267,13 +1267,12 @@ export function ServerRoom({
       {variant === 'portrait' && (
         <group name="aisle-atmosphere">
           {/* Overhead fluorescent strips, spaced ~2.34 m apart down the
-              aisle (−i·AISLE_SPACING·0.9). The count spans the full
-              12-rack corridor to the terminus (≈z−32) so the overhead
-              lighting meets the racks instead of stopping short and
-              leaving a dark band; trailing strips fade into the fog.
-              Mobile runs slightly fewer than desktop. */}
+              aisle (−(i + 1)·AISLE_SPACING·0.9). Starts at z≈−2.34
+              (behind the second rack pair) so the camera doesn't see a
+              giant floating foreground slab at the top of the mobile frame.
+              Spans the corridor to the terminus wall; trailing strips fade into fog. */}
           {Array.from({ length: isMobile ? 15 : 18 }).map((_, i) => (
-            <group key={`fluo-${i}`} position={[0, 6, -i * AISLE_SPACING * 0.9]}>
+            <group key={`fluo-${i}`} position={[0, 6, -(i + 1) * AISLE_SPACING * 0.9]}>
               {/* Recessed housing — a dark frame the bright panel sits
                   inside, so the fixture reads as a 3D troffer instead of
                   a flat glowing rectangle. */}
@@ -1287,12 +1286,10 @@ export function ServerRoom({
                 <meshBasicMaterial color="#9fe6ff" toneMapped={false} fog />
               </mesh>
               {/* Pool of light on the ceiling grid above the fixture
-                  (additive radial sprite). The bright-under-the-light /
-                  dark-between falloff is what reads as real lit geometry
-                  and gives the overhead depth. Fogs with distance so the
-                  receding pools fade like the strips. */}
+                  (additive radial sprite). Scaled proportionally so it
+                  enhances overhead depth without overpowering the top of the screen. */}
               <mesh position={[0, 0.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                <planeGeometry args={[2.4, 3.8]} />
+                <planeGeometry args={[1.8, 3.0]} />
                 <meshBasicMaterial
                   map={ceilGlowTex}
                   color="#4cf2ff"
