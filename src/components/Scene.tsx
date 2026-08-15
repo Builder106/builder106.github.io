@@ -14,12 +14,12 @@ import {
 } from '@/scene/cameraRig';
 import type { ClickTarget } from '@/scene/clickResolver';
 import { useSceneVariant, type SceneVariant } from '@/scene/sceneVariant';
+import { isAutomatedEnvironment } from '@/utils/isAutomated';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { MathUtils, Vector3 } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { isAutomatedEnvironment } from '@/utils/isAutomated';
 import { CameraRig } from './CameraRig';
 import { useIsMobile } from './useIsMobile';
 

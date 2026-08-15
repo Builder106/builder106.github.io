@@ -1,4 +1,5 @@
 import { AISLE_ORDER, CLUSTER_DISPLAY, projects } from '@/data/projects';
+import { isAutomatedEnvironment } from '@/utils/isAutomated';
 import {
   Grid,
   Html,
@@ -37,7 +38,6 @@ import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from './anchor
 import { resolveClick, type ClickTarget } from './clickResolver';
 import { createConsoleMaterial, type ConsoleUniforms } from './consoleShader';
 import { createOperatorHoloMaterial, type OperatorHoloUniforms } from './operatorHoloShader';
-import { isAutomatedEnvironment } from '@/utils/isAutomated';
 import { MODEL_URLS, type SceneVariant } from './sceneVariant';
 import { createWaveBeamMaterial, type WaveBeamUniforms } from './waveBeamShader';
 import { createWaveFloorMaterial, type WaveFloorUniforms } from './waveFloorShader';
@@ -1565,11 +1565,7 @@ export function ServerRoom({
             roughness={0.4}
           />
         ) : (
-          <meshStandardMaterial
-            color="#262a3d"
-            metalness={0.55}
-            roughness={0.4}
-          />
+          <meshStandardMaterial color="#262a3d" metalness={0.55} roughness={0.4} />
         )}
       </mesh>
 
