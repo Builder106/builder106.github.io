@@ -476,7 +476,10 @@ export function ServerRoom({
     }
     return cloned;
   }, [originalScene, variant]);
-  const { scene: rootScene, gl } = useThree();
+  const { scene: rootScene, gl, invalidate } = useThree();
+  useEffect(() => {
+    invalidate();
+  }, [invalidate, scene]);
   // Preload every project logo as a texture and crank the anisotropy
   // to the GPU max. Without this the rack badges are sampled with
   // basic trilinear filtering and blur out at the grazing camera
