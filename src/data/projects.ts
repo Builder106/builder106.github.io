@@ -83,10 +83,10 @@ export const projects: Project[] = [
       live: 'https://econ-os.vercel.app',
       repo: 'https://github.com/Builder106/econ-os',
     },
-    image: '/img/projects/econos.png',
+    image: '/img/projects/econos.webp',
     demo: '/img/projects/demos/econos.webm',
     color: '#36d4ff',
-    logo: '/img/projects/logos/econos.png',
+    logo: '/img/projects/logos/econos.webp',
   },
   {
     id: 'ocaml-lob',
@@ -100,10 +100,10 @@ export const projects: Project[] = [
       live: 'https://ocaml-lob.vercel.app',
       repo: 'https://github.com/Builder106/ocaml-limit',
     },
-    image: '/img/projects/ocaml-lob.png',
+    image: '/img/projects/ocaml-lob.webp',
     demo: '/img/projects/demos/ocaml-lob.webm',
     color: '#ffab2e',
-    logo: '/img/projects/logos/ocaml-lob.png',
+    logo: '/img/projects/logos/ocaml-lob.webp',
   },
   {
     id: 'qforge',
@@ -117,10 +117,10 @@ export const projects: Project[] = [
       live: 'https://qforge-neural.vercel.app',
       repo: 'https://github.com/Builder106/qforge',
     },
-    image: '/img/projects/qforge.png',
+    image: '/img/projects/qforge.webp',
     demo: '/img/projects/demos/qforge.webm',
     color: '#ff5240',
-    logo: '/img/projects/logos/qforge.png',
+    logo: '/img/projects/logos/qforge.webp',
   },
 
   // Left wall (SWE cluster) ----------------------------------------------
@@ -136,10 +136,10 @@ export const projects: Project[] = [
       live: 'https://trymicromatch.vercel.app',
       repo: 'https://github.com/Builder106/micro-match',
     },
-    image: '/img/projects/micromatch.png',
+    image: '/img/projects/micromatch.webp',
     demo: '/img/projects/demos/micromatch.webm',
     color: '#ff6f91',
-    logo: '/img/projects/logos/micromatch.png',
+    logo: '/img/projects/logos/micromatch.webp',
   },
   {
     id: 'staija',
@@ -153,10 +153,10 @@ export const projects: Project[] = [
       live: 'https://staija.org',
       repo: 'https://github.com/Builder106/staija',
     },
-    image: '/img/projects/staija.png',
+    image: '/img/projects/staija.webp',
     demo: '/img/projects/demos/staija.webm',
     color: '#1fd99b',
-    logo: '/img/projects/logos/staija.png',
+    logo: '/img/projects/logos/staija.webp',
   },
   {
     id: 'studysprint',
@@ -170,10 +170,10 @@ export const projects: Project[] = [
       live: 'https://getstudysprint.vercel.app',
       repo: 'https://github.com/Builder106/study-sprint',
     },
-    image: '/img/projects/studysprint.png',
+    image: '/img/projects/studysprint.webp',
     demo: '/img/projects/demos/studysprint.webm',
     color: '#a6e22e',
-    logo: '/img/projects/logos/studysprint.png',
+    logo: '/img/projects/logos/studysprint.webp',
   },
 
   // Analyst cluster (right wall in landscape, back tier in portrait) -------
@@ -194,7 +194,7 @@ export const projects: Project[] = [
     },
     demo: '/img/projects/demos/capitol-alpha.webm',
     color: '#ff3b5c',
-    logo: '/img/projects/logos/capitol-alpha.png',
+    logo: '/img/projects/logos/capitol-alpha.webp',
   },
   {
     id: 'datafest-2026',
@@ -210,7 +210,7 @@ export const projects: Project[] = [
     },
     demo: '/img/projects/demos/datafest-2026.webm',
     color: '#3b9bff',
-    logo: '/img/projects/logos/datafest-2026.png',
+    logo: '/img/projects/logos/datafest-2026.webp',
   },
   {
     id: 'linuxbenchhub',
@@ -224,7 +224,7 @@ export const projects: Project[] = [
       repo: 'https://github.com/Builder106/linux-bench-hub',
     },
     color: '#b06bff',
-    logo: '/img/projects/logos/linuxbenchhub.png',
+    logo: '/img/projects/logos/linuxbenchhub.webp',
   },
 
   // Security cluster -------------------------------------------------------
@@ -247,7 +247,7 @@ export const projects: Project[] = [
       repo: 'https://github.com/Builder106/clear-hash',
     },
     color: '#3dff6a',
-    logo: '/img/projects/logos/clearhash.png',
+    logo: '/img/projects/logos/clearhash.webp',
   },
   {
     id: 'halberd',
@@ -262,7 +262,7 @@ export const projects: Project[] = [
       repo: 'https://github.com/Builder106/halberd',
     },
     color: '#f5c542',
-    logo: '/img/projects/logos/halberd.png',
+    logo: '/img/projects/logos/halberd.webp',
   },
   {
     id: 'quarry',
@@ -277,7 +277,7 @@ export const projects: Project[] = [
       repo: 'https://github.com/Builder106/quarry',
     },
     color: '#ff8a1f',
-    logo: '/img/projects/logos/quarry.png',
+    logo: '/img/projects/logos/quarry.webp',
   },
 
   // AI/ML cluster ----------------------------------------------------------
@@ -304,7 +304,7 @@ export const projects: Project[] = [
       repo: 'https://github.com/Builder106/enclave',
     },
     color: '#15c39a',
-    logo: '/img/projects/logos/enclave.png',
+    logo: '/img/projects/logos/enclave.webp',
     demo: '/img/projects/demos/enclave.webm',
   },
   {
@@ -320,7 +320,7 @@ export const projects: Project[] = [
       repo: 'https://github.com/Builder106/helm',
     },
     color: '#4f8cff',
-    logo: '/img/projects/logos/helm.png',
+    logo: '/img/projects/logos/helm.webp',
     demo: '/img/projects/demos/helm.webm',
   },
   {
@@ -336,7 +336,7 @@ export const projects: Project[] = [
       repo: 'https://github.com/Builder106/imc-prosperity',
     },
     color: '#ff4b4b',
-    logo: '/img/projects/logos/tradetell.png',
+    logo: '/img/projects/logos/tradetell.webp',
     demo: '/img/projects/demos/tradetell.webm',
   },
 ];

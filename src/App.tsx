@@ -53,14 +53,27 @@ import { useSceneVariant } from './scene/sceneVariant';
 export function App() {
   const [booted, setBooted] = useState(false);
   const [active, setActive] = useState<ActivePanel>({ kind: 'none' });
-  // Prefetch the heavy Scene chunk the moment App mounts. The
-  // BootSequence runs for ~1–2 s, which is normally enough to fully
-  // download three.js + drei + the scene module on a half-decent
-  // connection; by the time `booted` flips and Suspense reaches for
-  // the chunk, it's already cached and there's no visible loading
-  // step. Slow connections still get a graceful BootSequence fallback.
+  // Prefetch the heavy Scene chunk during browser idle time so initial
+  // paint / boot sequence animation has full main-thread bandwidth.
   useEffect(() => {
-    void import('./components/Scene');
+    if (typeof window === 'undefined') return;
+    const win = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof win.requestIdleCallback === 'function') {
+      const handle = win.requestIdleCallback(
+        () => {
+          void import('./components/Scene');
+        },
+        { timeout: 1500 }
+      );
+      return () => win.cancelIdleCallback?.(handle);
+    }
+    const timer = window.setTimeout(() => {
+      void import('./components/Scene');
+    }, 800);
+    return () => window.clearTimeout(timer);
   }, []);
   // Ambient audio (streamed CC-BY mp3 — see useAisleAudio). Defaults
   // on post-boot; browser autoplay policy requires a user gesture to
