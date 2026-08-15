@@ -16,10 +16,13 @@ export function isSoftwareWebGL(): boolean {
     if (dbg) {
       const renderer = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '');
       const vendor = String(gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) || '');
-      if (
-        /SwiftShader|llvmpipe|Software|Mesa/i.test(renderer) ||
-        (/Google/i.test(vendor) && /SwiftShader|Renderer/i.test(renderer))
-      ) {
+      // Only match actual software emulation rasterizers (SwiftShader, llvmpipe, lavapipe, OSMesa, Software Rasterizer).
+      // Never match hardware-accelerated drivers (e.g. Apple Metal, NVIDIA, AMD, Intel, Adreno, Mali).
+      if (/SwiftShader|llvmpipe|lavapipe|osmesa|Software Rasterizer/i.test(renderer)) {
+        isSoftwareCache = true;
+        return true;
+      }
+      if (/Google/i.test(vendor) && /SwiftShader/i.test(renderer)) {
         isSoftwareCache = true;
         return true;
       }
