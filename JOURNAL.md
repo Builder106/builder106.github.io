@@ -7,7 +7,7 @@
 
 ## 2026-08-15 — Fix mobile portrait ceiling troffer proximity and glow framing #decision #incident
 
-Adjusted the portrait fluorescent lighting row in `ServerRoom.tsx` to offset the starting troffer from `z = 0` to `z ≈ -2.34` (`-(i + 1) * AISLE_SPACING * 0.9`). On tall mobile viewports with a 70° vertical FOV, the `z = 0` fixture sat in the extreme foreground, appearing as an oversized floating block with an intrusive additive glow sprite at the top edge of the screen. Offsetting the sequence down the aisle aligns the lights naturally with the server rack perspective and smoothly leads the eye toward the terminus. Resized the glow plane geometry (`1.8 × 3.0`) for proportional falloff against the overhead grid. Verified typecheck, unit tests, and production build on `ampere-dev`.
+Adjusted the portrait fluorescent lighting row in `ServerRoom.tsx` to offset the starting troffer from `z = 0` to `z ≈ -2.34` (`-(i + 1) * AISLE_SPACING * 0.9`). Removed the additive radial glow plane sprites from each troffer fixture—eliminating the fuzzy cyan spotlight halo artifact that projected against the dark ceiling void on high vertical FOV mobile viewports—while keeping the crisp 3D troffer geometry (dark housing and emissive panel) receding cleanly along the ceiling grid. Verified typecheck, unit tests, and production build on `ampere-dev`.
 
 ## 2026-08-14 — Fix duplicate portrait ceiling fixtures artifact #incident #decision
 

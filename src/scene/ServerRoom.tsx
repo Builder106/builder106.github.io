@@ -1285,22 +1285,6 @@ export function ServerRoom({
                 <boxGeometry args={[0.34, 0.05, 1.62]} />
                 <meshBasicMaterial color="#9fe6ff" toneMapped={false} fog />
               </mesh>
-              {/* Pool of light on the ceiling grid above the fixture
-                  (additive radial sprite). Scaled proportionally so it
-                  enhances overhead depth without overpowering the top of the screen. */}
-              <mesh position={[0, 0.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                <planeGeometry args={[1.8, 3.0]} />
-                <meshBasicMaterial
-                  map={ceilGlowTex}
-                  color="#4cf2ff"
-                  transparent
-                  depthWrite={false}
-                  blending={AdditiveBlending}
-                  side={DoubleSide}
-                  toneMapped={false}
-                  fog
-                />
-              </mesh>
             </group>
           ))}
 
