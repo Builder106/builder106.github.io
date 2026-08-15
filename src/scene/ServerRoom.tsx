@@ -491,7 +491,7 @@ export function ServerRoom({
   // Operator portrait — fed into the OperatorHolo shader as uTexture.
   // Single-image useTexture call; the SRGB + anisotropy fix-up happens
   // alongside the rack logos below.
-  const pfpTexture = useTexture('/LinkedIn_PFP.png') as import('three').Texture;
+  const pfpTexture = useTexture('/LinkedIn_PFP.webp') as import('three').Texture;
   useLayoutEffect(() => {
     // Anisotropic filtering + sRGB colour space. The colour-space
     // step matters because drei's <Image> internally sets

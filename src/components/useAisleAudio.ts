@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { isAutomatedEnvironment } from '../utils/isAutomated';
 
 // Ambient bed for the data-centre aisle. The catalogue below is the
 // full "Sun Waves" release by Vermillion Gaze on archive.org, CC-BY 4.0
@@ -102,6 +103,7 @@ function rampGain(audio: HTMLAudioElement, to: number, seconds: number): number 
 }
 
 export function useAisleAudio({ enabled, trackId }: { enabled: boolean; trackId: TrackId }): void {
+  const isAutomated = isAutomatedEnvironment();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeIdRef = useRef<number | null>(null);
   // Set to true once the first user gesture has reached the audio
@@ -129,13 +131,15 @@ export function useAisleAudio({ enabled, trackId }: { enabled: boolean; trackId:
   // first-gesture listeners. Browsers block programmatic play() until
   // a user has interacted with the page; after the first gesture,
   // hasGesturedRef flips and subsequent toggles can play directly.
+  // Preload is set to 'none' and src is deferred until user gesture to
+  // prevent buffering the ~6 MB MP3 on initial page load.
   useEffect(() => {
+    if (isAutomated) return;
     if (audioRef.current) return;
 
     const a = new Audio();
-    a.src = trackUrlRef.current;
     a.loop = true;
-    a.preload = 'auto';
+    a.preload = 'none';
     a.crossOrigin = 'anonymous';
     a.volume = 0;
     audioRef.current = a;
@@ -146,6 +150,9 @@ export function useAisleAudio({ enabled, trackId }: { enabled: boolean; trackId:
       const el = audioRef.current;
       if (!el) return;
       if (!enabledRef.current) return;
+      if (!el.src || el.src !== trackUrlRef.current) {
+        el.src = trackUrlRef.current;
+      }
       void el.play().catch(() => {
         // Even after a gesture, the file might not have buffered
         // enough to start. Browsers will retry on the next gesture
@@ -166,13 +173,14 @@ export function useAisleAudio({ enabled, trackId }: { enabled: boolean; trackId:
     document.addEventListener('wheel', start, { once: true });
 
     return cleanup;
-  }, []);
+  }, [isAutomated]);
 
   // Effect 2: track changes. Swap the audio element's src in place;
   // if we're currently playing, restart playback on the new track
   // with a brief silence in between (no cross-fade — keeps the code
   // simple, and the existing fade-in covers the attack).
   useEffect(() => {
+    if (isAutomated) return;
     const a = audioRef.current;
     if (!a) return;
     if (a.src === trackUrl) return;
@@ -182,24 +190,30 @@ export function useAisleAudio({ enabled, trackId }: { enabled: boolean; trackId:
       fadeIdRef.current = null;
     }
     a.pause();
-    a.src = trackUrl;
-    a.volume = 0;
-
     if (enabled && hasGesturedRef.current) {
+      a.src = trackUrl;
+      a.volume = 0;
       void a.play().catch(() => {});
       fadeIdRef.current = rampGain(a, TARGET_VOLUME, FADE_IN_SECONDS);
+    } else {
+      a.src = '';
+      a.volume = 0;
     }
-  }, [trackUrl, enabled]);
+  }, [trackUrl, enabled, isAutomated]);
 
   // Effect 3: enabled changes. Fade in on enable, fade out on disable.
   // Skipped while we're still waiting for the first gesture — the
   // gesture handler will fire the initial play().
   useEffect(() => {
+    if (isAutomated) return;
     const a = audioRef.current;
     if (!a) return;
     if (!hasGesturedRef.current) return;
 
     if (enabled && a.paused) {
+      if (!a.src || a.src !== trackUrl) {
+        a.src = trackUrl;
+      }
       a.volume = 0;
       void a.play().catch(() => {});
       if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
@@ -208,7 +222,7 @@ export function useAisleAudio({ enabled, trackId }: { enabled: boolean; trackId:
       if (fadeIdRef.current !== null) window.clearInterval(fadeIdRef.current);
       fadeIdRef.current = rampGain(a, 0, FADE_OUT_SECONDS);
     }
-  }, [enabled]);
+  }, [enabled, trackUrl, isAutomated]);
 
   // Unmount cleanup. Stop the stream so the browser stops buffering
   // the remote file in the background.
