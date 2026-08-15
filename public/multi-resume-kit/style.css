@@ -5,7 +5,7 @@
   --panel: #FFFFFF;
   --ink: #21231F;
   --ink-soft: #55574F;
-  --ink-faint: #74766C;
+  --ink-faint: #4E5047;
   --rule: #DCDCD3;
   --accent: #2E5E8C;
   --accent-soft: rgba(46, 94, 140, 0.08);
@@ -23,7 +23,7 @@
 }
 :root[data-theme="light"] {
   --paper: #FBFBF9; --panel: #FFFFFF;
-  --ink: #21231F; --ink-soft: #55574F; --ink-faint: #74766C;
+  --ink: #21231F; --ink-soft: #55574F; --ink-faint: #4E5047;
   --rule: #DCDCD3; --accent: #2E5E8C; --accent-soft: rgba(46, 94, 140, 0.08);
   --shadow: 0 1px 0 rgba(33, 35, 31, 0.04), 0 8px 24px rgba(33, 35, 31, 0.06);
 }
