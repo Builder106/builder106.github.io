@@ -43,7 +43,6 @@ import { createWaveBeamMaterial, type WaveBeamUniforms } from './waveBeamShader'
 import { createWaveFloorMaterial, type WaveFloorUniforms } from './waveFloorShader';
 
 import { DistantRacks } from './components/DistantRacks';
-import { TrofferLights } from './components/TrofferLights';
 
 // Preload the one glb both variants now resolve to (portrait used to
 // load a separate amphitheater file — retired, see sceneVariant.ts).
@@ -1618,7 +1617,6 @@ export function ServerRoom({
         />
       )}
 
-      <TrofferLights variant={variant} />
 
       {/* Distant data-center skyline: rack-shaped templates authored
           in Blender, instanced ~80x in a 22–50m ring around the room.
