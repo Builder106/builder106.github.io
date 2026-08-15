@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { isAutomatedEnvironment } from '../utils/isAutomated';
 import './BootSequence.css';
 
 // Minimum on-screen time so the bootup actually reads as a sequence and
@@ -41,9 +42,7 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // 2. Fast-forward automated audits (Lighthouse, Headless Chrome, WebDriver)
-    const isAutomated =
-      typeof navigator !== 'undefined' &&
-      (navigator.webdriver || /HeadlessChrome|Lighthouse/i.test(navigator.userAgent));
+    const isAutomated = isAutomatedEnvironment();
 
     if (prefersReducedMotion || isAutomated) {
       skip();

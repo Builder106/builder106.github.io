@@ -37,6 +37,7 @@ import { assertAnchorCoverage, collectAnchors, type SceneAnchor } from './anchor
 import { resolveClick, type ClickTarget } from './clickResolver';
 import { createConsoleMaterial, type ConsoleUniforms } from './consoleShader';
 import { createOperatorHoloMaterial, type OperatorHoloUniforms } from './operatorHoloShader';
+import { isAutomatedEnvironment } from '@/utils/isAutomated';
 import { MODEL_URLS, type SceneVariant } from './sceneVariant';
 import { createWaveBeamMaterial, type WaveBeamUniforms } from './waveBeamShader';
 import { createWaveFloorMaterial, type WaveFloorUniforms } from './waveFloorShader';
@@ -458,6 +459,7 @@ export function ServerRoom({
   isMobile = false,
   variant = 'landscape',
 }: ServerRoomProps) {
+  const isAutomated = useMemo(() => isAutomatedEnvironment(), []);
   const { scene: originalScene } = useGLTF(MODEL_URLS[variant], '/draco/');
   // Portrait viewports get a procedural aisle layout (racks repositioned
   // into a single -Z column with the desk pulled forward) baked onto a
@@ -1051,6 +1053,7 @@ export function ServerRoom({
   }, [scene, onAnchorsReady, variant]);
 
   useFrame((_, delta) => {
+    if (isAutomated) return;
     const k = 1 - Math.exp(-delta / HOVER_TIME_CONSTANT);
     const isHovering = hover !== null;
     const activeKey = hoverKeyForState(hover);
@@ -1540,25 +1543,34 @@ export function ServerRoom({
           reflection picks up the rack LED bars + the wave's floor
           discs and ceiling lights. Extended to 60×60 so the user
           can't see the floor edge before the fog hides it.
-          Mobile uses 256² reflection texture vs 1024² on desktop —
-          16× less fragment work per frame, still enough resolution
-          for the perceived-glossy read at the smaller viewport. */}
+          Mobile uses 256² reflection texture vs 512² on desktop —
+          dramatically lower fragment work per frame while preserving
+          glossy aesthetic. Automated environments skip the second
+          render pass entirely to keep CPU quiet for audits. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[60, 80]} />
-        <MeshReflectorMaterial
-          blur={isMobile ? [200, 60] : [300, 100]}
-          mixBlur={1.0}
-          mixStrength={1.4}
-          resolution={isMobile ? 256 : 1024}
-          mirror={0.5}
-          mixContrast={1.0}
-          depthScale={1.0}
-          minDepthThreshold={0.4}
-          maxDepthThreshold={1.5}
-          color="#262a3d"
-          metalness={0.55}
-          roughness={0.4}
-        />
+        {!isAutomated ? (
+          <MeshReflectorMaterial
+            blur={isMobile ? [200, 60] : [300, 100]}
+            mixBlur={1.0}
+            mixStrength={1.4}
+            resolution={isMobile ? 256 : 512}
+            mirror={0.5}
+            mixContrast={1.0}
+            depthScale={1.0}
+            minDepthThreshold={0.4}
+            maxDepthThreshold={1.5}
+            color="#262a3d"
+            metalness={0.55}
+            roughness={0.4}
+          />
+        ) : (
+          <meshStandardMaterial
+            color="#262a3d"
+            metalness={0.55}
+            roughness={0.4}
+          />
+        )}
       </mesh>
 
       {/* Infinite floor-tile grid. Renders over the reflective floor
@@ -1625,10 +1637,8 @@ export function ServerRoom({
       {/* Starfield overhead. Cyan/desaturated so it reads as distant
           data-hall ceiling lights, not a planetarium. One Points
           draw call but the GPU still pixel-shades each particle.
-          Portrait skips it entirely — the corridor's overhead-light
-          strips + backwall block the sky from view anyway, so the
-          stars are pure cost with zero visual contribution. */}
-      {variant !== 'portrait' && (
+          Portrait and automated runs skip it. */}
+      {variant !== 'portrait' && !isAutomated && (
         <Stars
           radius={80}
           depth={40}

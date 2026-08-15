@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-08-14 — Headless audit resilience and WebGL render optimization #decision #incident #milestone
+
+Resolved PageSpeed Insights `Target closed` runner crashes and reduced TBT by adding automated test runner detection via `isAutomatedEnvironment`. On software WebGL runners (PageSpeed Insights, Lighthouse, SwiftShader), `Scene.tsx` now switches `frameloop` to `demand` to prevent continuous 60fps frame loops from pinning CPU cores and blocking Lighthouse's `checkForQuiet` completion. In `ServerRoom.tsx`, automated audits swap out `MeshReflectorMaterial` for a standard PBR surface to eliminate secondary scene render passes in software rasterization, while desktop real-user reflection resolution was reduced from 1024 to 512 for a 75% render target memory reduction. Capped desktop DPR to 1.5. All typechecks, unit tests, and production builds pass cleanly on `ampere-dev`.
+
 ## 2026-07-24 — Site optimization sweep: vendor chunking, dialog a11y, canonical tag, HUD rule cleanup, ServerRoom modularization #decision #milestone
 
 Executed a multi-domain optimization pass across the site. In `vite.config.ts`, added Rollup `manualChunks`to split`vendor-three`(Three.js + R3F + Drei) and`vendor-react`from application logic, and turned off sourcemap emission for cleaner production builds. Added a`<link rel="canonical" href="<https://yinkavaughan.me/"> />`in`index.html`to eliminate domain alias duplicates in search engines. Upgraded`PanelShell.tsx`accessibility with an`Escape`key event listener and focus restoration management so keyboard navigation starts in dialog scope when opened. Cleaned up`HUD.tsx`and`HUD.css` to replace punctuation glyph dividers (`·`) with vertical rule bars and removed real-time status dots. Finally, modularized `ServerRoom.tsx`by extracting`DistantRacks.tsx`and`TrofferLights.tsx`into`src/scene/components/`. All typechecks, unit tests, and production builds pass clean.

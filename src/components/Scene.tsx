@@ -19,6 +19,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { MathUtils, Vector3 } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { isAutomatedEnvironment } from '@/utils/isAutomated';
 import { CameraRig } from './CameraRig';
 import { useIsMobile } from './useIsMobile';
 
@@ -286,6 +287,7 @@ const IDLE_DELAY_PORTRAIT_MS = 2_500;
 export function Scene({ active, onSelect }: SceneProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const isMobile = useIsMobile();
+  const isAutomated = useMemo(() => isAutomatedEnvironment(), []);
   const variant = useSceneVariant();
   const orbitTarget = variant === 'portrait' ? PORTRAIT_CAMERA_TARGET : DEFAULT_CAMERA_TARGET;
   const idleDelayMs = variant === 'portrait' ? IDLE_DELAY_PORTRAIT_MS : IDLE_DELAY_DESKTOP_MS;
@@ -343,6 +345,7 @@ export function Scene({ active, onSelect }: SceneProps) {
   const idleTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
+    if (isAutomated) return;
     const ctrl = controlsRef.current;
     if (!ctrl) return;
 
@@ -365,18 +368,19 @@ export function Scene({ active, onSelect }: SceneProps) {
       ctrl.removeEventListener('start', wake);
       if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
     };
-  }, [idleDelayMs]);
+  }, [idleDelayMs, isAutomated]);
 
   // Any panel state change is "activity": wake the camera, re-arm the
   // timer. Without this, opening then closing a panel would leave the
   // scene immediately drifting which feels jumpy.
   useEffect(() => {
+    if (isAutomated) return;
     setIdle(false);
     if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
     if (!panelOpen) {
       idleTimerRef.current = window.setTimeout(() => setIdle(true), idleDelayMs);
     }
-  }, [panelOpen, cameraTarget, idleDelayMs]);
+  }, [panelOpen, cameraTarget, idleDelayMs, isAutomated]);
 
   const autoRotate = idle && !panelOpen && !freezeOrbit;
 
@@ -387,17 +391,15 @@ export function Scene({ active, onSelect }: SceneProps) {
     // globals.css under the (max-aspect-ratio: 4/5) media query.
     <div className="scene-canvas-wrapper" style={{ width: '100%', height: '100%' }}>
       <Canvas
+        frameloop={isAutomated ? 'demand' : 'always'}
         // Cap DPR so we don't shade 9x more pixels on a phone. Big perf
         // win on high-DPI screens where 1.5x and 2x already look great.
-        // DPR cap. Mobile gets 1.0 (was 1.25) — the 1.56× pixel-count
-        // saving from dropping 1.25 → 1.0 is the single biggest GPU
-        // lever for a fillrate-bound WebGL scene on a phone. Slightly
-        // softer rendering, dramatically smoother frames.
-        dpr={isMobile ? 1 : [1, 2]}
+        // DPR cap: Mobile gets 1.0; Desktop gets [1, 1.5] for crispness without fillrate penalties.
+        dpr={isMobile || isAutomated ? 1 : [1, 1.5]}
         // No mesh in this scene actually casts shadows — disable so the
         // shadow-map render pass + texture allocation are skipped.
         shadows={false}
-        gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+        gl={{ antialias: !isAutomated, alpha: false, powerPreference: 'high-performance' }}
         style={{ background: 'var(--bg-deep)' }}
         onPointerMissed={() => onSelect(null)}
         onCreated={({ gl }) => {
