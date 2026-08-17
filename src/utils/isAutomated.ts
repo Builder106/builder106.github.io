@@ -38,7 +38,6 @@ export function isSoftwareWebGL(): boolean {
 export function isAutomatedEnvironment(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
 
-  // 1. Explicit automated flags / user agents
   if (
     navigator.webdriver ||
     /HeadlessChrome|Lighthouse|PageSpeed|Chrome-Lighthouse|Google-PageSpeed/i.test(
@@ -48,7 +47,7 @@ export function isAutomatedEnvironment(): boolean {
     return true;
   }
 
-  // 2. Headless browser / CI software WebGL rasterizer check (SwiftShader / llvmpipe)
+  // Detect headless/CI software rasterizers.
   if (isSoftwareWebGL()) {
     return true;
   }
