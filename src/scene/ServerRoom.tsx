@@ -229,13 +229,9 @@ function isRackMesh(name: string, id: string): boolean {
 // void rather than inside the four-walled landscape room, so anything
 // not in the whitelist would float in place of a missing wall.
 //
-// Cable_* meshes are the neon cyan/magenta data-cable runs authored at
-// the landscape room's coordinates. The floor + riser runs stay (they
-// read as grounded cabling near the entrance), but the *ceiling* runs
-// (Cable_Ceil*) are hidden in portrait: with the room's ceiling gone
-// they hang at their old height with nothing behind them and read as
-// wires floating in the void rather than ceiling-mounted runs. The
-// dim ceiling grid (see <Grid> below) now provides the overhead read.
+// Cable_* meshes are absent from this list because the room ships
+// without cabling in either variant — see the traverse below. So
+// portrait needs no cable rule of its own.
 //
 // Keyboard_* — the desk keyboard has ~80 individual <Mesh> children
 // (one per key + body). Each is a separate draw call on mobile GPUs,
@@ -248,7 +244,6 @@ function isPortraitKeepMesh(name: string): boolean {
     name.startsWith('Screen_') ||
     name.startsWith('StatusLED_') ||
     name.startsWith('BackgroundTower_') ||
-    (name.startsWith('Cable_') && !name.startsWith('Cable_Ceil')) ||
     name.startsWith('DeskNameplate_') ||
     name === 'Monitor' ||
     name === 'OperatorHolo' ||
@@ -814,6 +809,18 @@ export function ServerRoom({
       // MeshReflectorMaterial (below) renders the reflective floor
       // instead, so the racks and cables actually mirror onto it.
       if (obj.name === 'Floor') {
+        obj.visible = false;
+        return;
+      }
+
+      // The room reads better with no cabling at all, so the ten
+      // authored Cable_* runs stay hidden. They're straight 110m
+      // extrusions that pass clean through the walls and out into the
+      // void — decorative striping rather than cabling that serves
+      // anything. A procedural replacement was built and rejected too
+      // (see JOURNAL 2026-08-17). Hidden rather than stripped from the
+      // glb, so restoring them is deleting this block.
+      if (obj.name.startsWith('Cable_')) {
         obj.visible = false;
         return;
       }

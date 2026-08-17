@@ -5,6 +5,16 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-08-17 — Ship the room with no cabling at all #decision #pivot
+
+The room now hides the glb's ten authored `Cable_*` runs and draws nothing in their place. One `if` block in the `ServerRoom` traverse is all that's left of a day on this.
+
+Worth recording why, because the obvious next idea is to try again. The authored runs were straight 110m extrusions at two hues, passing clean through the walls and out into the void, so they read as striping rather than cabling. Four procedural replacements followed. The first hung overhead bundles with drops into the racks and draped cable over the hardware. The second put everything on the floor and came out as spaghetti, because curved runs arcing diagonally across the room dominate the frame and read as dropped noodles. The third stayed parallel to the room grid and was nearly invisible at a density that didn't look messy.
+
+The fourth was researched rather than tuned, and the research was sound: every production cable system (Unreal's Cable Component, Houdini's wire solver, SideFX's Project Titan tool) defines a cable by two anchors plus a *rest length* and lets the shape emerge from a settle, whereas all three earlier attempts picked a path and called added noise "slack". Rebuilt on that basis — Verlet integration with Jakobsen relaxation, anchored to rack-face ports and floor boxes, sequential cable-on-cable avoidance after Horizon Zero Dawn's wires, 19.3ms per room build after optimisation, 21 unit tests including one asserting every endpoint is anchored. It was a genuinely better simulation and the room still looked better without it.
+
+So the lesson isn't about the technique. Cabling competes with the racks for attention in a composition whose subject is the racks, and the neon it needs to match the room's palette guarantees it wins that fight. If this gets revisited, that is the problem to solve first, before any generator gets written. The rejected implementation is not in git history; rebuild from the JOURNAL notes above rather than assuming the approach was the flaw.
+
 ## 2026-08-15 — Fix mobile portrait ceiling troffer proximity and glow framing #decision #incident
 
 Adjusted the portrait fluorescent lighting row in `ServerRoom.tsx` to offset the starting troffer from `z = 0` to `z ≈ -2.34` (`-(i + 1) * AISLE_SPACING * 0.9`). Removed the additive radial glow plane sprites from each troffer fixture—eliminating the fuzzy cyan spotlight halo artifact that projected against the dark ceiling void on high vertical FOV mobile viewports—while keeping the crisp 3D troffer geometry (dark housing and emissive panel) receding cleanly along the ceiling grid. Verified typecheck, unit tests, and production build on `ampere-dev`.
