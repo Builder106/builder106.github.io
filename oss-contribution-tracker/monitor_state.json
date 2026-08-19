@@ -277,12 +277,12 @@
   },
   "https://github.com/neovim/neovim/pull/40761": {
     "url": "https://github.com/neovim/neovim/pull/40761",
-    "state": "open",
-    "comments": 6,
+    "state": "closed",
+    "comments": 7,
     "last_comment": {
-      "author": "justinmk",
-      "created_at": "2026-07-19T11:01:01Z",
-      "first_line": "If there are other permutations that should be validated, then yeah they should be. https://github.com/neovim/neovim/iss"
+      "author": "github-actions[bot]",
+      "created_at": "2026-08-19T02:38:25Z",
+      "first_line": "This has been closed since a request for information has not been answered for 30 days. It can be reopened when the requ"
     }
   },
   "https://github.com/neovim/neovim/pull/40764": {
