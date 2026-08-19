@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-08-18",
+  "as_of": "2026-08-19",
   "week_start": "2026-08-17",
   "author": "Builder106",
   "repos": [
@@ -281,7 +281,7 @@
         {
           "n": 40761,
           "url": "https://github.com/neovim/neovim/pull/40761",
-          "state": "open",
+          "state": "closed",
           "title": "fix(remote): error when --server is used with --headless but no --remote subcommand"
         },
         {
