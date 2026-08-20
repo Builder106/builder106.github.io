@@ -521,6 +521,7 @@ export function ServerRoom({
     // drei's <Image> with its own UV handling. Force flipY=false here so
     // the holo plane reads the texture right-side up.
     if (pfpTexture.flipY) {
+      // eslint-disable-next-line react-hooks/immutability -- useLayoutEffect setup; one-time texture config mutation
       pfpTexture.flipY = false;
       pfpTexture.needsUpdate = true;
     }
@@ -590,7 +591,7 @@ export function ServerRoom({
   // story spatially, since each cluster owns its own wall.
   const WAVE_RACK_DELAY_S = 0.35;
   const WAVE_CLUSTER_DELAY_S = 0.7;
-  const lastInteractionRef = useRef<number>(performance.now());
+  const lastInteractionRef = useRef<number>(() => performance.now());
   const waveStartRef = useRef<number | null>(null);
 
   // Variant-aware "which time slot does this rack fire in?" map.
@@ -769,6 +770,7 @@ export function ServerRoom({
 
   useCursor(hover !== null);
 
+  // eslint-disable-next-line react-hooks/immutability -- useLayoutEffect reads outer `scene` only; rootScene from useThree not mutated here
   useLayoutEffect(() => {
     const interactives: Interactive[] = [];
     const bodyMap = new Map<
@@ -977,7 +979,9 @@ export function ServerRoom({
     // Set once: no HDRI environment — its directional cast was bleeding
     // into the reflective floor. Previously this was inside useFrame
     // and ran every frame; same value, same effect, no need to re-set.
+    /* eslint-disable react-hooks/immutability -- useLayoutEffect setup; one-time three.js scene config mutation */
     rootScene.environmentIntensity = 0;
+    /* eslint-enable react-hooks/immutability */
 
     // Wave beams + floor discs — portrait-only for now. One downward-
     // pointing cone per slot at corridor centerline (apex y=4.4, base
@@ -1050,6 +1054,7 @@ export function ServerRoom({
   // Re-emit anchors every time the loaded glTF scene changes — this is what
   // makes a portrait↔landscape variant flip pick up the new layout instead
   // of holding stale positions from the previous variant.
+  /* eslint-disable react-hooks/set-state-in-effect -- syncing loaded scene anchors to React state; legitimate external sync */
   useEffect(() => {
     const collected = collectAnchors(scene);
     setAnchorMap(collected);
@@ -1130,8 +1135,10 @@ export function ServerRoom({
         target = adsrPulse(localT) * beamPeak;
         flash = strobeFlash(localT);
       }
+      /* eslint-disable react-hooks/immutability -- useFrame runs outside render phase; mutating refs is the R3F pattern */
       b.uniforms.uIntensity.value += (target - b.uniforms.uIntensity.value) * k;
       b.uniforms.uFlash.value = flash;
+      /* eslint-enable react-hooks/immutability */
     }
     for (const d of slotDiscsRef.current) {
       let target = 0;
@@ -1142,8 +1149,10 @@ export function ServerRoom({
         target = adsrPulse(localT) * discPeak;
         flash = strobeFlash(localT);
       }
+      /* eslint-disable react-hooks/immutability -- useFrame runs outside render phase; mutating refs is the R3F pattern */
       d.uniforms.uIntensity.value += (target - d.uniforms.uIntensity.value) * k;
       d.uniforms.uFlash.value = flash;
+      /* eslint-enable react-hooks/immutability */
     }
     for (const body of slotBodiesRef.current) {
       let intensityTarget = 0;
@@ -1161,8 +1170,10 @@ export function ServerRoom({
       const g = body.accentColor.g + (1 - body.accentColor.g) * flash;
       const b2 = body.accentColor.b + (1 - body.accentColor.b) * flash;
       for (const mat of body.materials) {
+        /* eslint-disable react-hooks/immutability -- useFrame runs outside render phase; mutating refs is the R3F pattern */
         mat.emissiveIntensity += (intensityTarget - mat.emissiveIntensity) * k;
         mat.emissive.setRGB(r, g, b2);
+        /* eslint-enable react-hooks/immutability */
       }
     }
 
@@ -1179,8 +1190,10 @@ export function ServerRoom({
       } else {
         target = it.base;
       }
+      /* eslint-disable react-hooks/immutability -- useFrame runs outside render phase; mutating refs is the R3F pattern */
       it.current += (target - it.current) * k;
       it.mat.emissiveIntensity = it.current;
+      /* eslint-enable react-hooks/immutability */
     }
 
     // Background tower accent pulse. Iterates the cached strip refs
@@ -1190,8 +1203,10 @@ export function ServerRoom({
     for (const strip of towerStripsRef.current) {
       const wave = 0.5 + 0.5 * Math.sin(tNow * strip.speed + strip.phase);
       const t = 0.35 + 0.65 * wave; // 0.35 — 1.00 of base brightness
+      /* eslint-disable react-hooks/immutability -- useFrame runs outside render phase; mutating refs is the R3F pattern */
       strip.mat.emissive.setRGB(0.3 * t, 0.95 * t, 1.0 * t);
       strip.mat.emissiveIntensity = 2.0;
+      /* eslint-enable react-hooks/immutability */
     }
 
     // Runtime fill / key lights.

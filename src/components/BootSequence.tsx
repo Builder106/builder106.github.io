@@ -26,7 +26,7 @@ interface BootSequenceProps {
 export function BootSequence({ onComplete }: BootSequenceProps) {
   const [visibleCount, setVisibleCount] = useState(0);
   const [fading, setFading] = useState(false);
-  const startedAt = useRef(performance.now());
+  const startedAt = useRef(() => performance.now());
   const completedRef = useRef(false);
 
   const skip = useCallback(() => {

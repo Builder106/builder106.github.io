@@ -318,10 +318,17 @@ export function TradingTerminal({
   // ArrowUp/ArrowDown.
   const [log, setLog] = useState<LogEntry[]>(INITIAL_LOG);
   const [input, setInput] = useState('');
+  const inputValueRef = useRef(input);
   const inputHistory = useRef<string[]>([]);
   const historyCursor = useRef<number>(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
+
+  // Keep inputValueRef in sync with input state so handleTab can read
+  // the current value without needing input in its dependency array.
+  useEffect(() => {
+    inputValueRef.current = input;
+  }, [input]);
 
   // Discovered secrets ride along in a ref so triggering one doesn't
   // re-render the whole panel. Persists across sessions via
@@ -909,7 +916,7 @@ export function TradingTerminal({
   }, []);
 
   const handleTab = useCallback(() => {
-    const value = input;
+    const value = inputValueRef.current;
     const parts = value.split(/\s+/);
     const lastPart = (parts[parts.length - 1] ?? '').toLowerCase();
     const prefix = parts.slice(0, -1).join(' ');
@@ -952,7 +959,7 @@ export function TradingTerminal({
     tabCycle.current = { candidates, index: 0 };
     const completion = candidates[0];
     setInput(prefix ? `${prefix} ${completion}` : completion);
-  }, [completionCommands, input]);
+  }, [completionCommands, setInput]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Tab') {

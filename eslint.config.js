@@ -49,6 +49,8 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
     },
   },
+  // React Compiler experimental rules (includes immutability, purity, refs, set-state-in-effect, etc.)
+  reactHooks.configs.flat['recommended-latest'],
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
@@ -89,6 +91,7 @@ export default tseslint.config(
     ignores: [
       'dist/',
       'node_modules/',
+      '.vite/',
       '*.config.*',
       'scripts/',
       'e2e/',

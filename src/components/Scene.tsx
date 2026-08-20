@@ -304,6 +304,7 @@ export function Scene({ active, onSelect }: SceneProps) {
   // (portrait) so the user can drive freely.
   const [transitioning, setTransitioning] = useState(true);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate transition pattern with cleanup
     setTransitioning(true);
     const t = window.setTimeout(() => setTransitioning(false), TARGET_SETTLE_MS);
     return () => window.clearTimeout(t);
@@ -375,6 +376,7 @@ export function Scene({ active, onSelect }: SceneProps) {
   // scene immediately drifting which feels jumpy.
   useEffect(() => {
     if (isAutomated) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate activity reset pattern
     setIdle(false);
     if (idleTimerRef.current !== null) window.clearTimeout(idleTimerRef.current);
     if (!panelOpen) {
