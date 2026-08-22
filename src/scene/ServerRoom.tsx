@@ -591,7 +591,7 @@ export function ServerRoom({
   // story spatially, since each cluster owns its own wall.
   const WAVE_RACK_DELAY_S = 0.35;
   const WAVE_CLUSTER_DELAY_S = 0.7;
-  const lastInteractionRef = useRef<number>(performance.now());
+  const lastInteractionRef = useRef<number>(0);
   const waveStartRef = useRef<number | null>(null);
 
   // Variant-aware "which time slot does this rack fire in?" map.
@@ -665,6 +665,7 @@ export function ServerRoom({
   // a runaway reset (e.g. a synth event firing every frame) when the
   // wave never elapses despite no apparent user input.
   useEffect(() => {
+    lastInteractionRef.current = performance.now();
     const reset = () => {
       lastInteractionRef.current = performance.now();
       waveStartRef.current = null;

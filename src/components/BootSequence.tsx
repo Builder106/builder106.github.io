@@ -26,7 +26,7 @@ interface BootSequenceProps {
 export function BootSequence({ onComplete }: BootSequenceProps) {
   const [visibleCount, setVisibleCount] = useState(0);
   const [fading, setFading] = useState(false);
-  const startedAt = useRef(performance.now());
+  const startedAt = useRef(0);
   const completedRef = useRef(false);
 
   const skip = useCallback(() => {
@@ -49,6 +49,7 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
       return;
     }
 
+    startedAt.current = performance.now();
     let cancelled = false;
     let i = 0;
     const tick = () => {
