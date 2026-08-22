@@ -54,7 +54,7 @@ export interface WaveFloorUniforms {
 }
 
 export function createWaveFloorMaterial(
-  color: string
+  color: string,
 ): ShaderMaterial & { uniforms: WaveFloorUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,

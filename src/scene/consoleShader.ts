@@ -131,7 +131,7 @@ export interface ConsoleUniforms {
 }
 
 export function createConsoleMaterial(
-  _isMobile: boolean = false
+  _isMobile: boolean = false,
 ): ShaderMaterial & { uniforms: ConsoleUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,

@@ -4,8 +4,8 @@ import { resolveStackIcon } from './stackIcons';
 
 describe('resolveStackIcon', () => {
   it('resolves every distinct stack tag used in projects.ts to an icon or documented fallback', () => {
-    const allTags = new Set(projects.flatMap(p => p.stack));
-    allTags.forEach(tag => {
+    const allTags = new Set(projects.flatMap((p) => p.stack));
+    allTags.forEach((tag) => {
       const result = resolveStackIcon(tag);
       // null is the documented "no icon" case (StackChip renders the
       // fallback glyph for it) — anything else must be a well-formed icon.

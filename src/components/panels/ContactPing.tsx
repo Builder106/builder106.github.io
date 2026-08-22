@@ -34,7 +34,7 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(value);
-      setTimeout(() => setCopied(c => (c === value ? null : c)), 1400);
+      setTimeout(() => setCopied((c) => (c === value ? null : c)), 1400);
     } catch {
       /* clipboard blocked — fallback is the visible value itself */
     }
@@ -54,7 +54,7 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
       // wildly — most updates are ±1 ms.
       baselineRef.current = Math.max(
         9,
-        Math.min(18, baselineRef.current + (Math.random() < 0.5 ? -1 : 1))
+        Math.min(18, baselineRef.current + (Math.random() < 0.5 ? -1 : 1)),
       );
       const jitter = Math.random() < 0.85 ? 0 : Math.random() < 0.5 ? -1 : 1;
       setLatency(baselineRef.current + jitter);
@@ -63,7 +63,7 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
   }, [open]);
 
   const mailtoHref = `mailto:${EMAIL}?subject=${encodeURIComponent(
-    MAILTO_SUBJECT
+    MAILTO_SUBJECT,
   )}&body=${encodeURIComponent(MAILTO_BODY)}`;
 
   return (
@@ -144,7 +144,7 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
       <section className="panel__section">
         <div className="panel__section-label">elsewhere</div>
         <div className="contact-elsewhere">
-          {ELSEWHERE.map(link => (
+          {ELSEWHERE.map((link) => (
             <a
               key={link.label}
               className="contact-chip"

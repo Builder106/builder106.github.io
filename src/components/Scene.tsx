@@ -252,12 +252,12 @@ function AisleScrollRig() {
     targetPos.current.set(
       MathUtils.lerp(SCROLL_CAMERA_START.x, SCROLL_CAMERA_END.x, t),
       MathUtils.lerp(SCROLL_CAMERA_START.y, SCROLL_CAMERA_END.y, tEase),
-      MathUtils.lerp(SCROLL_CAMERA_START.z, SCROLL_CAMERA_END.z, t)
+      MathUtils.lerp(SCROLL_CAMERA_START.z, SCROLL_CAMERA_END.z, t),
     );
     targetLook.current.set(
       MathUtils.lerp(SCROLL_TARGET_START.x, SCROLL_TARGET_END.x, t),
       MathUtils.lerp(SCROLL_TARGET_START.y, SCROLL_TARGET_END.y, tEase),
-      MathUtils.lerp(SCROLL_TARGET_START.z, SCROLL_TARGET_END.z, t)
+      MathUtils.lerp(SCROLL_TARGET_START.z, SCROLL_TARGET_END.z, t),
     );
 
     const k = 1 - Math.pow(SCROLL_SMOOTHING, delta);

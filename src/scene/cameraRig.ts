@@ -59,7 +59,7 @@ export function defaultCameraTarget(variant: SceneVariant = 'landscape'): Camera
 //     the rack rather than behind it.
 export function projectCameraTarget(
   anchor: SceneAnchor,
-  variant: SceneVariant = 'landscape'
+  variant: SceneVariant = 'landscape',
 ): CameraTarget {
   let interiorDir: Vector3;
   if (variant === 'portrait') {

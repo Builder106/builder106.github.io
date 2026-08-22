@@ -52,7 +52,7 @@ export function DistantRacks({ bodyGeom, bodyMat, ledGeom, ledMat, isMobile }: D
 
   const matrices = useMemo(() => {
     const dummy = new Object3D();
-    return transforms.map(t => {
+    return transforms.map((t) => {
       dummy.position.set(t.position[0], t.position[1], t.position[2]);
       dummy.rotation.set(0, t.rotationY, 0);
       dummy.scale.setScalar(t.scale);
@@ -68,7 +68,7 @@ export function DistantRacks({ bodyGeom, bodyMat, ledGeom, ledMat, isMobile }: D
       <instancedMesh
         args={[bodyGeom, bodyMat, matrices.length]}
         frustumCulled={false}
-        ref={m => {
+        ref={(m) => {
           if (!m) return;
           matrices.forEach((mat, i) => m.setMatrixAt(i, mat));
           m.instanceMatrix.needsUpdate = true;
@@ -77,7 +77,7 @@ export function DistantRacks({ bodyGeom, bodyMat, ledGeom, ledMat, isMobile }: D
       <instancedMesh
         args={[ledGeom, ledMat, matrices.length]}
         frustumCulled={false}
-        ref={m => {
+        ref={(m) => {
           if (!m) return;
           matrices.forEach((mat, i) => m.setMatrixAt(i, mat));
           m.instanceMatrix.needsUpdate = true;

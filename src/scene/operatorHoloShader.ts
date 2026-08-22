@@ -138,7 +138,7 @@ export interface OperatorHoloUniforms {
 }
 
 export function createOperatorHoloMaterial(
-  texture: Texture
+  texture: Texture,
 ): ShaderMaterial & { uniforms: OperatorHoloUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,

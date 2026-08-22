@@ -77,11 +77,11 @@ function escape(s: string): string {
 }
 
 function projectsForCluster(cluster: ProjectCluster) {
-  return projects.filter(p => p.cluster === cluster);
+  return projects.filter((p) => p.cluster === cluster);
 }
 
 function programmingLanguagesFor(stack: string[]): string[] {
-  const langs = stack.map(s => LANGUAGE_ALIASES[s]).filter((s): s is string => Boolean(s));
+  const langs = stack.map((s) => LANGUAGE_ALIASES[s]).filter((s): s is string => Boolean(s));
   return Array.from(new Set(langs));
 }
 
@@ -89,7 +89,7 @@ function programmingLanguagesFor(stack: string[]): string[] {
 // "quant, SWE, analyst, cybersec, and AI/ML". Derived from the data so
 // it never drifts from CLUSTER_ORDER / CLUSTER_DISPLAY.
 function clusterNameList(): string {
-  const names = CLUSTER_ORDER.map(c => CLUSTER_DISPLAY[c]);
+  const names = CLUSTER_ORDER.map((c) => CLUSTER_DISPLAY[c]);
   if (names.length <= 1) return names.join('');
   return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
 }
@@ -108,7 +108,7 @@ export function buildSemanticContentHTML(): string {
     }
     if (p.links.repo) {
       links.push(
-        `<li>Repository: <a href="${escape(p.links.repo)}">${escape(p.links.repo)}</a></li>`
+        `<li>Repository: <a href="${escape(p.links.repo)}">${escape(p.links.repo)}</a></li>`,
       );
     }
     const linksBlock = links.length > 0 ? `<ul>${links.join('')}</ul>` : '';
@@ -124,7 +124,7 @@ export function buildSemanticContentHTML(): string {
     ].join('');
   }
 
-  const projectClusters = CLUSTER_ORDER.map(cluster => {
+  const projectClusters = CLUSTER_ORDER.map((cluster) => {
     const inCluster = projectsForCluster(cluster);
     if (inCluster.length === 0) return ''; // never emit an empty wing
     const label = escape(CLUSTER_DISPLAY[cluster]);
@@ -142,8 +142,8 @@ export function buildSemanticContentHTML(): string {
   }).join('');
 
   const experienceArticles = experience
-    .map(e => {
-      const bullets = e.bullets.map(b => `<li>${escape(b)}</li>`).join('');
+    .map((e) => {
+      const bullets = e.bullets.map((b) => `<li>${escape(b)}</li>`).join('');
       return [
         `<article>`,
         `<h3>${escape(e.role)} — ${escape(e.org)}</h3>`,
@@ -155,10 +155,10 @@ export function buildSemanticContentHTML(): string {
     .join('');
 
   const socialsItems = SOCIALS.map(
-    s =>
+    (s) =>
       `<li>${escape(s.label)}: <a href="${escape(s.href)}">${escape(
-        s.href.replace(/^https?:\/\//, '')
-      )}</a></li>`
+        s.href.replace(/^https?:\/\//, ''),
+      )}</a></li>`,
   ).join('');
 
   const sceneDesc =
@@ -207,8 +207,8 @@ export function buildSemanticContentHTML(): string {
 export function buildStructuredDataJSON(dateModified?: string): string {
   const BUILD_TIMESTAMP = dateModified ?? new Date().toISOString();
 
-  const disciplines = CLUSTER_ORDER.map(c => CLUSTER_DISPLAY[c]);
-  const allStacks = Array.from(new Set(projects.flatMap(p => p.stack)));
+  const disciplines = CLUSTER_ORDER.map((c) => CLUSTER_DISPLAY[c]);
+  const allStacks = Array.from(new Set(projects.flatMap((p) => p.stack)));
 
   const person = {
     '@type': 'Person',
@@ -234,7 +234,7 @@ export function buildStructuredDataJSON(dateModified?: string): string {
     // The recruiter-assistant's primary "what does this person know?"
     // signal: the five disciplines plus every distinct stack entry.
     knowsAbout: [...disciplines, ...allStacks],
-    sameAs: SOCIALS.map(s => s.href),
+    sameAs: SOCIALS.map((s) => s.href),
     mainEntityOfPage: { '@id': `${SITE_URL}/#webpage` },
   };
 
@@ -280,7 +280,7 @@ export function buildStructuredDataJSON(dateModified?: string): string {
     })),
   };
 
-  const works = projects.map(p => {
+  const works = projects.map((p) => {
     const langs = programmingLanguagesFor(p.stack);
     const isApp = Boolean(p.links.live);
     const image = p.image ? `${SITE_URL}${p.image}` : p.logo ? `${SITE_URL}${p.logo}` : undefined;
@@ -346,7 +346,7 @@ export function buildLlmsTxt(): string {
       `interactive 3D "server farm": each of ${projects.length} projects is a server ` +
       `rack, grouped into ${CLUSTER_ORDER.length} discipline clusters ` +
       `(${clusterNameList()}). The scene is WebGL and invisible to text crawlers; ` +
-      `this file is the machine-readable mirror of what it shows.`
+      `this file is the machine-readable mirror of what it shows.`,
   );
   lines.push('');
   lines.push(BIO);

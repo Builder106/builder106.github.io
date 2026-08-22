@@ -5,7 +5,7 @@ import { Object3D } from 'three';
 export type ClickTarget =
   { kind: 'project'; projectId: string } | { kind: 'terminal' } | { kind: 'linkedin' } | null;
 
-const PROJECT_IDS = new Set(projects.map(p => p.id));
+const PROJECT_IDS = new Set(projects.map((p) => p.id));
 
 // Walks up from the picked mesh to the nearest named ancestor that maps
 // to something the UI cares about. Underscore-not-dot separator: see

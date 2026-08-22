@@ -7,7 +7,7 @@ const ctx = await browser.newContext({
 });
 const page = await ctx.newPage();
 page.setDefaultTimeout(60_000);
-page.on('pageerror', e => console.error('[pageerror]', e.message));
+page.on('pageerror', (e) => console.error('[pageerror]', e.message));
 await page.goto('http://localhost:4173/', { waitUntil: 'networkidle' });
 await page.waitForTimeout(2500);
 

@@ -69,7 +69,7 @@ export interface WaveBeamUniforms {
 
 export function createWaveBeamMaterial(
   color: string,
-  height: number
+  height: number,
 ): ShaderMaterial & { uniforms: WaveBeamUniforms } {
   const mat = new ShaderMaterial({
     vertexShader,

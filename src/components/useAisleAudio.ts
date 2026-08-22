@@ -71,11 +71,11 @@ export const TRACKS: readonly Track[] = [
 export const DEFAULT_TRACK_ID: TrackId = 'mechanical-sunsets';
 
 export function getTrack(id: TrackId): Track {
-  return TRACKS.find(t => t.id === id) ?? TRACKS[0];
+  return TRACKS.find((t) => t.id === id) ?? TRACKS[0];
 }
 
 export function isTrackId(value: unknown): value is TrackId {
-  return typeof value === 'string' && TRACKS.some(t => t.id === value);
+  return typeof value === 'string' && TRACKS.some((t) => t.id === value);
 }
 
 const TARGET_VOLUME = 0.4;

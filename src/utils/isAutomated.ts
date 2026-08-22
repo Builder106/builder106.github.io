@@ -41,7 +41,7 @@ export function isAutomatedEnvironment(): boolean {
   if (
     navigator.webdriver ||
     /HeadlessChrome|Lighthouse|PageSpeed|Chrome-Lighthouse|Google-PageSpeed/i.test(
-      navigator.userAgent
+      navigator.userAgent,
     )
   ) {
     return true;

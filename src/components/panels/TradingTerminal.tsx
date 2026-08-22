@@ -210,8 +210,8 @@ function loadDiscoveredSecrets(): Set<string> {
     return new Set(
       parsed.filter(
         (k): k is string =>
-          typeof k === 'string' && SECRET_KEYS.includes(k as (typeof SECRET_KEYS)[number])
-      )
+          typeof k === 'string' && SECRET_KEYS.includes(k as (typeof SECRET_KEYS)[number]),
+      ),
     );
   } catch {
     return new Set();
@@ -280,8 +280,8 @@ export function TradingTerminal({
 
   const activeRackId = useMemo(() => dominantRackId(progress), [progress]);
   const activeRack = useMemo(
-    () => (activeRackId ? (projects.find(p => p.id === activeRackId) ?? null) : null),
-    [activeRackId]
+    () => (activeRackId ? (projects.find((p) => p.id === activeRackId) ?? null) : null),
+    [activeRackId],
   );
 
   // The aisleScroll-driven telemetry only does anything in portrait
@@ -309,7 +309,7 @@ export function TradingTerminal({
 
   // Track switcher derived state.
   const currentTrack = getTrack(trackId);
-  const trackIndex = TRACKS.findIndex(t => t.id === trackId);
+  const trackIndex = TRACKS.findIndex((t) => t.id === trackId);
   const nextTrack = TRACKS[(trackIndex + 1) % TRACKS.length];
   const prevTrack = TRACKS[(trackIndex - 1 + TRACKS.length) % TRACKS.length];
 
@@ -350,7 +350,7 @@ export function TradingTerminal({
   const [, setHeartbeat] = useState(0);
   useEffect(() => {
     if (!open) return;
-    const id = window.setInterval(() => setHeartbeat(t => t + 1), 30_000);
+    const id = window.setInterval(() => setHeartbeat((t) => t + 1), 30_000);
     return () => window.clearInterval(id);
   }, [open]);
 
@@ -463,7 +463,7 @@ export function TradingTerminal({
     for (const beat of beats) {
       elapsed += beat.delay;
       const id = window.setTimeout(() => {
-        setLog(prev => [...prev, beat.entry]);
+        setLog((prev) => [...prev, beat.entry]);
       }, elapsed);
       animationTimersRef.current.push(id);
     }
@@ -524,7 +524,7 @@ export function TradingTerminal({
             flashWidget('telemetry');
             return [{ kind: 'ok', text: '→ scrolling to far end of aisle' }];
           }
-          const match = projects.find(p => p.id === arg);
+          const match = projects.find((p) => p.id === arg);
           if (match) {
             onNavigate({ kind: 'project', projectId: match.id });
             return [{ kind: 'ok', text: `→ opening ${match.name}` }];
@@ -579,14 +579,14 @@ export function TradingTerminal({
           // stays correct as clusters are added (was hardcoded slices).
           const lsOrder: ProjectCluster[] = ['quant', 'swe', 'analyst', 'security', 'ml'];
           const byCluster = lsOrder
-            .map(c => ({
+            .map((c) => ({
               c,
-              ids: AISLE_ORDER.filter(id => projects.find(p => p.id === id)?.cluster === c),
+              ids: AISLE_ORDER.filter((id) => projects.find((p) => p.id === id)?.cluster === c),
             }))
-            .filter(g => g.ids.length > 0);
+            .filter((g) => g.ids.length > 0);
           return [
             { kind: 'output', text: 'projects/' },
-            ...byCluster.map(g => ({
+            ...byCluster.map((g) => ({
               kind: 'output' as const,
               text: `  ${g.ids.join('   ')}   [${CLUSTER_DISPLAY[g.c]}]`,
             })),
@@ -783,7 +783,7 @@ export function TradingTerminal({
         case 'ascii':
         case 'logo':
           markSecret('ascii');
-          return ASCII_BANNER.map(line => ({ kind: 'banner' as const, text: line }));
+          return ASCII_BANNER.map((line) => ({ kind: 'banner' as const, text: line }));
 
         case 'cowsay': {
           markSecret('cowsay');
@@ -813,9 +813,9 @@ export function TradingTerminal({
           markSecret('stats');
           const clusterOrder: ProjectCluster[] = ['quant', 'swe', 'analyst', 'security', 'ml'];
           const split = clusterOrder
-            .map(c => ({ c, n: projects.filter(p => p.cluster === c).length }))
-            .filter(x => x.n > 0)
-            .map(x => `${x.n} ${CLUSTER_DISPLAY[x.c]}`)
+            .map((c) => ({ c, n: projects.filter((p) => p.cluster === c).length }))
+            .filter((x) => x.n > 0)
+            .map((x) => `${x.n} ${CLUSTER_DISPLAY[x.c]}`)
             .join(' · ');
           return [
             { kind: 'output', text: `projects deployed: ${projects.length}` },
@@ -880,7 +880,7 @@ export function TradingTerminal({
       markSecret,
       flashWidget,
       playSandwichCeremony,
-    ]
+    ],
   );
 
   const handleSubmit = (e: FormEvent) => {
@@ -895,7 +895,7 @@ export function TradingTerminal({
       setLog(INITIAL_LOG);
       return;
     }
-    setLog(prev => [...prev, { kind: 'input', text: value }, ...outputs]);
+    setLog((prev) => [...prev, { kind: 'input', text: value }, ...outputs]);
   };
 
   // Tab-cycle state. When the user hits Tab and the input has multiple
@@ -934,7 +934,7 @@ export function TradingTerminal({
       return;
     }
 
-    const candidates = pool.filter(c => c.startsWith(lastPart));
+    const candidates = pool.filter((c) => c.startsWith(lastPart));
     if (candidates.length === 0) {
       tabCycle.current = null;
       return;
@@ -993,7 +993,7 @@ export function TradingTerminal({
   // the widget doesn't dominate the dashboard on a narrow viewport.
   const repoRows = useMemo(() => {
     return projects
-      .map(p => {
+      .map((p) => {
         const repoUrl = p.links.repo;
         if (!repoUrl) return null;
         const slug = repoUrl.replace(/^https?:\/\/github\.com\//, '');
@@ -1217,7 +1217,7 @@ export function TradingTerminal({
             ref={inputRef}
             type="text"
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             className="console-input"
             placeholder="type a command (try 'help')"

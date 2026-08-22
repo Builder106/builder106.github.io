@@ -37,7 +37,7 @@ export function SemanticContent() {
             Phone: <a href={`tel:${PHONE.replace(/\s/g, '')}`}>{PHONE}</a>
           </li>
           <li>Location: Middletown, Connecticut, United States</li>
-          {SOCIALS.map(s => (
+          {SOCIALS.map((s) => (
             <li key={s.label}>
               {s.label}: <a href={s.href}>{s.href.replace(/^https?:\/\//, '')}</a>
             </li>
@@ -50,7 +50,7 @@ export function SemanticContent() {
 
       <section aria-labelledby="projects-heading">
         <h2 id="projects-heading">Projects</h2>
-        {projects.map(p => (
+        {projects.map((p) => (
           <article key={p.id} aria-labelledby={`project-${p.id}-heading`}>
             <h3 id={`project-${p.id}-heading`}>{p.name}</h3>
             <p>{p.blurb}</p>

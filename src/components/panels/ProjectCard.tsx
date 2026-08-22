@@ -50,8 +50,8 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
     const prevId = AISLE_ORDER[(idx - 1 + total) % total];
     const nextId = AISLE_ORDER[(idx + 1) % total];
     return {
-      prevProject: projects.find(p => p.id === prevId) ?? null,
-      nextProject: projects.find(p => p.id === nextId) ?? null,
+      prevProject: projects.find((p) => p.id === prevId) ?? null,
+      nextProject: projects.find((p) => p.id === nextId) ?? null,
     };
   }, [project]);
 
@@ -138,7 +138,7 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
           <section className="panel__section">
             <div className="panel__section-label">stack</div>
             <div className="project-card__chips">
-              {project.stack.map(tag => (
+              {project.stack.map((tag) => (
                 <StackChip key={tag} tag={tag} />
               ))}
             </div>

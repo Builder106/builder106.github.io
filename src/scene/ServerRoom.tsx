@@ -287,7 +287,7 @@ function applyAisleLayout(scene: Object3D): void {
   // Cache anchor refs by id so we can update them in lockstep with the
   // meshes they pin. Anchors are Object3D empties named "anchor_<id>".
   const anchorByName = new Map<string, Object3D>();
-  scene.traverse(node => {
+  scene.traverse((node) => {
     if (node.name.startsWith('anchor_')) {
       anchorByName.set(node.name.slice('anchor_'.length), node);
     }
@@ -300,7 +300,7 @@ function applyAisleLayout(scene: Object3D): void {
   for (const id of AISLE_ORDER) {
     meshesByRack.set(id, []);
   }
-  scene.traverse(node => {
+  scene.traverse((node) => {
     if (!(node instanceof Mesh)) return;
     for (const id of AISLE_ORDER) {
       if (isRackMesh(node.name, id)) {
@@ -365,7 +365,7 @@ function applyAisleLayout(scene: Object3D): void {
     // the original — one label per project, anchored off the left side.
     // The mirror's meshes keep their real names (Rack_<id> etc.) so
     // hovering or clicking either side still resolves to the project.
-    mirror.traverse(node => {
+    mirror.traverse((node) => {
       if (node.name.startsWith('anchor_')) {
         node.name = '_mirror_' + node.name;
       }
@@ -386,7 +386,7 @@ function applyAisleLayout(scene: Object3D): void {
     // portrait via isPortraitKeepMesh (mobile-perf cut), so there's
     // no point reparenting them.
     const termMeshes: Object3D[] = [];
-    scene.traverse(node => {
+    scene.traverse((node) => {
       if (!(node instanceof Mesh)) return;
       if (node.name === 'Monitor' || node.name === 'Desk') {
         termMeshes.push(node);
@@ -430,7 +430,7 @@ function applyAisleLayout(scene: Object3D): void {
   // Hide everything not in the keep-list. Run *after* the rack
   // repositions so we don't accidentally hide meshes we were about to
   // move.
-  scene.traverse(node => {
+  scene.traverse((node) => {
     if (!(node instanceof Mesh)) return;
     if (!isPortraitKeepMesh(node.name)) {
       node.visible = false;
@@ -730,7 +730,7 @@ export function ServerRoom({
     return () => window.removeEventListener('ov-force-wave', onForce);
   }, []);
 
-  const projectsById = useMemo(() => new Map(projects.map(p => [p.id, p])), []);
+  const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
 
   // Mobile-adjusted light intensities. We compensate for the dropped
   // ceiling-grid lights by boosting the remaining top-down sources;
@@ -786,7 +786,7 @@ export function ServerRoom({
     let bodyMat: Material | null = null;
     let ledGeom: BufferGeometry | null = null;
     let ledMat: Material | null = null;
-    scene.traverse(obj => {
+    scene.traverse((obj) => {
       if (!(obj instanceof Mesh)) return;
 
       // BackgroundTower_*_strip meshes: cache the material + per-
@@ -1062,8 +1062,8 @@ export function ServerRoom({
     onAnchorsReady?.(collected);
     assertAnchorCoverage(
       collected,
-      projects.filter(p => p.inScene !== false).map(p => p.id),
-      variant
+      projects.filter((p) => p.inScene !== false).map((p) => p.id),
+      variant,
     );
   }, [scene, onAnchorsReady, variant]);
 
@@ -1437,7 +1437,7 @@ export function ServerRoom({
         CEILING_LIGHTS.map((pos, i) => (
           <pointLight
             key={i}
-            ref={el => {
+            ref={(el) => {
               ceilingRefs.current[i] = el;
             }}
             position={pos}

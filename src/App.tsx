@@ -20,25 +20,25 @@ import './scene/sessionStart';
 // is prefetched in an effect below the moment App mounts, so by the
 // time the boot animation finishes the JS is usually already cached
 // and there's no visible loading step.
-const Scene = lazy(() => import('./components/Scene').then(m => ({ default: m.Scene })));
+const Scene = lazy(() => import('./components/Scene').then((m) => ({ default: m.Scene })));
 
 // Panels only render after a click resolves to a target, so they're
 // prime split-points. Named exports get unwrapped into the default
 // shape React.lazy expects.
 const TradingTerminal = lazy(() =>
-  import('./components/panels/TradingTerminal').then(m => ({
+  import('./components/panels/TradingTerminal').then((m) => ({
     default: m.TradingTerminal,
-  }))
+  })),
 );
 const ProjectCard = lazy(() =>
-  import('./components/panels/ProjectCard').then(m => ({
+  import('./components/panels/ProjectCard').then((m) => ({
     default: m.ProjectCard,
-  }))
+  })),
 );
 const ContactPing = lazy(() =>
-  import('./components/panels/ContactPing').then(m => ({
+  import('./components/panels/ContactPing').then((m) => ({
     default: m.ContactPing,
-  }))
+  })),
 );
 // The semantic text mirror is generated at build time by
 // buildSemanticContentHTML() in src/utils/semanticHtml.ts and injected
@@ -66,7 +66,7 @@ export function App() {
         () => {
           void import('./components/Scene');
         },
-        { timeout: 1500 }
+        { timeout: 1500 },
       );
       return () => win.cancelIdleCallback?.(handle);
     }
@@ -103,7 +103,7 @@ export function App() {
   useAisleAudio({ enabled: booted && audioEnabled, trackId });
   const variant = useSceneVariant();
 
-  const projectsById = useMemo(() => new Map(projects.map(p => [p.id, p])), []);
+  const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), []);
 
   const close = useCallback(() => setActive({ kind: 'none' }), []);
 
@@ -121,7 +121,7 @@ export function App() {
     }
   });
   const markExplored = useCallback(() => {
-    setHasExplored(prev => {
+    setHasExplored((prev) => {
       if (prev) return prev;
       try {
         window.localStorage.setItem(HAS_EXPLORED_KEY, '1');
@@ -161,14 +161,14 @@ export function App() {
           window.open(
             'https://www.linkedin.com/in/yinka-vaughan/',
             '_blank',
-            'noopener,noreferrer'
+            'noopener,noreferrer',
           );
         }
         return;
       }
       setActive({ kind: 'project', projectId: target.projectId });
     },
-    [markExplored]
+    [markExplored],
   );
 
   const activeProject =
@@ -197,7 +197,7 @@ export function App() {
               setActive({ kind: 'contact' });
             }}
             audioEnabled={audioEnabled}
-            onToggleAudio={() => setAudioEnabled(v => !v)}
+            onToggleAudio={() => setAudioEnabled((v) => !v)}
             hasExplored={hasExplored}
           />
           {variant === 'portrait' && active.kind === 'none' && <ScrollHint />}
@@ -207,7 +207,7 @@ export function App() {
               onClose={close}
               onNavigate={setActive}
               audioEnabled={audioEnabled}
-              onToggleAudio={() => setAudioEnabled(v => !v)}
+              onToggleAudio={() => setAudioEnabled((v) => !v)}
               trackId={trackId}
               onSelectTrack={handleSelectTrack}
             />

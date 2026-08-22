@@ -19,7 +19,7 @@ export interface SceneAnchor {
 
 export function collectAnchors(root: Object3D): Map<string, SceneAnchor> {
   const out = new Map<string, SceneAnchor>();
-  root.traverse(node => {
+  root.traverse((node) => {
     if (!node.name.startsWith(ANCHOR_PREFIX)) return;
     const id = node.name.slice(ANCHOR_PREFIX.length);
     const position = new Vector3();
@@ -39,14 +39,14 @@ export function collectAnchors(root: Object3D): Map<string, SceneAnchor> {
 export function assertAnchorCoverage(
   anchors: Map<string, SceneAnchor>,
   projectIds: readonly string[],
-  variant: string
+  variant: string,
 ): void {
   if (!import.meta.env.DEV) return;
-  const missing = projectIds.filter(id => !anchors.has(id));
+  const missing = projectIds.filter((id) => !anchors.has(id));
   if (missing.length === 0) return;
   console.error(
     `[scene/${variant}] Missing anchor_<id> for projects: ${missing.join(', ')}. ` +
       `Each project in src/data/projects.ts requires a matching anchor in the ` +
-      `Blender scene — see docs/blender-contract.md.`
+      `Blender scene — see docs/blender-contract.md.`,
   );
 }
