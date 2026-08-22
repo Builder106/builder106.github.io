@@ -591,7 +591,7 @@ export function ServerRoom({
   // story spatially, since each cluster owns its own wall.
   const WAVE_RACK_DELAY_S = 0.35;
   const WAVE_CLUSTER_DELAY_S = 0.7;
-  const lastInteractionRef = useRef<number>(() => performance.now());
+  const lastInteractionRef = useRef<number>(performance.now());
   const waveStartRef = useRef<number | null>(null);
 
   // Variant-aware "which time slot does this rack fire in?" map.
