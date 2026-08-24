@@ -10,27 +10,27 @@ export interface RepoStats {
 export const repoStats: Record<string, RepoStats> = {
   'Builder106/econ-os': {
     lang: 'Python',
-    pushed_at: '2026-08-22T16:23:57Z',
+    pushed_at: '2026-08-24T19:58:58Z',
     stars: 0,
   },
   'Builder106/ocaml-limit': {
     lang: 'OCaml',
-    pushed_at: '2026-08-22T16:24:15Z',
+    pushed_at: '2026-08-24T19:59:03Z',
     stars: 2,
   },
   'Builder106/qforge': {
     lang: 'C',
-    pushed_at: '2026-08-22T16:24:17Z',
+    pushed_at: '2026-08-24T19:59:04Z',
     stars: 0,
   },
   'Builder106/micro-match': {
-    lang: 'Svelte',
-    pushed_at: '2026-08-22T16:37:49Z',
+    lang: 'TypeScript',
+    pushed_at: '2026-08-24T20:40:29Z',
     stars: 0,
   },
   'Builder106/staija': {
     lang: 'TypeScript',
-    pushed_at: '2026-08-22T16:24:10Z',
+    pushed_at: '2026-08-23T13:09:18Z',
     stars: 0,
   },
   'Builder106/study-sprint': {
@@ -40,27 +40,27 @@ export const repoStats: Record<string, RepoStats> = {
   },
   'Builder106/capitol-alpha': {
     lang: 'Jupyter Notebook',
-    pushed_at: '2026-08-22T16:24:02Z',
-    stars: 2,
+    pushed_at: '2026-08-24T19:57:32Z',
+    stars: 3,
   },
   'Builder106/datafest-2026': {
     lang: 'R',
-    pushed_at: '2026-08-20T01:45:40Z',
+    pushed_at: '2026-08-24T19:57:37Z',
     stars: 1,
   },
   'Builder106/linux-bench-hub': {
     lang: 'HTML',
-    pushed_at: '2026-08-22T16:24:22Z',
+    pushed_at: '2026-08-24T19:57:40Z',
     stars: 0,
   },
   'Builder106/clear-hash': {
     lang: 'Rust',
-    pushed_at: '2026-08-22T15:03:42Z',
+    pushed_at: '2026-08-24T20:15:50Z',
     stars: 0,
   },
   'Builder106/halberd': {
     lang: 'Go',
-    pushed_at: '2026-08-22T16:24:20Z',
+    pushed_at: '2026-08-24T20:15:53Z',
     stars: 0,
   },
   'Builder106/quarry': {
@@ -70,17 +70,17 @@ export const repoStats: Record<string, RepoStats> = {
   },
   'Builder106/enclave': {
     lang: 'TypeScript',
-    pushed_at: '2026-08-22T16:24:07Z',
+    pushed_at: '2026-08-24T20:15:41Z',
     stars: 1,
   },
   'Builder106/helm': {
     lang: 'HTML',
-    pushed_at: '2026-08-20T01:45:30Z',
+    pushed_at: '2026-08-24T11:11:34Z',
     stars: 0,
   },
   'Builder106/imc-prosperity': {
     lang: 'Python',
-    pushed_at: '2026-08-22T16:24:00Z',
+    pushed_at: '2026-08-24T20:15:45Z',
     stars: 1,
   },
 };

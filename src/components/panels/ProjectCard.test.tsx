@@ -19,7 +19,9 @@ describe('ProjectCard stack chips', () => {
   });
 
   it('renders the closed shell without project content', () => {
-    const html = renderToStaticMarkup(<ProjectCard project={null} onClose={() => {}} onNavigate={() => {}} />);
+    const html = renderToStaticMarkup(
+      <ProjectCard project={null} onClose={() => {}} onNavigate={() => {}} />,
+    );
     expect(html).toContain('aria-hidden="true"');
     expect(html).toContain('// node');
     expect(html).not.toContain('project-card__blurb');

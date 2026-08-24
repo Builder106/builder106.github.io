@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { aisleScroll } from "./aisleScroll";
+import { describe, expect, it } from 'vitest';
+import { aisleScroll } from './aisleScroll';
 
-describe("aisleScroll", () => {
-  it("clamps progress and notifies subscribers only on changes", () => {
+describe('aisleScroll', () => {
+  it('clamps progress and notifies subscribers only on changes', () => {
     const seen: number[] = [];
     const unsubscribe = aisleScroll.subscribe((value) => seen.push(value));
     aisleScroll.set(-1);

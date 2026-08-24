@@ -220,7 +220,6 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "json-summary"],
-      all: true,
       include: [
         "src/data/experience.ts",
         "src/data/projects.ts",
