@@ -217,5 +217,24 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     exclude: ["e2e/**", ".features-gen/**", "node_modules/**"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "json-summary"],
+      all: true,
+      include: [
+        "src/data/experience.ts",
+        "src/data/projects.ts",
+        "src/data/repoStats.generated.ts",
+        "src/scene/activePanel.ts",
+        "src/scene/aisleScroll.ts",
+        "src/scene/clickResolver.ts",
+      ],
+      thresholds: {
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+      },
+    },
   },
 });

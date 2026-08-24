@@ -17,4 +17,47 @@ describe('ProjectCard stack chips', () => {
       expect(html).toMatch(chipPattern);
     });
   });
+
+  it('renders the closed shell without project content', () => {
+    const html = renderToStaticMarkup(<ProjectCard project={null} onClose={() => {}} onNavigate={() => {}} />);
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain('// node');
+    expect(html).not.toContain('project-card__blurb');
+  });
+
+  it('renders media, stats, links, and navigation for a complete project', () => {
+    const project = projects[0];
+    const navigated: unknown[] = [];
+    const html = renderToStaticMarkup(
+      <ProjectCard
+        project={project}
+        onClose={() => {}}
+        onNavigate={(target) => navigated.push(target)}
+      />,
+    );
+
+    expect(html).toContain('panel__hero--video');
+    expect(html).toContain('project-card__repo-stat');
+    expect(html).toContain('open live demo');
+    expect(html).toContain('view source');
+    expect(html).toContain('Project navigation');
+    expect(navigated).toHaveLength(0);
+  });
+
+  it('renders an image-only project and handles missing repo stats', () => {
+    const project = {
+      ...projects[0],
+      id: 'local-only',
+      demo: undefined,
+      links: { live: undefined, repo: undefined },
+    };
+    const html = renderToStaticMarkup(
+      <ProjectCard project={project} onClose={() => {}} onNavigate={() => {}} />,
+    );
+    expect(html).toContain('<picture>');
+    expect(html).toContain('panel__hero');
+    expect(html).not.toContain('open live demo');
+    expect(html).not.toContain('view source');
+    expect(html).not.toContain('project-card__repo');
+  });
 });

@@ -35,4 +35,8 @@ describe('resolveStackIcon', () => {
     const nextjs = resolveStackIcon('Next.js');
     expect(nextjs?.hex).not.toBe('#000000');
   });
+
+  it('keeps already-readable brand colors unchanged', () => {
+    expect(resolveStackIcon('React')?.hex).toBe('#61DAFB');
+  });
 });
