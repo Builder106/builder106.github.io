@@ -20,7 +20,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Check tracked issues/PRs for new activity
         run: python3 oss-contribution-tracker/monitor.py
