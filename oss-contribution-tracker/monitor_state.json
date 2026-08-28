@@ -394,21 +394,21 @@
   "https://github.com/ArunNGun/openTeleprompt/pull/6": {
     "url": "https://github.com/ArunNGun/openTeleprompt/pull/6",
     "state": "open",
-    "comments": 2,
+    "comments": 3,
     "last_comment": {
-      "author": "ArunNGun",
-      "created_at": "2026-07-19T06:42:16Z",
-      "first_line": "> @ArunNGun Checking in on this since it's been open for a bit. Let me know if you need any changes made or if there's a"
+      "author": "Builder106",
+      "created_at": "2026-08-27T23:36:13Z",
+      "first_line": "Hey, been a while. Thanks for the review. I pushed `2df22d9`, which removes the unused `API.elevateNotchWindow()` method"
     }
   },
   "https://github.com/ArunNGun/openTeleprompt/pull/5": {
     "url": "https://github.com/ArunNGun/openTeleprompt/pull/5",
     "state": "open",
-    "comments": 1,
+    "comments": 2,
     "last_comment": {
       "author": "Builder106",
-      "created_at": "2026-07-19T01:34:52Z",
-      "first_line": "@ArunNGun Bumping this one as well. Let me know if you need any changes or if there are any blockers."
+      "created_at": "2026-08-27T23:24:13Z",
+      "first_line": "@ArunNGun "
     }
   },
   "https://github.com/Pickle-Pixel/ApplyPilot/pull/64": {
