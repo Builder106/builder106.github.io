@@ -45,7 +45,6 @@ jobs:
             echo "no changes"
           else
             git commit -m "oss-ledger: refresh data [skip ci]"
-            git push
             git push || echo "Branch protection prevented direct push; continuing deployment with generated data"
           fi
       - run: npm run build
