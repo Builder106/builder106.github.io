@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```text
 
-Requires Node 20+ (matches the CI matrix in `.github/workflows/deploy.yml`).
+Requires Node 24 (matches the CI and deployment workflows).
 
 | Command | Purpose |
 | --- | --- |

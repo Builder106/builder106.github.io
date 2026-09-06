@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-09-06 — Standardize the site runtime on Node 24 #decision
+
+Pinned the CI and GitHub Pages deployment workflows to Node 24, matching the supported deployment runtime. The site remains npm-based, and the Python OSS Ledger refresh remains unchanged.
+
 ## 2026-08-17 — Ship the room with no cabling at all #decision #pivot
 
 The room now hides the glb's ten authored `Cable_*` runs and draws nothing in their place. One `if` block in the `ServerRoom` traverse is all that's left of a day on this.
