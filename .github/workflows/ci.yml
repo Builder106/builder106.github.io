@@ -121,3 +121,17 @@ jobs:
           artifactName: lighthouse-ci-results
       - name: Accessibility & DOM validation check
         run: npx axe-core-cli dist/index.html || echo "axe-core automated check passed"
+
+  e2e:
+    name: Multi-viewport smoke tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
