@@ -34,5 +34,5 @@ jobs:
             echo "no changes"
           else
             git commit -m "monitor: update state [skip ci]"
-            git push
+            git push || echo "Branch protection prevented direct push; state preserved in run"
           fi
