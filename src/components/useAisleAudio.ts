@@ -74,7 +74,7 @@ export function getTrack(id: TrackId): Track {
   return TRACKS.find((t) => t.id === id) ?? TRACKS[0];
 }
 
-export function isTrackId(value: unknown): value is TrackId {
+export function isTrackId(value: string | null | undefined): value is TrackId {
   return typeof value === 'string' && TRACKS.some((t) => t.id === value);
 }
 

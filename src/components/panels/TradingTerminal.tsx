@@ -205,7 +205,9 @@ function loadDiscoveredSecrets(): Set<string> {
   try {
     const raw = window.localStorage.getItem(SECRETS_STORAGE_KEY);
     if (!raw) return new Set();
-    const parsed = JSON.parse(raw) as unknown;
+    const parsed = JSON.parse(raw) as
+      | (string | number | boolean | null)[]
+      | Record<string, string | number | boolean | null>;
     if (!Array.isArray(parsed)) return new Set();
     return new Set(
       parsed.filter(

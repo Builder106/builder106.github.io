@@ -196,6 +196,29 @@ export function buildSemanticContentHTML(): string {
   ].join('');
 }
 
+interface ProjectCreativeWork {
+  '@type': string | string[];
+  '@id': string;
+  name: string;
+  description: string;
+  keywords: readonly string[] | string[];
+  about: {
+    '@type': string;
+    name: string;
+  };
+  author: { '@id': string };
+  creator: { '@id': string };
+  isPartOf: { '@id': string };
+  dateModified: string;
+  programmingLanguage?: string[];
+  headline?: string;
+  codeRepository?: string;
+  url?: string;
+  image?: string;
+  applicationCategory?: string;
+  operatingSystem?: string;
+}
+
 // Build-time JSON-LD generator. The @graph carries: a ProfilePage that
 // describes the page itself as an interactive 3D server-farm
 // visualization, the Person, an ItemList that fixes project order, and
@@ -284,7 +307,7 @@ export function buildStructuredDataJSON(dateModified?: string): string {
     const langs = programmingLanguagesFor(p.stack);
     const isApp = Boolean(p.links.live);
     const image = p.image ? `${SITE_URL}${p.image}` : p.logo ? `${SITE_URL}${p.logo}` : undefined;
-    const work: Record<string, unknown> = {
+    const work: ProjectCreativeWork = {
       '@type': isApp ? ['SoftwareSourceCode', 'SoftwareApplication'] : 'SoftwareSourceCode',
       '@id': `${SITE_URL}/#project-${p.id}`,
       name: p.name,
