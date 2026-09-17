@@ -13,6 +13,11 @@ updates:
       minor-and-patch:
         patterns:
           - "*"
+        exclude-patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
         update-types:
           - "minor"
           - "patch"
