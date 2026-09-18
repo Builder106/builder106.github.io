@@ -1,5 +1,6 @@
 import { projects } from '@/data/projects';
 import { renderToStaticMarkup } from 'react-dom/server';
+import type { ActivePanel } from '@/scene/activePanel';
 import { describe, expect, it } from 'vitest';
 import { ProjectCard } from './ProjectCard';
 
@@ -29,7 +30,7 @@ describe('ProjectCard stack chips', () => {
 
   it('renders media, stats, links, and navigation for a complete project', () => {
     const project = projects[0];
-    const navigated: unknown[] = [];
+    const navigated: ActivePanel[] = [];
     const html = renderToStaticMarkup(
       <ProjectCard
         project={project}
