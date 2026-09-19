@@ -1059,8 +1059,9 @@ export function TradingTerminal({
                 pill swaps to a SESSION uptime read here — same shape,
                 different signal. */}
           <div
-            className={`console-pill console-pill--telemetry ${flashedWidget === 'telemetry' ? 'console-pill--flash' : ''
-              }`}
+            className={`console-pill console-pill--telemetry ${
+              flashedWidget === 'telemetry' ? 'console-pill--flash' : ''
+            }`}
           >
             {variant === 'portrait' ? (
               <>
@@ -1110,14 +1111,16 @@ export function TradingTerminal({
           </div>
 
           <div
-            className={`console-pill console-pill--audio ${flashedWidget === 'audio' ? 'console-pill--flash' : ''
-              }`}
+            className={`console-pill console-pill--audio ${
+              flashedWidget === 'audio' ? 'console-pill--flash' : ''
+            }`}
           >
             <div className="console-pill__header">
               <span className="console-pill__title">audio</span>
               <span
-                className={`console-pill__dot ${audioEnabled ? 'console-pill__dot--ok' : 'console-pill__dot--muted'
-                  }`}
+                className={`console-pill__dot ${
+                  audioEnabled ? 'console-pill__dot--ok' : 'console-pill__dot--muted'
+                }`}
                 aria-hidden
               />
             </div>

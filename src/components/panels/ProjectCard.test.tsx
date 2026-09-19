@@ -8,7 +8,7 @@ describe('ProjectCard stack chips', () => {
   it('renders an icon for every stack chip, including tags with no brand logo', () => {
     const project = projects.find((p) => p.stack.includes('Playwright'))!;
     const html = renderToStaticMarkup(
-      <ProjectCard project={project} onClose={() => { }} onNavigate={() => { }} />,
+      <ProjectCard project={project} onClose={() => {}} onNavigate={() => {}} />,
     );
     project.stack.forEach((tag) => {
       // Each chip is `<span class="project-card__chip"><svg .../>tag</span>`
@@ -21,7 +21,7 @@ describe('ProjectCard stack chips', () => {
 
   it('renders the closed shell without project content', () => {
     const html = renderToStaticMarkup(
-      <ProjectCard project={null} onClose={() => { }} onNavigate={() => { }} />,
+      <ProjectCard project={null} onClose={() => {}} onNavigate={() => {}} />,
     );
     expect(html).toContain('aria-hidden="true"');
     expect(html).toContain('// node');
@@ -34,7 +34,7 @@ describe('ProjectCard stack chips', () => {
     const html = renderToStaticMarkup(
       <ProjectCard
         project={project}
-        onClose={() => { }}
+        onClose={() => {}}
         onNavigate={(target) => navigated.push(target)}
       />,
     );
@@ -55,7 +55,7 @@ describe('ProjectCard stack chips', () => {
       links: { live: undefined, repo: undefined },
     };
     const html = renderToStaticMarkup(
-      <ProjectCard project={project} onClose={() => { }} onNavigate={() => { }} />,
+      <ProjectCard project={project} onClose={() => {}} onNavigate={() => {}} />,
     );
     expect(html).toContain('<picture>');
     expect(html).toContain('panel__hero');
