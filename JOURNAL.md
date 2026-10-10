@@ -5,6 +5,13 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-10: Make the contact panel easier to scan #decision
+
+The panel now states the internship search and location directly. I removed
+the fake latency readout and links already in the header, kept Devpost here
+because it is the one profile link not shown elsewhere, and made the panel
+more opaque over the room.
+
 ## 2026-09-06 — Standardize the site runtime on Node 24 #decision
 
 Pinned the CI and GitHub Pages deployment workflows to Node 24, matching the supported deployment runtime. The site remains npm-based, and the Python OSS Ledger refresh remains unchanged.
