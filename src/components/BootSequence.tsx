@@ -104,7 +104,6 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
           <span className="boot-sequence__path">~</span>
           <span className="boot-sequence__sep">$</span>
           <span className="boot-sequence__cmd">./boot --target server-room</span>
-          <span className="boot-sequence__skip">[esc to skip]</span>
         </div>
         <ul className="boot-sequence__lines">
           {LINES.slice(0, visibleCount).map((line, idx) => (
