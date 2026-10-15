@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-13: Redrew the README flow #decision
+
+The README click flow is now a sequence figure in the site's dark palette. The source had five actors and seven messages; the figure keeps all five actors and all seven exchanges, with shorter labels and the target kinds and OrbitControls handoff stated below it. The HTML is editable and the PNG is the GitHub view.
+
 ## 2026-10-10: Make the contact panel easier to scan #decision
 
 The panel now states the internship search and location directly. I removed
