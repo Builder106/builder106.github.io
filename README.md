@@ -36,10 +36,6 @@ Recorded with a Playwright BDD demo suite (`npm run demo:record`). The recording
 
 The portfolio renders as a single WebGL canvas. Clicks raycast into the scene, resolve to a known anchor (a rack, the terminal, the ping button), and steer the camera rig toward that anchor while the matching panel hydrates and slides in. After a short transition window the rig releases control back to OrbitControls so you can freely orbit, pan, and zoom.
 
-![Portfolio click flow through the canvas, resolver, camera, and panel](assets/diagrams/portfolio-interaction.png)
-
-[Edit the diagram](assets/diagrams/portfolio-interaction.html).
-
 The scene itself is authored in Blender (`blend/`), exported to glTF, and loaded once at startup. Each project's `id` matches an empty Blender object named `anchor_<id>`, which the runtime resolves to a 3D coordinate (documented in [docs/blender-contract.md](docs/blender-contract.md)). Project metadata lives in [src/data/projects.ts](src/data/projects.ts); adding a new rack requires adding an entry there and a matching anchor in the 3D scene.
 
 Public repository stats (stars, latest updates, language distribution) are generated at build time by [scripts/fetch-repo-stats.mjs](scripts/fetch-repo-stats.mjs) to keep performance fast.
