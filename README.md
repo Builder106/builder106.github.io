@@ -1,8 +1,4 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)"  srcset="assets/banner-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/banner-light.png">
-  <img alt="Olayinka Vaughan — Interactive 3D portfolio rendered with React Three Fiber" src="assets/banner-dark.png">
-</picture>
+<img alt="Olayinka Vaughan's portfolio: a 3D server room where each rack is a project" src="assets/banner.png">
 
 [![Deploy](https://github.com/Builder106/builder106.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/Builder106/builder106.github.io/actions/workflows/deploy.yml)
 [![TypeScript](https://img.shields.io/badge/typescript-5.6%2B-3178c6.svg)](https://www.typescriptlang.org/)

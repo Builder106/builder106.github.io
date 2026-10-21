@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-21: Replaced the README banner with a frame of the room #decision
+
+The drawn banner (rack silhouettes, letter-spaced caps, dot separators) looked generic and didn't show the site. The new `assets/banner.png` is the 15-second overview frame from `public/demo_main.mp4`, set beside the name and one sentence in Inter. It's dark only, since it's a screenshot, so the light/dark `<picture>` pair and both SVG sources are gone.
+
 ## 2026-10-19: Remove the click-flow diagram #decision
 
 The sequence diagram drew a camera lerp as a message and had the panel sending to the visitor. The paragraph above it already describes the steps, so the README keeps only the prose.
