@@ -11,8 +11,8 @@ import {
   useMemo,
   useRef,
   useState,
-  type FormEvent,
   type KeyboardEvent,
+  type SubmitEvent,
 } from 'react';
 import { PanelShell } from './PanelShell';
 
@@ -884,7 +884,7 @@ export function TradingTerminal({
     ],
   );
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SubmitEvent) => {
     e.preventDefault();
     const value = input;
     setInput('');

@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-23: Add typed API checks #ci #decision
+
+ESLint now rejects explicit `any`, flags deprecated TypeScript APIs, and limits explicit `unknown` in application source to data and error boundaries. CI already runs the strict TypeScript project checks.
+
 ## 2026-10-21: Replaced the README banner with a frame of the room #decision
 
 The drawn banner (rack silhouettes, letter-spaced caps, dot separators) looked generic and didn't show the site. The new `assets/banner.png` is the 15-second overview frame from `public/demo_main.mp4`, set beside the name and one sentence in Inter. It's dark only, since it's a screenshot, so the light/dark `<picture>` pair and both SVG sources are gone.

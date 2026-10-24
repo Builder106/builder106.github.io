@@ -58,6 +58,8 @@ export default tseslint.config(
         ecmaVersion: 'esnext',
         sourceType: 'module',
         ecmaFeatures: { jsx: true },
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
       globals: {
         ...globals.browser,
@@ -71,11 +73,31 @@ export default tseslint.config(
     rules: {
       // Handled at compile time by TypeScript
       'react/prop-types': 'off',
+      '@typescript-eslint/no-deprecated': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
       // Strict standard DOM attribute validation
       'react/no-unknown-property': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    ignores: [
+      'src/**/*.test.ts',
+      'src/**/*.test.tsx',
+      'src/**/*.spec.ts',
+      'src/**/*.spec.tsx',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'TSUnknownKeyword',
+          message: 'Use a concrete type; keep unknown only at validated data or error boundaries.',
+        },
       ],
     },
   },
