@@ -244,7 +244,7 @@ export const projects: Project[] = [
       'A pre-install check that answers one question: is this binary really a build of the source it claims? It fetches the package, verifies its SLSA attestation through Sigstore and Rekor, and rebuilds it from the attested source commit in an isolated Docker container. If the rebuilt file tree differs from the registry artifact, the install is blocked. That covers the class of attack behind event-stream, ua-parser-js and xz-utils.',
     stack: ['Rust', 'Sigstore', 'Rekor', 'Docker', 'Axum'],
     links: {
-      live: 'https://clear-hash.vercel.app',
+      live: 'https://clearhash.vercel.app',
       repo: 'https://github.com/Builder106/clear-hash',
     },
     demo: '/img/projects/demos/clearhash.webm',
