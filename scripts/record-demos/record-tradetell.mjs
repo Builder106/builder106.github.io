@@ -61,31 +61,35 @@ async function waitForSectionReady(page, timeoutMs = 120_000) {
   throw new Error("probe slider never became visible within the timeout");
 }
 
-// Scroll the app document so `top` (document px) sits at the top of the
-// viewport, easing over `durationMs` so the move reads in the video.
+// Streamlit scrolls its <main data-testid="stMain">, not the window or
+// the app view container, so every scroll goes through it.
+const SCROLLER = `document.querySelector('[data-testid="stMain"]')`;
+
+async function scrollTop(appFrame, top) {
+  if (top === undefined) return appFrame.evaluate(`${SCROLLER}.scrollTop`);
+  return appFrame.evaluate(`${SCROLLER}.scrollTop = ${top}`);
+}
+
+// Scroll so `top` (content px) sits at the top of the viewport, easing
+// over `durationMs` so the move reads in the video.
 async function glideTo(appFrame, page, top, durationMs) {
   const steps = 30;
-  const start = await appFrame.evaluate(() => window.scrollY);
+  const start = await scrollTop(appFrame);
   for (let i = 1; i <= steps; i++) {
     const t = i / steps;
     const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
-    await appFrame.evaluate(
-      (y) => window.scrollTo({ top: y, behavior: "instant" }),
-      start + (top - start) * eased,
-    );
+    await scrollTop(appFrame, start + (top - start) * eased);
     await page.waitForTimeout(durationMs / steps);
   }
 }
 
-// Document-space top of the first element matching `selector`.
+// Content-space top of the first element matching `selector`.
 async function topOf(appFrame, selector, margin = 24) {
-  return appFrame.evaluate(
-    ({ sel, margin }) => {
-      const el = document.querySelector(sel);
-      return el ? Math.max(0, el.getBoundingClientRect().top + window.scrollY - margin) : 0;
-    },
-    { sel: selector, margin },
-  );
+  const offset = await appFrame.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    return el ? el.getBoundingClientRect().top : 0;
+  }, selector);
+  return Math.max(0, (await scrollTop(appFrame)) + offset - margin);
 }
 
 // Phase 1 — wake without recording so the startup spinner is not in
@@ -161,10 +165,12 @@ async function recordDemo() {
   }).catch(() => {});
 
   // Park the probe on the first tick so the sweep starts at the left edge.
-  const probe = appFrame.locator(PROBE);
-  await probe.focus();
-  await probe.press("Home");
-  await appFrame.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await appFrame.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    el.focus({ preventScroll: true });
+    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+  }, PROBE);
+  await scrollTop(appFrame, 0);
   await appFrame.getByRole("heading", { level: 1 }).first()
     .waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
   await page.waitForTimeout(600);
@@ -178,11 +184,18 @@ async function recordDemo() {
 
   // Beat 2: bring the price section into frame and sweep the probe across
   // all four days. PageUp moves it 100 ticks, so 400 presses cross 40,000.
-  await glideTo(appFrame, page, await topOf(appFrame, PROBE, VIDEO_H - 80), 1_400);
-  for (let i = 0; i < 400; i++) {
-    await probe.press("PageUp");
-    if (i % 4 === 3) await page.waitForTimeout(70);
-  }
+  // The presses are dispatched inside the page in batches of four: one
+  // Playwright round trip per press stretched the sweep past two minutes.
+  await glideTo(appFrame, page, await topOf(appFrame, "#tt-section", 16), 1_400);
+  await appFrame.evaluate(async (sel) => {
+    const el = document.querySelector(sel);
+    for (let step = 0; step < 100; step++) {
+      for (let k = 0; k < 4; k++) {
+        el.dispatchEvent(new KeyboardEvent("keydown", { key: "PageUp", bubbles: true }));
+      }
+      await new Promise((r) => setTimeout(r, 120));
+    }
+  }, PROBE);
   await page.waitForTimeout(1_200);
 
   // Beat 3: rest on the order book at the last tick.
