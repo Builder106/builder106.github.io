@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-26: Keep the public ledger focused on accounts #decision
+
+Removed the supplementary record, supplementary backlog, and other contributions sections from the site, including their posting instructions and unused rendering styles. The page now ends after the repository accounts. Existing contribution data and monitoring remain available.
+
 ## 2026-10-26: Track FURY in place of pwndbg #decision
 
 FURY (`fury-gl/fury`) replaces pwndbg in the ledger and its authored-item, comment, discussion, and review queries. The replacement keeps the three-issue and three-PR targets and uses FURY's official documentation logo. A focused GitHub fetch found no authored issues and one open PR, #1381. The saved snapshot preserves other projects' existing data and date; the next scheduled refresh updates the whole ledger. Historical pwndbg monitoring state and contribution records remain intact.

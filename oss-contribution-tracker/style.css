@@ -184,20 +184,6 @@ code {
   margin: 20px 0 30px; max-width: min(64ch, 100%); color: var(--ink-soft);
   font-size: 15px; line-height: 1.75;
 }
-.section__note + .legend { margin-top: -14px; }
-.legend {
-  list-style: none; margin: 0 0 30px; padding: 0; max-width: min(64ch, 100%);
-  display: flex; flex-direction: column; gap: 8px;
-}
-.legend li {
-  color: var(--ink-soft); font-size: 14.5px; line-height: 1.6;
-  padding-left: 19px; text-indent: -19px;
-}
-.legend .supp__mark {
-  display: inline-block; width: 10px; text-indent: 0;
-  margin-right: 9px; transform: translateY(0.5px);
-}
-
 /* ---- Accounts (ruled register leaves) ---- */
 .account {
   padding: 22px 0 20px; border-top: 1px solid var(--rule);
@@ -300,101 +286,6 @@ code {
   margin-bottom: 2px;
 }
 
-/* ---- Supplementary record ---- */
-.supp__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 26px; }
-.supp__acct { display: flex; flex-direction: column; }
-.supp__head {
-  display: inline-flex; align-items: center; gap: 9px;
-  font-family: var(--serif); font-weight: 600; font-size: 17px;
-  padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--rule);
-}
-.supp__row { padding: 7px 0; }
-.supp__row-top { display: flex; align-items: baseline; gap: 8px; }
-.supp__row-bottom { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; padding-left: 20px; }
-.supp__mark { font-size: 11px; line-height: 1; flex: none; transform: translateY(-1px); }
-.audit--verified { color: var(--green); }
-.audit--self { color: var(--ink-faint); }
-.supp__label { font-size: 14.5px; line-height: 1.35; }
-.supp__leader {
-  flex: 1; min-width: 8px;
-  border-bottom: 1px dotted var(--rule); transform: translateY(-0.3em);
-}
-.supp__meta { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); letter-spacing: 0.02em; white-space: nowrap; }
-.supp__fig {
-  font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600;
-  font-size: 14px; min-width: 1.4em; text-align: right;
-}
-
-/* ---- Other contributions ---- */
-.misc__list { display: flex; flex-direction: column; }
-.misc__row {
-  display: block; color: var(--ink); padding: 9px 6px; margin: 0 -6px; border-radius: 2px;
-  text-decoration: none;
-}
-.misc__row:not(.misc__row--empty):nth-of-type(odd) { background: var(--paper-2); }
-.misc__row:hover { text-decoration: none; }
-.misc__row:hover .misc__title { color: var(--accent); }
-.misc__row-top { margin-bottom: 3px; }
-.misc__title { font-family: var(--serif); font-size: 15px; line-height: 1.35; }
-.misc__row-bottom { display: flex; align-items: baseline; gap: 8px; }
-.misc__repo {
-  font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
-  letter-spacing: 0.01em; white-space: nowrap;
-  display: inline-flex; align-items: center; gap: 6px;
-}
-.misc__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
-.misc__dot--logo {
-  width: 14px; height: 14px; border-radius: 0; background: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  flex: none;
-}
-.misc__dot--logo svg { width: 14px; height: 14px; max-width: 14px; max-height: 14px; display: block; }
-.misc__dot--favicon {
-  width: auto; height: 14px; border-radius: 0; background: none;
-  image-rendering: pixelated; transform: translateY(1px); flex: none;
-}
-.misc__leader {
-  flex: 1; min-width: 8px; border-bottom: 1px dotted var(--rule); transform: translateY(-0.3em);
-}
-.misc__date { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); white-space: nowrap; }
-.misc__state {
-  font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em;
-  min-width: 3.6em; text-align: right;
-}
-.misc__state--open { color: var(--ink-soft); }
-.misc__state--merged { color: var(--green); }
-.misc__state--closed { color: var(--ink-faint); }
-.misc__row--empty {
-  font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--ink-faint); padding: 5px 0;
-}
-
-/* ---- Posting instructions (code) ---- */
-.refs { margin-top: 34px; }
-.refs summary {
-  cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 9px;
-  font-family: var(--mono); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-  color: var(--ink-soft); padding: 8px 10px 8px 8px; margin-left: -8px; border-radius: 3px;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-.refs summary:hover { color: var(--accent); background: var(--paper-2); }
-.refs summary:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
-.refs summary::-webkit-details-marker { display: none; }
-.refs summary::before { content: "§"; color: var(--accent); font-size: 15px; }
-.refs summary::after {
-  content: "▸"; font-size: 9px; color: var(--ink-faint);
-  transition: transform 0.15s ease;
-}
-.refs[open] summary::after { transform: rotate(90deg); }
-.refs[open] summary { color: var(--ink); }
-pre {
-  margin: 10px 0 0; overflow-x: auto; background: var(--panel);
-  border: 1px solid var(--rule); border-left: 3px solid var(--rule-strong);
-  border-radius: 2px; padding: 16px 18px;
-}
-pre code { background: none; padding: 0; font-size: 12.5px; line-height: 1.75; color: var(--ink); }
-code .c { color: var(--ink-faint); }
-code .a { color: var(--accent); }
-
 /* ---- Footer ---- */
 .foot {
   margin-top: 48px; font-family: var(--mono); font-size: 11px; line-height: 1.75;
@@ -419,22 +310,6 @@ code .a { color: var(--accent); }
   .masthead__stamp { transform: none; }
   .tb__row { grid-template-columns: 1fr 4.5em 4.5em; }
 }
-.supp-items {
-  margin: 6px 0 0 0; padding: 0; list-style: none;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.supp-item {
-  display: flex; font-size: 13.5px; line-height: 1.4; padding-left: 20px;
-  color: var(--ink-soft); text-decoration: none;
-}
-.supp-item:hover .supp-item__title { color: var(--accent); }
-.supp-item__date {
-  font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-right: 8px; flex: none; transform: translateY(1.5px);
-}
-.supp-item__title {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
 /* ---- Refresh Trigger & Modal ---- */
 .refresh-trigger {
   margin-top: 8px;

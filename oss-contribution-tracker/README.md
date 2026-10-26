@@ -1,8 +1,9 @@
 # OSS Contribution Tracker
 
 A single page that quantifies my open-source work toward Google Summer of Code
-2027: a standing target of 3 open issues + 3 open PRs across five target repos,
-plus the triage, review, and community work that never shows up in a merge count.
+2027: a standing target of open issues and pull requests per target repository.
+The public page shows the trial balance and repository accounts. Supplementary
+activity and other contributions remain in the data snapshot for monitoring.
 
 Lives inside [`builder106.github.io`](../) as a self-contained subproject:
 it generates its own static page, which Vite copies straight through to
@@ -10,10 +11,9 @@ it generates its own static page, which Vite copies straight through to
 
 **Live:** <https://yinkavaughan.me/oss-contribution-tracker/>
 
-## What it counts
+## Data sources
 
-The page splits contributions into two halves, marked by how each number is
-sourced:
+The refresh script collects two types of contribution data:
 
 - **● Verifiable.** Currently-open issues and PRs, plus the triage and review
 
@@ -26,7 +26,8 @@ sourced:
   forum answers that no API captures. Each one is an evidence-linked row in
   [`CONTRIBUTIONS_LOG.md`](CONTRIBUTIONS_LOG.md).
 
-The verifiable half leads; the self-logged half is labelled as such.
+The page displays authored issues and pull requests. The snapshot also keeps
+supplementary activity for monitoring.
 
 Target repos: `KhronosGroup/glTF-Blender-IO`, `blender/blender` (Gitea),
 `python/cpython`, `fury-gl/fury`, `neovim/neovim`. Goal: keep 3 issues + 3 PRs

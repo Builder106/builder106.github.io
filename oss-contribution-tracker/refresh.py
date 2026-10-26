@@ -361,22 +361,6 @@ def cleared_entry(item: dict) -> str:
             f'<span class="entry__state">{word}</span></a>')
 
 
-def misc_row(item: dict) -> str:
-    state = item["state"]
-    cls = {"merged": "misc__state--merged", "open": "misc__state--open"}.get(state, "misc__state--closed")
-    return (f'<a class="misc__row" href="{item["url"]}" title="{esc(item["title"])}" '
-            f'target="_blank" rel="noopener noreferrer">'
-            f'<div class="misc__row-top">'
-            f'<span class="misc__title">{esc(item["title"])}</span>'
-            f'</div>'
-            f'<div class="misc__row-bottom">'
-            f'<span class="misc__repo">{esc(item["repo"])} #{item["n"]}</span>'
-            f'<span class="misc__leader" aria-hidden="true"></span>'
-            f'<span class="misc__date">{item["date"]}</span>'
-            f'<span class="misc__state {cls}">{state}</span>'
-            f'</div></a>')
-
-
 def balance_line(active: int, target: int) -> str:
     fig = f'<span class="bal__fig">{active}&#8202;/&#8202;{target}</span>'
     if active >= target:
@@ -467,20 +451,6 @@ def trial_row(repo: dict, target: int) -> str:
             f'<span class="tb__cell" role="cell">{cell(ai)}</span>'
             f'<span class="tb__cell" role="cell">{cell(ap)}</span></div>')
 
-def supp_item_link(item: dict) -> str:
-    return (f'<a class="supp-item" href="{item["url"]}" title="{esc(item["title"])}" target="_blank" rel="noopener noreferrer">'
-            f'<span class="supp-item__date">{item["date"][5:]}</span> '
-            f'<span class="supp-item__title">{esc(item["title"])}</span></a>')
-
-
-def supp_items_html(items: list[dict]) -> str:
-    if not items:
-        return ""
-    items.sort(key=lambda x: x["date"], reverse=True)
-    links = "".join(f'<li>{supp_item_link(i)}</li>' for i in items)
-    return f'<ul class="supp-items">{links}</ul>'
-
-
 def build_html(data: dict) -> str:
     repos = data["repos"]
     by_key = {r["key"]: r for r in repos}
@@ -493,88 +463,6 @@ def build_html(data: dict) -> str:
 
     trial_rows = "".join(trial_row(by_key[k], by_key[k]["target"]) for k in order)
     accounts = "".join(account_block(by_key[k], by_key[k]["target"]) for k in order)
-
-    # supplementary record: non-PR work, marked verified (queryable) vs self-reported.
-    # A prov value of None means "queryable in principle but unavailable right
-    # now" (e.g. a private Discourse profile) -- that falls back to the manual
-    # log and renders as self-reported rather than a fake permanent zero.
-    slug_by_key = {k: slug for k, _n, _h, slug, _c, _l, _t in REPOS}
-    prov: dict[str, list[dict] | None] = {
-        "fury:comments": (data["gh_comments"].get("fury-gl/fury", [])
-                             + data["gh_discussions"].get("fury-gl/fury", [])),
-        "neovim:comments": data["gh_comments"].get("neovim/neovim", []),
-        "neovim:discussions": data["gh_discussions"].get("neovim/neovim", []),
-        "cpython:discourse": None,  # Always fallback to log for links
-        "fury:reviews": data["gh_reviews"].get(slug_by_key["fury"], []),
-        "neovim:reviews": data["gh_reviews"].get(slug_by_key["neovim"], []),
-        "cpython:reviews": data["gh_reviews"].get(slug_by_key["cpython"], []),
-        "gltf:reviews": data["gh_reviews"].get(slug_by_key["gltf"], []),
-    }
-    supp_blocks = []
-    global_backlog = []
-    for proj, repo_key, rows in MANUAL:
-        repo = by_key[repo_key]
-        lines = []
-        for label, meta, source, tag in rows:
-            verified_items = prov.get(tag) if source == "query" else None
-            if verified_items is not None:
-                n_items = verified_items
-                mark, mcls = "●", "audit--verified"
-                mtitle = ("verified from discuss.python.org" if tag == "cpython:discourse"
-                          else "verified from GitHub")
-            else:
-                n_items = data["log"].get(f"{repo_key}:{tag.split(':')[-1]}", [])
-                mark, mcls, mtitle = "○", "audit--self", "self-reported in the log"
-            
-            this_week_items = [i for i in n_items if i["date"] >= data["week_start"]]
-            for i in n_items:
-                if i["date"] < data["week_start"]:
-                    b_item = i.copy()
-                    b_item["repo_key"] = repo["key"]
-                    b_item["category"] = label
-                    global_backlog.append(b_item)
-
-            n = len(this_week_items)
-            lines.append(
-                f'<div class="supp__row">'
-                f'<div class="supp__row-top">'
-                f'<span class="supp__mark {mcls}" title="{mtitle}">{mark}</span>'
-                f'<span class="supp__label">{label}</span>'
-                f'</div>'
-                f'<div class="supp__row-bottom">'
-                f'<span class="supp__leader" aria-hidden="true"></span>'
-                f'<span class="supp__meta">{meta}</span>'
-                f'<span class="supp__fig">{n}</span>'
-                f'</div>'
-                f'{supp_items_html(this_week_items)}'
-                f'</div>')
-        supp_blocks.append(
-            f'<div class="supp__acct">'
-            f'<div class="supp__head">{compact_mark(repo)}{proj}</div>'
-            f'{"".join(lines)}</div>')
-    supplementary = "".join(supp_blocks)
-    
-    global_backlog.sort(key=lambda x: x["date"], reverse=True)
-    backlog_rows = []
-    for item in global_backlog:
-        repo = by_key[item["repo_key"]]
-        mark = compact_mark(repo, "misc__dot")
-        backlog_rows.append(
-            f'<a class="misc__row" href="{item["url"]}" title="{esc(item["title"])}" target="_blank" rel="noopener noreferrer">'
-            f'<div class="misc__row-top">'
-            f'<span class="misc__title">{esc(item["title"])}</span>'
-            f'</div>'
-            f'<div class="misc__row-bottom">'
-            f'<span class="misc__repo">{mark} {repo["name"]} &middot; {item["category"]}</span>'
-            f'<span class="misc__leader" aria-hidden="true"></span>'
-            f'<span class="misc__date">{item["date"]}</span>'
-            f'</div></a>'
-        )
-    backlog_html = "".join(backlog_rows) if backlog_rows else '<div class="misc__row misc__row--empty">no past supplementary work</div>'
-
-    misc_items = data.get("misc", [])
-    misc_rows = ("".join(misc_row(i) for i in misc_items) if misc_items else
-                 '<div class="misc__row misc__row--empty">no entries outside the tracked repos yet</div>')
 
     posted = active_issues + active_prs
     css = (ROOT / "style.css").read_text(encoding="utf-8")
@@ -591,10 +479,7 @@ def build_html(data: dict) -> str:
             .replace("<!--TB_CAPHALF-->", str(cap))
             .replace("<!--TB_MERGED-->", str(total_merged))
             .replace("<!--TRIAL_ROWS-->", trial_rows)
-            .replace("<!--ACCOUNTS-->", accounts)
-            .replace("<!--SUPPLEMENTARY-->", supplementary)
-            .replace("<!--BACKLOG-->", backlog_html)
-            .replace("<!--MISC-->", misc_rows))
+            .replace("<!--ACCOUNTS-->", accounts))
 
 
 def main() -> int:
