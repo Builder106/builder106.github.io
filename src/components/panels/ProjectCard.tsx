@@ -1,7 +1,7 @@
 import { AISLE_ORDER, CLUSTER_DISPLAY, projects, type Project } from '@/data/projects';
 import { repoStats } from '@/data/repoStats.generated';
 import type { ActivePanel } from '@/scene/activePanel';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AisleStrip } from './AisleStrip';
 import { PanelShell } from './PanelShell';
 import { StackChip } from './StackChip';
@@ -168,21 +168,7 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
           )}
 
           <div className="project-card__text">
-            {shown.headline && (
-              <p className="project-card__headline">
-                {shown.headline.split(' · ').map((part, i) => (
-                  <Fragment key={part}>
-                    {i > 0 && (
-                      <span className="project-card__headline-rule" aria-hidden>
-                        |
-                      </span>
-                    )}
-                    {i > 0 && <span className="sr-only">, </span>}
-                    {part}
-                  </Fragment>
-                ))}
-              </p>
-            )}
+            {shown.headline && <p className="project-card__headline">{shown.headline}</p>}
 
             <p className="project-card__blurb">{shown.blurb}</p>
 
