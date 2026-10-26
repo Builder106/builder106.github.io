@@ -51,6 +51,9 @@ const TARGETS = [
   { id: "capitol-alpha",  url: "https://capitolalpha.vercel.app",     durationMs: 16_000 },
   { id: "datafest-2026",  url: "https://datafest-2026.vercel.app/",   durationMs: 18_000 },
   { id: "linuxbenchhub",  url: "https://linuxbenchhub.vercel.app",    durationMs: 16_000 },
+  { id: "clearhash",      url: "https://clearhash.vercel.app",        durationMs: 16_000 },
+  { id: "halberd",        url: "https://halberd-keep.vercel.app",     durationMs: 16_000 },
+  { id: "quarry",         url: "https://quarry-mev.vercel.app",       durationMs: 16_000 },
   { id: "tcg-cabt-lab",   url: "https://tcg-cabt-lab.vercel.app",     durationMs: 16_000 },
   { id: "vgc-rulebreak",  url: "https://vgc-rulebreak.vercel.app",    durationMs: 16_000 },
   // tradetell uses a custom script — see scripts/record-demos/record-tradetell.mjs
