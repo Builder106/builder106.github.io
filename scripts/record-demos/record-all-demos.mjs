@@ -37,9 +37,7 @@ const VIDEO_FPS = 24;
 const VIDEO_BITRATE = "300k";
 
 // Per-project recording config. Live URL + total recording duration.
-// Order matches projects.ts. linuxbenchhub is intentionally omitted —
-// it doesn't ship a live URL, so its panel falls back to the static
-// blurb (no hero video). The two analyst pages run a little longer
+// Order matches projects.ts. The analyst pages run a little longer
 // because they're long single-column reports with more to show.
 const TARGETS = [
   { id: "econos",         url: "https://econ-os.vercel.app",          durationMs: 14_000 },
@@ -50,6 +48,7 @@ const TARGETS = [
   { id: "studysprint",    url: "https://getstudysprint.vercel.app",   durationMs: 14_000 },
   { id: "capitol-alpha",  url: "https://capitolalpha.vercel.app",     durationMs: 16_000 },
   { id: "datafest-2026",  url: "https://datafest-2026.vercel.app/",   durationMs: 18_000 },
+  { id: "linuxbenchhub",  url: "https://linuxbenchhub.vercel.app",    durationMs: 16_000 },
   { id: "tcg-cabt-lab",   url: "https://tcg-cabt-lab.vercel.app",     durationMs: 16_000 },
   { id: "vgc-rulebreak",  url: "https://vgc-rulebreak.vercel.app",    durationMs: 16_000 },
   // tradetell uses a custom script — see scripts/record-demos/record-tradetell.mjs

@@ -75,9 +75,9 @@ export const projects: Project[] = [
     id: 'econos',
     name: 'EconOS',
     cluster: 'quant',
-    headline: 'MARL economy · live shared mainframe',
+    headline: 'MARL economy · one live kernel for every viewer',
     blurb:
-      'Multi-Agent Reinforcement Learning desktop environment for decentralized economic simulation. PPO-trained agents discover pricing, wage-setting, and consumption strategies inside a glassmorphic OS-style dashboard.',
+      'A sandbox economy run by reinforcement-learning agents. PPO-trained buyers, sellers, and workers discover pricing, wage-setting, and consumption strategies in one shared simulation, shown on a tiling desktop in the i3/sway tradition where every pane reads from the running kernel.',
     stack: ['Python', 'PettingZoo', 'PPO', 'FastAPI', 'WebSocket'],
     links: {
       live: 'https://econ-os.vercel.app',
@@ -128,9 +128,9 @@ export const projects: Project[] = [
     id: 'micromatch',
     name: 'MicroMatch',
     cluster: 'swe',
-    headline: '123 tests passing · NGO ↔ volunteer marketplace',
+    headline: '5–30 minute missions · NGO ↔ volunteer marketplace',
     blurb:
-      'A micro-volunteering marketplace pairing NGOs with volunteers for 5–30 minute skill-building tasks. Volunteers browse the feed, claim missions, submit proof, and earn badges. NGOs post tasks and review submissions.',
+      'A micro-volunteering marketplace pairing NGOs with volunteers for 5–30 minute skill-building tasks. Volunteers claim missions, submit proof, and earn badges; NGOs post tasks and review submissions. The whole site is one quilt, and each block opens into its page.',
     stack: ['SvelteKit', 'Appwrite', 'Bun', 'TypeScript', 'Tailwind'],
     links: {
       live: 'https://trymicromatch.vercel.app',
@@ -177,9 +177,8 @@ export const projects: Project[] = [
   },
 
   // Analyst cluster (right wall in landscape, back tier in portrait) -------
-  // Statistical / data-pipeline work. capitol-alpha + datafest-2026 each
-  // ship a 15 s scroll capture of their live findings page. linuxbenchhub
-  // has no live URL yet, so its panel falls back to the static blurb.
+  // Statistical / data-pipeline work. Each ships a scroll capture of its
+  // live findings page.
   {
     id: 'capitol-alpha',
     name: 'CapitolAlpha',
@@ -202,7 +201,7 @@ export const projects: Project[] = [
     cluster: 'analyst',
     headline: '3× ED-visit odds · n = 58,639 patients',
     blurb:
-      'ASA DataFest 2026 submission for Stormont Vail Health. R + DuckDB pipeline on a 7.6M-row EHR sample joined to a social-determinants questionnaire — patients reporting a transportation barrier show ~3× crude odds of ED visits and inpatient admits, independent of age. Wesleyan team 13.',
+      'ASA DataFest 2026 submission for Stormont Vail Health. R + DuckDB pipeline on 7.6M encounters joined to a social-needs questionnaire. Patients who reported a transportation barrier made about four times as many ED visits per person-year, with 3.17× the odds of any ED visit after adjusting for age and sex. Wesleyan team 13.',
     stack: ['R', 'DuckDB', 'data.table', 'ggplot2', 'Flourish'],
     links: {
       live: 'https://datafest-2026.vercel.app/',
@@ -221,8 +220,10 @@ export const projects: Project[] = [
       'A benchmarking dataset and Rails 8 dashboard comparing Ubuntu, Fedora, and Debian under identical virtual hardware. Phoronix runs are captured monthly by GitHub Actions; R parsers and the dashboard consume the same composite XML, so the static analysis and the live UI never drift.',
     stack: ['Ruby on Rails', 'R', 'Phoronix Test Suite', 'GitHub Actions', 'Docker'],
     links: {
+      live: 'https://linuxbenchhub.vercel.app',
       repo: 'https://github.com/Builder106/linux-bench-hub',
     },
+    demo: '/img/projects/demos/linuxbenchhub.webm',
     color: '#b06bff',
     logo: '/img/projects/logos/linuxbenchhub.webp',
   },
@@ -253,9 +254,9 @@ export const projects: Project[] = [
     id: 'halberd',
     name: 'Halberd',
     cluster: 'security',
-    headline: 'MCP firewall · p50 ≤ 200µs · 50k req/s',
+    headline: 'MCP firewall · 2.6 µs to refuse a DROP TABLE',
     blurb:
-      'A JSON-RPC firewall that sits between an LLM agent and its Model Context Protocol servers. Every tools/call envelope is parsed, evaluated against a YAML policy bundle, and either forwarded or blocked with a synthetic error before a malicious payload reaches the host — defending against tool poisoning, argument injection, capability creep, and secret exfiltration. The policy engine compiles to WebAssembly for an in-browser playground.',
+      'A JSON-RPC firewall that sits between an LLM agent and its Model Context Protocol servers. Every tools/call envelope is parsed, evaluated against a YAML policy bundle, and either forwarded or blocked with a synthetic error before a malicious payload reaches the host — defending against tool poisoning, argument injection, capability creep, and secret exfiltration. The site plays a PostgreSQL MCP session through the proxy, and its console runs the WebAssembly build of the policy engine in the browser.',
     stack: ['Go', 'WebAssembly', 'Next.js', 'JSON-RPC', 'MCP'],
     links: {
       live: 'https://halberd-keep.vercel.app',
@@ -326,10 +327,10 @@ export const projects: Project[] = [
     id: 'tradetell',
     name: 'TradeTell',
     cluster: 'ml',
-    headline: 'RAG over wiki + Discord + market data · writes Trader classes',
+    headline: '4 recorded days · 40,000 ticks per good · cited answers',
     blurb:
-      'A retrieval-augmented assistant for the IMC Prosperity trading competition. Ensemble retrieval over three weighted vector stores — competition wiki, community Discord exports, and historical market data — grounds answers about products, position limits, and strategy, and generates complete, ready-to-run Trader classes. Groq-backed generation (llama-3.3-70b-versatile) keeps inference fast inside a Streamlit chat UI that cites its sources per answer.',
-    stack: ['Python', 'Streamlit', 'Groq', 'RAG', 'vector search'],
+      'A workbench for the IMC Prosperity 4 market. It draws four recorded days on Intara as one price section you can probe tick by tick, replays a built-in Round 1 or Round 2 Trader through any day with fills and P&L on the same ticks, and answers questions from the competition wiki, market data, and code examples with the passages behind each answer.',
+    stack: ['Python', 'Streamlit', 'Groq', 'RAG', 'Canvas'],
     links: {
       live: 'https://tradetell.streamlit.app',
       repo: 'https://github.com/Builder106/imc-prosperity',
