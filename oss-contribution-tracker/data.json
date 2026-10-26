@@ -160,83 +160,21 @@
       ]
     },
     {
-      "key": "pwndbg",
-      "name": "pwndbg",
+      "key": "fury",
+      "name": "FURY",
       "host": "github",
-      "color": "#8F2BF5",
-      "logo": null,
+      "color": "#ffcc00",
+      "logo": "fury.svg",
       "target": 3,
-      "issues": [
-        {
-          "n": 3998,
-          "url": "https://github.com/pwndbg/pwndbg/issues/3998",
-          "state": "open",
-          "title": "track-heap: uncaught exception when realloc() returns NULL"
-        },
-        {
-          "n": 4023,
-          "url": "https://github.com/pwndbg/pwndbg/issues/4023",
-          "state": "closed",
-          "title": "configfile prints an incorrect command hint when there are no changed heap parameters"
-        },
-        {
-          "n": 4024,
-          "url": "https://github.com/pwndbg/pwndbg/issues/4024",
-          "state": "closed",
-          "title": "Replace `assert False` with `typing_extensions.assert_never` in `objc.py` (FIXME resolution)"
-        },
-        {
-          "n": 4025,
-          "url": "https://github.com/pwndbg/pwndbg/issues/4025",
-          "state": "closed",
-          "title": "Broad `except Exception` in `aglib/file.py` should be narrowed to `OSError`"
-        }
-      ],
+      "issues": [],
       "prs": [
         {
-          "n": 3986,
-          "url": "https://github.com/pwndbg/pwndbg/pull/3986",
-          "state": "merged",
-          "title": "feat(heap-tracker): annotate alloc/realloc/free events with calling symbol (--where)"
-        },
-        {
-          "n": 3997,
-          "url": "https://github.com/pwndbg/pwndbg/pull/3997",
-          "state": "merged",
-          "title": "fix(heap-tracker): remove dead duplicate loop in Tracker.malloc"
-        },
-        {
-          "n": 4020,
-          "url": "https://github.com/pwndbg/pwndbg/pull/4020",
-          "state": "closed",
-          "title": "Fix invalid SLUB object warning for kfree(0)"
-        },
-        {
-          "n": 4021,
-          "url": "https://github.com/pwndbg/pwndbg/pull/4021",
-          "state": "merged",
-          "title": "Fix OSError parameter order in get_file"
-        },
-        {
-          "n": 4022,
-          "url": "https://github.com/pwndbg/pwndbg/pull/4022",
-          "state": "closed",
-          "title": "Bump decomp2dbg to >=4.0.0"
-        },
-        {
-          "n": 4031,
-          "url": "https://github.com/pwndbg/pwndbg/pull/4031",
-          "state": "closed",
-          "title": "aglib: narrow broad exceptions to OSError in file.py"
-        },
-        {
-          "n": 4032,
-          "url": "https://github.com/pwndbg/pwndbg/pull/4032",
-          "state": "closed",
-          "title": "aglib: narrow broad exceptions to OSError in file.py"
+          "n": 1381,
+          "url": "https://github.com/fury-gl/fury/pull/1381",
+          "state": "open",
+          "title": "fix(motion): distinguish paused from stopped"
         }
-      ],
-      "paused_until": "2026-09-30"
+      ]
     },
     {
       "key": "neovim",
@@ -408,32 +346,26 @@
         "date": "2026-06-19"
       }
     ],
-    "pwndbg/pwndbg": [
-      {
-        "url": "https://github.com/pwndbg/pwndbg/issues/3968",
-        "title": "if launched with gdb.attach(), heap-related commands fail against binaries patched with pwninit/patchelf",
-        "date": "2026-07-15"
-      }
-    ],
     "neovim/neovim": [
       {
         "url": "https://github.com/neovim/neovim/issues/38456",
         "title": "`--embed --listen ...` still exits if stdio channel closes",
         "date": "2026-07-15"
       }
-    ]
+    ],
+    "fury-gl/fury": []
   },
   "gh_reviews": {
     "KhronosGroup/glTF-Blender-IO": [],
     "python/cpython": [],
-    "pwndbg/pwndbg": [],
-    "neovim/neovim": []
+    "neovim/neovim": [],
+    "fury-gl/fury": []
   },
   "gh_discussions": {
     "KhronosGroup/glTF-Blender-IO": [],
     "python/cpython": [],
-    "pwndbg/pwndbg": [],
-    "neovim/neovim": []
+    "neovim/neovim": [],
+    "fury-gl/fury": []
   },
   "discourse": {
     "cpython": null

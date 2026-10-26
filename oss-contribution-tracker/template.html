@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OSS Ledger · Builder106</title>
-<meta name="description" content="A double-entry ledger of open-source standing: 3 open issues + 3 open PRs kept on the books per repo across Blender, CPython, pwndbg, and Neovim.">
+<meta name="description" content="A double-entry ledger of open-source standing: 3 open issues + 3 open PRs kept on the books per repo across Blender, CPython, FURY, and Neovim.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>/*STYLE*/</style>
@@ -81,20 +81,20 @@
       <pre><code><span class="c"># Repost the whole book (needs an authenticated gh + curl)</span>
 python3 refresh.py
 
-<span class="c"># Open entries on GitHub (glTF, cpython, pwndbg, neovim)</span>
+<span class="c"># Open entries on GitHub (glTF, cpython, FURY, neovim)</span>
 gh search issues <span class="a">--author</span> Builder106 <span class="a">--repo</span> KhronosGroup/glTF-Blender-IO \
-  <span class="a">--repo</span> python/cpython <span class="a">--repo</span> pwndbg/pwndbg <span class="a">--repo</span> neovim/neovim
+  <span class="a">--repo</span> python/cpython <span class="a">--repo</span> fury-gl/fury <span class="a">--repo</span> neovim/neovim
 
 <span class="c"># Open entries on Blender (Gitea, not GitHub)</span>
 curl -s <span class="a">"https://projects.blender.org/api/v1/repos/blender/blender/issues?type=pulls&state=all&created_by=Builder106"</span>
 
 <span class="c"># Verified supplementary lines</span>
-gh search issues <span class="a">--commenter</span> Builder106 <span class="a">--repo</span> pwndbg/pwndbg <span class="a">--repo</span> neovim/neovim
-gh search prs    <span class="a">--reviewed-by</span> Builder106 <span class="a">--repo</span> pwndbg/pwndbg <span class="a">--repo</span> neovim/neovim
+gh search issues <span class="a">--commenter</span> Builder106 <span class="a">--repo</span> fury-gl/fury <span class="a">--repo</span> neovim/neovim
+gh search prs    <span class="a">--reviewed-by</span> Builder106 <span class="a">--repo</span> fury-gl/fury <span class="a">--repo</span> neovim/neovim
 
 <span class="c"># GitHub Discussions answered (gh search doesn't cover Discussions, so this goes via GraphQL)</span>
 gh api graphql <span class="a">-f</span> query<span class="a">='query($search:String!){ search(query:$search, type: DISCUSSION, first: 1) { discussionCount } }'</span> \
-  <span class="a">-f</span> search<span class="a">="repo:pwndbg/pwndbg commenter:Builder106"</span>
+  <span class="a">-f</span> search<span class="a">="repo:fury-gl/fury commenter:Builder106"</span>
 
 <span class="c"># Python Discourse posts (public API, but returns 404 while my profile is private)</span>
 curl -s <span class="a">"https://discuss.python.org/u/Builder106/summary.json"</span>

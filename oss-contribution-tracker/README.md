@@ -29,7 +29,7 @@ sourced:
 The verifiable half leads; the self-logged half is labelled as such.
 
 Target repos: `KhronosGroup/glTF-Blender-IO`, `blender/blender` (Gitea),
-`python/cpython`, `pwndbg/pwndbg`, `neovim/neovim`. Goal: keep 3 issues + 3 PRs
+`python/cpython`, `fury-gl/fury`, `neovim/neovim`. Goal: keep 3 issues + 3 PRs
 open per repo at all times. Only open items count toward the 3/3; a merged or
 closed one drops out of the active count and shows up in a "resolved, needs
 replacing" list on its card instead of quietly still counting.

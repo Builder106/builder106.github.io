@@ -37,18 +37,12 @@ OUT_DIR = ROOT.parent / "public" / "oss-contribution-tracker"
 # Simple Icons (#E87D0D); Python's official python.org SVG (two-tone
 # #306998/#FFD43B) cross-checked against the widely-used single-accent
 # #3776AB; Neovim's own neovim.io logo pack, extracted directly from the
-# SVG (#57A143). pwndbg has no dedicated logo/brand guidelines page, but
-# does have a distinct wordmark treatment on its README banner (a glitch-
-# pixel "PWNDBG>" lockup) -- #8F2BF5 is the dominant color sampled directly
-# from that image (see assets/logos/SOURCES.md). It's a wide wordmark, not
-# a compact mark like the other four, so it gets its own render path
-# (account_block special-cases repo["key"] == "pwndbg") rather than being
-# forced into the square icon slot logo_svg()/account_mark() assume.
+# SVG (#57A143). FURY uses its official documentation logo.
 REPOS = [
     ("gltf", "glTF-Blender-IO", "github", "KhronosGroup/glTF-Blender-IO", "#87C540", "gltf-blender-io.svg", 3),
     ("blender", "blender/blender", "gitea", "blender/blender", "#E87D0D", "blender.svg", 3),
     ("cpython", "python/cpython", "github", "python/cpython", "#3776AB", "cpython.svg", 3),
-    ("pwndbg", "pwndbg", "github", "pwndbg/pwndbg", "#8F2BF5", None, 3),
+    ("fury", "FURY", "github", "fury-gl/fury", "#ffcc00", "fury.svg", 3),
     ("neovim", "neovim/neovim", "github", "neovim/neovim", "#57A143", "neovim.svg", 3),
     ("gitlab-cli", "gitlab-org/cli", "gitlab", "gitlab-org/cli", "#FC6D26", "gitlab.svg", 1),
     ("gitlab", "gitlab-org/gitlab", "gitlab", "gitlab-org/gitlab", "#FC6D26", "gitlab.svg", 1),
@@ -65,9 +59,9 @@ MANUAL = [
         ("Patch review on others' PRs", "target 1 / wk", "manual", "review"),
         ("Module meeting attendance", "pipeline-IO / glTF · weekly", "manual", "meeting"),
     ]),
-    ("pwndbg", "pwndbg", [
-        ("Answer issues / discussions", "target 1 / wk", "query", "pwndbg:comments"),
-        ("Patch review on others' PRs", "target 1 / wk", "query", "pwndbg:reviews"),
+    ("FURY", "fury", [
+        ("Answer issues / discussions", "target 1 / wk", "query", "fury:comments"),
+        ("Patch review on others' PRs", "target 1 / wk", "query", "fury:reviews"),
     ]),
     ("Neovim", "neovim", [
         ("Issue triage: label, repro, dedup", "target 1 / wk", "query", "neovim:comments"),
@@ -427,25 +421,14 @@ def account_mark(repo: dict, cls: str) -> str:
     return f'<span class="{cls}" style="background:{repo["color"]}" title="{esc(repo["name"])}"></span>'
 
 
-PWNDBG_FAVICON_B64 = "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"
-
 def compact_mark(repo: dict, cls: str = "tb__dot") -> str:
-    """A dense-row icon (trial balance, supplementary record): the vendored
-    logo where one exists, or pwndbg's square favicon in place of its wide
-    wordmark, sized to sit inline with running text."""
-    if repo["key"] == "pwndbg":
-        return (f'<img class="{cls} {cls}--favicon" '
-                f'src="data:image/x-icon;base64,{PWNDBG_FAVICON_B64}" alt="" aria-hidden="true">')
+    """Render the repository logo inline with running text."""
     return account_mark(repo, cls)
 
 
 def account_block(repo: dict, target: int) -> str:
     host = "Gitea" if repo["host"] == "gitea" else "GitHub"
-    if repo["key"] == "pwndbg":
-        mark = (f'<img class="account__tab account__tab--logo" '
-                f'src="data:image/x-icon;base64,{PWNDBG_FAVICON_B64}" alt="" aria-hidden="true">')
-    else:
-        mark = account_mark(repo, "account__tab")
+    mark = account_mark(repo, "account__tab")
 
     pause_notice = ""
     if "paused_until" in repo:
@@ -501,7 +484,7 @@ def supp_items_html(items: list[dict]) -> str:
 def build_html(data: dict) -> str:
     repos = data["repos"]
     by_key = {r["key"]: r for r in repos}
-    order = ["gltf", "blender", "cpython", "pwndbg", "neovim", "gitlab-cli", "gitlab", "gitlab-runner"]
+    order = ["gltf", "blender", "cpython", "fury", "neovim", "gitlab-cli", "gitlab", "gitlab-runner"]
 
     active_issues = sum(active_count(r["issues"]) for r in repos)
     active_prs = sum(active_count(r["prs"]) for r in repos)
@@ -517,12 +500,12 @@ def build_html(data: dict) -> str:
     # log and renders as self-reported rather than a fake permanent zero.
     slug_by_key = {k: slug for k, _n, _h, slug, _c, _l, _t in REPOS}
     prov: dict[str, list[dict] | None] = {
-        "pwndbg:comments": (data["gh_comments"].get("pwndbg/pwndbg", [])
-                             + data["gh_discussions"].get("pwndbg/pwndbg", [])),
+        "fury:comments": (data["gh_comments"].get("fury-gl/fury", [])
+                             + data["gh_discussions"].get("fury-gl/fury", [])),
         "neovim:comments": data["gh_comments"].get("neovim/neovim", []),
         "neovim:discussions": data["gh_discussions"].get("neovim/neovim", []),
         "cpython:discourse": None,  # Always fallback to log for links
-        "pwndbg:reviews": data["gh_reviews"].get(slug_by_key["pwndbg"], []),
+        "fury:reviews": data["gh_reviews"].get(slug_by_key["fury"], []),
         "neovim:reviews": data["gh_reviews"].get(slug_by_key["neovim"], []),
         "cpython:reviews": data["gh_reviews"].get(slug_by_key["cpython"], []),
         "gltf:reviews": data["gh_reviews"].get(slug_by_key["gltf"], []),
