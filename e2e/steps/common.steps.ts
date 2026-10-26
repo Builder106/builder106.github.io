@@ -72,19 +72,13 @@ When("I close the panel", async ({ page }: { page: Page }) => {
 });
 
 // ── Assertions (light — demos aren't tests) ────────────────────────────────
-// PanelShell renders its title as `// node.<projectId>` in an h2. The
-// project's name (e.g. "EconOS") is in an h3 inside the panel body. Match
-// on the .panel__title h2 specifically — the body has multiple headings.
+// PanelShell renders the project's display name (e.g. "EconOS") as the
+// dialog's h2 title in the bezel. Matching it exactly catches
+// panel-wired-to-wrong-project regressions cheaply.
 Then("I see the project card for {string}", async ({ page }: { page: Page }, name: string) => {
   const panel = page.locator(".panel.panel--open");
   await expect(panel).toBeVisible();
-  // Panel title uses the project id (lowercase, possibly hyphenated)
-  // rather than the display name. Just assert the title is present; the
-  // demo viewer can read which project from the rendered body.
-  await expect(panel.locator(".panel__title")).toBeVisible();
-  // Also assert the project name appears somewhere in the body — catches
-  // panel-wired-to-wrong-project regressions cheaply.
-  await expect(panel).toContainText(new RegExp(name, "i"));
+  await expect(panel.locator(".panel__title")).toHaveText(name);
   await dwellForDemo(page);
 });
 
