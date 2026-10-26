@@ -75,9 +75,9 @@ export const projects: Project[] = [
     id: 'econos',
     name: 'EconOS',
     cluster: 'quant',
-    headline: 'MARL economy · one live kernel for every viewer',
+    headline: 'A MARL economy where every viewer watches the same live kernel',
     blurb:
-      'A sandbox economy run by reinforcement-learning agents. PPO-trained buyers, sellers, and workers discover pricing, wage-setting, and consumption strategies in one shared simulation, shown on a tiling desktop in the i3/sway tradition where every pane reads from the running kernel.',
+      'A sandbox economy run by reinforcement-learning agents. Buyers, sellers and workers trained with PPO work out prices, wages and spending inside one shared simulation. It runs on an i3/sway-style tiling desktop, and every pane reads from the live kernel.',
     stack: ['Python', 'PettingZoo', 'PPO', 'FastAPI', 'WebSocket'],
     links: {
       live: 'https://econ-os.vercel.app',
@@ -92,9 +92,9 @@ export const projects: Project[] = [
     id: 'ocaml-lob',
     name: 'OCaml LOB',
     cluster: 'quant',
-    headline: '~18M orders/sec · p99 < 1µs',
+    headline: '~18M orders/sec with p99 under 1 µs',
     blurb:
-      'High-performance limit-order-book matching engine in OCaml 5. Allocation-free per-submit hot path, ~18M orders/sec, p99 latency under 1μs. Dream HTTP + SSE backend with a Bloomberg-terminal-style browser dashboard.',
+      'A limit-order-book matching engine in OCaml 5. The submit path allocates nothing, and the engine handles about 18M orders/sec with p99 latency under 1 µs. Dream serves it over HTTP and SSE to a Bloomberg-terminal-style dashboard in the browser.',
     stack: ['OCaml', 'Dream', 'Docker', 'Tailwind', 'Oracle Cloud'],
     links: {
       live: 'https://ocaml-lob.vercel.app',
@@ -109,9 +109,9 @@ export const projects: Project[] = [
     id: 'qforge',
     name: 'qforge',
     cluster: 'quant',
-    headline: 'Neural net in ~2k LoC C99 · zero deps',
+    headline: 'A neural net in about 2k lines of C99, with no dependencies',
     blurb:
-      'A neural network built from scratch in C99 — no TensorFlow, no PyTorch, no dependencies. Trains on market data, runs a DQN trading agent that outperforms buy-and-hold, ships as a WebAssembly demo.',
+      'A neural network written from scratch in C99, with no TensorFlow, no PyTorch and no other dependencies. It trains on market data and runs a DQN trading agent that beats buy-and-hold. The demo is the WebAssembly build.',
     stack: ['C99', 'WebAssembly', 'Emscripten'],
     links: {
       live: 'https://qforge-neural.vercel.app',
@@ -128,9 +128,9 @@ export const projects: Project[] = [
     id: 'micromatch',
     name: 'MicroMatch',
     cluster: 'swe',
-    headline: '5–30 minute missions · NGO ↔ volunteer marketplace',
+    headline: '5 to 30 minute volunteer missions for NGOs',
     blurb:
-      'A micro-volunteering marketplace pairing NGOs with volunteers for 5–30 minute skill-building tasks. Volunteers claim missions, submit proof, and earn badges; NGOs post tasks and review submissions. The whole site is one quilt, and each block opens into its page.',
+      'A micro-volunteering marketplace that pairs NGOs with volunteers for 5 to 30 minute tasks that build a skill. Volunteers claim a mission, submit proof and earn badges. NGOs post the tasks and review what comes back. The site is laid out as one quilt, and each block opens into its own page.',
     stack: ['SvelteKit', 'Appwrite', 'Bun', 'TypeScript', 'Tailwind'],
     links: {
       live: 'https://trymicromatch.vercel.app',
@@ -145,9 +145,9 @@ export const projects: Project[] = [
     id: 'staija',
     name: 'STAIJA',
     cluster: 'swe',
-    headline: "Live applicant flow · Nigeria's STEM scholars",
+    headline: "A live applicant flow for Nigeria's STEM scholars",
     blurb:
-      "Web platform for STAIJA's StepUp Scholars and Dynamerge programs — applicant tracking, mentorship workflow, and public content for Nigeria's STEM students. Application management, role-aware routing, and Mailgun-backed comms.",
+      "The web platform for STAIJA's StepUp Scholars and Dynamerge programs, for Nigeria's STEM students. It handles applications and applicant tracking, the mentorship workflow, role-aware routing and the public pages, with email sent through Mailgun.",
     stack: ['Vue 3', 'TypeScript', 'Firebase', 'Tailwind', 'Vite'],
     links: {
       live: 'https://staija.org',
@@ -162,9 +162,9 @@ export const projects: Project[] = [
     id: 'studysprint',
     name: 'StudySprint',
     cluster: 'swe',
-    headline: 'Focus → plants → leaderboard',
+    headline: 'Focus sessions that grow a garden',
     blurb:
-      'A study tracker that turns focus sessions into a growing garden. Run a focus timer, log sessions toward a daily goal, watch plants grow over time, and compare streaks on a public leaderboard.',
+      'A study tracker that turns focus sessions into a garden. You run a focus timer, log sessions toward a daily goal and watch the plants grow. Streaks go up on a public leaderboard.',
     stack: ['Deno 2', 'React', 'TypeScript', 'Vite', 'Supabase'],
     links: {
       live: 'https://getstudysprint.vercel.app',
@@ -183,9 +183,9 @@ export const projects: Project[] = [
     id: 'capitol-alpha',
     name: 'CapitolAlpha',
     cluster: 'analyst',
-    headline: '16,203 trades · +2.58% alpha (p < 0.05)',
+    headline: '16,203 congressional trades, +2.58% alpha (p < 0.05)',
     blurb:
-      "End-to-end Python pipeline auditing 16,203 disclosed Congressional stock trades from 2020–2024. Scrapes Senate and House Periodic Transaction Reports with Playwright + pdfplumber, computes Jensen's alpha against the S&P 500, and ships a Vercel findings page. Semester project for Wesleyan's QAC 420 — Data for Good.",
+      "A Python pipeline that audits 16,203 stock trades disclosed by members of Congress from 2020 to 2024. It scrapes the Senate and House Periodic Transaction Reports with Playwright and pdfplumber, computes Jensen's alpha against the S&P 500, and publishes the findings on a Vercel page. Built as the semester project for Wesleyan's QAC 420, Data for Good.",
     stack: ['Python', 'Playwright', 'pdfplumber', 'pandas', 'scipy', 'Jupyter'],
     links: {
       live: 'https://capitolalpha.vercel.app',
@@ -199,9 +199,9 @@ export const projects: Project[] = [
     id: 'datafest-2026',
     name: 'DataFest 2026',
     cluster: 'analyst',
-    headline: '3× ED-visit odds · n = 58,639 patients',
+    headline: '3× the odds of an ED visit, across 58,639 patients',
     blurb:
-      'ASA DataFest 2026 submission for Stormont Vail Health. R + DuckDB pipeline on 7.6M encounters joined to a social-needs questionnaire. Patients who reported a transportation barrier made about four times as many ED visits per person-year, with 3.17× the odds of any ED visit after adjusting for age and sex. Wesleyan team 13.',
+      'The ASA DataFest 2026 entry from Wesleyan team 13, for Stormont Vail Health. An R and DuckDB pipeline joins 7.6M encounters to a social-needs questionnaire. Patients who reported a transportation barrier made about four times as many ED visits per person-year, and had 3.17× the odds of any ED visit after adjusting for age and sex.',
     stack: ['R', 'DuckDB', 'data.table', 'ggplot2', 'Flourish'],
     links: {
       live: 'https://datafest-2026.vercel.app/',
@@ -215,9 +215,9 @@ export const projects: Project[] = [
     id: 'linuxbenchhub',
     name: 'LinuxBenchHub',
     cluster: 'analyst',
-    headline: 'Phoronix Test Suite · monthly CI captures',
+    headline: 'Phoronix Test Suite runs captured monthly in CI',
     blurb:
-      'A benchmarking dataset and Rails 8 dashboard comparing Ubuntu, Fedora, and Debian under identical virtual hardware. Phoronix runs are captured monthly by GitHub Actions; R parsers and the dashboard consume the same composite XML, so the static analysis and the live UI never drift.',
+      'A benchmark dataset and Rails 8 dashboard comparing Ubuntu, Fedora and Debian on identical virtual hardware. GitHub Actions captures the Phoronix runs every month. The R parsers and the dashboard read the same composite XML, so the static analysis and the live site always agree.',
     stack: ['Ruby on Rails', 'R', 'Phoronix Test Suite', 'GitHub Actions', 'Docker'],
     links: {
       live: 'https://linuxbenchhub.vercel.app',
@@ -239,9 +239,9 @@ export const projects: Project[] = [
     id: 'clearhash',
     name: 'ClearHash',
     cluster: 'security',
-    headline: 'Source-rebuild gatekeeper · blocks supply-chain tampering',
+    headline: 'Rebuilds packages from source to catch supply-chain tampering',
     blurb:
-      'A pre-install gatekeeper that answers “is this binary actually a build of the source it claims?” Fetches a package, verifies its SLSA attestation through Sigstore + Rekor, rebuilds it from the attested source commit in an isolated Docker container, and blocks the install if the rebuilt file tree diverges from the registry artifact. Catches the event-stream / ua-parser-js / xz-utils class of attacks.',
+      'A pre-install check that answers one question: is this binary really a build of the source it claims? It fetches the package, verifies its SLSA attestation through Sigstore and Rekor, and rebuilds it from the attested source commit in an isolated Docker container. If the rebuilt file tree differs from the registry artifact, the install is blocked. That covers the class of attack behind event-stream, ua-parser-js and xz-utils.',
     stack: ['Rust', 'Sigstore', 'Rekor', 'Docker', 'Axum'],
     links: {
       live: 'https://clear-hash.vercel.app',
@@ -254,9 +254,9 @@ export const projects: Project[] = [
     id: 'halberd',
     name: 'Halberd',
     cluster: 'security',
-    headline: 'MCP firewall · 2.6 µs to refuse a DROP TABLE',
+    headline: 'An MCP firewall that refuses a DROP TABLE in 2.6 µs',
     blurb:
-      'A JSON-RPC firewall that sits between an LLM agent and its Model Context Protocol servers. Every tools/call envelope is parsed, evaluated against a YAML policy bundle, and either forwarded or blocked with a synthetic error before a malicious payload reaches the host — defending against tool poisoning, argument injection, capability creep, and secret exfiltration. The site plays a PostgreSQL MCP session through the proxy, and its console runs the WebAssembly build of the policy engine in the browser.',
+      "A JSON-RPC firewall between an LLM agent and its Model Context Protocol servers. It parses every tools/call envelope, checks it against a YAML policy bundle, and either forwards it or blocks it with a synthetic error before a malicious payload reaches the host. That stops tool poisoning, argument injection, capability creep and secret exfiltration. The site plays a PostgreSQL MCP session through the proxy, and its console runs the policy engine's WebAssembly build in the browser.",
     stack: ['Go', 'WebAssembly', 'Next.js', 'JSON-RPC', 'MCP'],
     links: {
       live: 'https://halberd-keep.vercel.app',
@@ -269,9 +269,9 @@ export const projects: Project[] = [
     id: 'quarry',
     name: 'Quarry',
     cluster: 'security',
-    headline: '188-byte Yul executor · 99.89% arb prediction',
+    headline: 'A 188-byte Yul executor and 99.89% arb prediction',
     blurb:
-      'A bare-metal MEV arbitrage engine scoped to cross-DEX back-running. A TypeScript mempool scanner spots swaps about to land on Uniswap-V2-shaped pools, solves the optimal back-run input against post-victim reserves, and — if profit beats gas — packs calldata for a 188-byte Yul executor funded by an Aave V3 flashloan. No inventory; predatory sandwich and JIT strategies are explicitly out of scope.',
+      "An MEV arbitrage engine limited to cross-DEX back-running. A TypeScript mempool scanner spots swaps about to land on Uniswap-V2-shaped pools and solves for the best back-run input against the reserves after the victim's swap. If the profit beats gas, it packs calldata for a 188-byte Yul executor funded by an Aave V3 flash loan. It holds no inventory and doesn't do predatory sandwich or JIT strategies.",
     stack: ['Solidity', 'Yul', 'TypeScript', 'Foundry', 'Bun'],
     links: {
       live: 'https://quarry-mev.vercel.app',
@@ -295,9 +295,9 @@ export const projects: Project[] = [
     id: 'tcg-cabt-lab',
     name: 'TCG CABT Lab',
     cluster: 'ml',
-    headline: '360 held-out games · 2,881-parameter policy',
+    headline: '360 held-out games with a 2,881-parameter policy',
     blurb:
-      'A study of compact agents for the 60-card Pokémon Trading Card Game on the CABT simulation engine. It asks whether training against varied opponents helps on deck families the agent never trained on. Over 360 matched-pair games on held-out decks it did not: 58.3% for fixed-pool training against 57.8% for the diverse pool. The showcase lays every game out as a card on a table and replays any of them decision by decision.',
+      "A study of small agents for the 60-card Pokémon Trading Card Game, run on the CABT simulation engine. It asks whether training against varied opponents helps on deck families the agent never trained on. Over 360 matched-pair games on held-out decks, it didn't: 58.3% for fixed-pool training and 57.8% for the diverse pool. The showcase lays every game out as a card on a table, and you can replay any of them one decision at a time.",
     stack: ['Python', 'NumPy', 'CABT', 'Astro', 'Blender'],
     links: {
       live: 'https://tcg-cabt-lab.vercel.app',
@@ -311,9 +311,9 @@ export const projects: Project[] = [
     id: 'vgc-rulebreak',
     name: 'VGC Rulebreak',
     cluster: 'ml',
-    headline: '1,188 held-out games · Protect 16 → 8 PP',
+    headline: '1,188 held-out games with Protect cut from 16 to 8 PP',
     blurb:
-      'A study of how competitive agents handle rules they were not trained for, run on Pokémon Showdown. The first study cuts Protect from 16 PP to 8. In 1,188 recorded held-out games no agent ever ran out of Protect PP, and an audit found the compared formats differed in more than PP, so a Protect-only rerun comes next. The showcase is a fan-made battle client that plays back every recorded game with open team sheets.',
+      "A study of how competitive agents cope with rules they weren't trained on, run on Pokémon Showdown. The first study cuts Protect from 16 PP to 8. In 1,188 recorded held-out games, no agent ever ran out of Protect PP. An audit then found the compared formats differed in more than PP, so a Protect-only rerun is next. The showcase is a fan-made battle client that plays back every recorded game with open team sheets.",
     stack: ['Python', 'Pokémon Showdown', 'TypeScript', 'Astro'],
     links: {
       live: 'https://vgc-rulebreak.vercel.app',
@@ -327,9 +327,9 @@ export const projects: Project[] = [
     id: 'tradetell',
     name: 'TradeTell',
     cluster: 'ml',
-    headline: '4 recorded days · 40,000 ticks per good · cited answers',
+    headline: 'Four recorded days, 40,000 ticks per good, and answers that cite their sources',
     blurb:
-      'A workbench for the IMC Prosperity 4 market. It draws four recorded days on Intara as one price section you can probe tick by tick, replays a built-in Round 1 or Round 2 Trader through any day with fills and P&L on the same ticks, and answers questions from the competition wiki, market data, and code examples with the passages behind each answer.',
+      'A workbench for the IMC Prosperity 4 market. It draws four recorded days on Intara as one price section you can probe tick by tick. You can replay a built-in Round 1 or Round 2 Trader through any day and see its fills and P&L on the same ticks. It also answers questions from the competition wiki, market data and code examples, and shows the passages each answer came from.',
     stack: ['Python', 'Streamlit', 'Groq', 'RAG', 'Canvas'],
     links: {
       live: 'https://tradetell.streamlit.app',
