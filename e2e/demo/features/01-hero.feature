@@ -6,7 +6,7 @@ Feature: 01 hero
   #   0:00  Boot + scene establishes
   #   0:12  Room sweep: hover two racks so the cursor reads as "exploring"
   #   0:18  Click EconOS — demonstrates the project-card mechanic
-  #   0:24  Click Helm — second rack, different wing of the room
+  #   0:24  Click VGC Rulebreak — second rack, different wing of the room
   #   0:33  Close + idle countdown begins (15 s threshold)
   #   0:55  Idle wave sweeps through all servers (~7 s visible sweep)
   #   1:02  Click the control console — uptime / telemetry panel
@@ -26,8 +26,8 @@ Feature: 01 hero
     Then I see the project card for "EconOS"
     When I close the panel
     Then no panel is open
-    When I click the "Helm" project rack
-    Then I see the project card for "Helm"
+    When I click the "VGC Rulebreak" project rack
+    Then I see the project card for "VGC Rulebreak"
     When I close the panel
     Then no panel is open
 
@@ -42,7 +42,7 @@ Feature: 01 hero
 
     # ── Brief hover tour before contact ───────────────────────────────────────
     When I hover the "Quarry" project rack
-    When I hover the "Enclave" project rack
+    When I hover the "TCG CABT Lab" project rack
 
     # ── Contact ping ──────────────────────────────────────────────────────────
     When I click the ping button

@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-25: TCG CABT Lab and VGC Rulebreak take the Enclave and Helm racks #decision
+
+The AI/ML wing now holds the projects in the ai-ml folder. The two new projects reuse the Enclave and Helm rack geometry, so I renamed the 30 `Rack_`, `Screen_`, `StatusLED_` and `anchor_` nodes in the glb's JSON chunk and left the Draco buffer alone. The same rename went into the local `.blend`, so the next export keeps the new names. EconOS, MicroMatch, Halberd, DataFest and TradeTell changed their marks, so their rack logos and LED colors now follow the new ones. Some copy had drifted from the projects. Halberd's "p50 ≤ 200µs · 50k req/s" put a declared ceiling in place of the measured 2.6 µs, and nothing supported the 50k figure. DataFest's blurb called its numbers crude odds after the site was corrected to adjusted ones. LinuxBenchHub has a live site now, so it gets a link and a demo. The TradeTell recorder sweeps the probe across the new market section, since the chat it used to wait for is no longer the landing view. Every Playwright capture opened on up to 2.4 s of blank frames, which flash white on each loop, so the recorder now cuts after the last single-colour frame. EconOS was captured from a desktop browser instead, because the headless recorder couldn't reach its kernel and filmed the reconnect dialog.
+
 ## 2026-10-23: Add typed API checks #ci #decision
 
 ESLint now rejects explicit `any`, flags deprecated TypeScript APIs, and limits explicit `unknown` in application source to data and error boundaries. CI already runs the strict TypeScript project checks.

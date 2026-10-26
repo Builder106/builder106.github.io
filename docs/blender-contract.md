@@ -54,8 +54,8 @@ for camera flies and React-panel pinning.
 | `anchor_clearhash`      | security| ClearHash rack (right wall, landscape).              |
 | `anchor_halberd`        | security| Halberd rack.                                        |
 | `anchor_quarry`         | security| Quarry rack.                                         |
-| `anchor_enclave`        | ml      | Enclave rack (front wall, landscape).                |
-| `anchor_helm`           | ml      | Helm rack.                                           |
+| `anchor_tcg-cabt-lab`   | ml      | TCG CABT Lab rack (front wall, landscape).           |
+| `anchor_vgc-rulebreak`  | ml      | VGC Rulebreak rack.                                  |
 | `anchor_tradetell`      | ml      | TradeTell rack.                                      |
 
 The id after `anchor_`must match a`Project.id` value in
@@ -101,12 +101,12 @@ entrance side (Y=−7.5 in Blender → z=+7.5 in Three.js), in front of the scre
 
 | Anchor             | Rack world pos (Blender) | Anchor (Blender)   | Cluster | Project   |
 | ------------------ | ------------------------ | ------------------ | ------- | --------- |
-| `anchor_enclave`   | (1.5, −6.1, 1.3)         | (1.5, −7.5, 1.3)   | ml      | Enclave   |
-| `anchor_helm`      | (0, −6.1, 1.3)           | (0, −7.5, 1.3)     | ml      | Helm      |
+| `anchor_tcg-cabt-lab`  | (1.5, −6.1, 1.3)     | (1.5, −7.5, 1.3)   | ml      | TCG CABT Lab  |
+| `anchor_vgc-rulebreak` | (0, −6.1, 1.3)       | (0, −7.5, 1.3)     | ml      | VGC Rulebreak |
 | `anchor_tradetell` | (−1.5, −6.1, 1.3)        | (−1.5, −7.5, 1.3)  | ml      | TradeTell |
 
-LEDs recolour at runtime (Enclave `#15c39a`, Helm `#4f8cff`, TradeTell
-`#ff4b4b`). The wing is live in code: `AISLE_ORDER` (portrait, 15 racks), the
+LEDs recolour at runtime (TCG CABT Lab `#2d7be5`, VGC Rulebreak `#c8f542`,
+TradeTell `#ee5a36`). The wing is live in code: `AISLE_ORDER` (portrait, 15 racks), the
 `slotIndexByKey` `order`tuple + landscape`waveSlotCount`(=5), the`ml` wave
 colour `#a06bff`, the `wallNormalFor` / logo-placement front-plane handling
 (both treat z≈+7.5 anchors as +Z-facing, like the back wall), and the

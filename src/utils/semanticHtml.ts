@@ -46,7 +46,7 @@ const CLUSTER_BLURB: Partial<Record<ProjectCluster, string>> = {
   swe: 'Shipped full-stack products with real users.',
   analyst: 'Statistical and data-pipeline work over real datasets.',
   security: 'Supply-chain, agent, and on-chain economic security.',
-  ml: 'Applied-LLM work with measured cost and accuracy per run.',
+  ml: 'Game-playing agent studies and an applied-LLM market workbench.',
 };
 
 // Languages we recognize inside a project's stack[]. Anything not in

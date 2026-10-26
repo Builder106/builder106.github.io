@@ -31,8 +31,8 @@ export const AISLE_ORDER = [
   'clearhash',
   'halberd',
   'quarry',
-  'enclave',
-  'helm',
+  'tcg-cabt-lab',
+  'vgc-rulebreak',
   'tradetell',
 ] as const;
 
@@ -281,47 +281,46 @@ export const projects: Project[] = [
   },
 
   // AI/ML cluster ----------------------------------------------------------
-  // Applied-LLM / measured-evaluation work: each project ships a defensible
-  // cost+accuracy number from a real run over held-out synthetic data, not a
-  // model-zoo demo. Authored on the **front wall (+Z)** of server-room.glb as
-  // the AI/ML wing — the three quant back-wall racks point-mirrored across
-  // room centre (180° about Z), the same technique the security wing used, so
-  // the shared bake stays consistent. Each has the usual `Rack_<id>` +
+  // Agent research and applied ML: each project reports a number from a real,
+  // logged run, not a model-zoo demo. Authored on the **front wall (+Z)** of
+  // server-room.glb as the AI/ML wing — the three quant back-wall racks
+  // point-mirrored across room centre (180° about Z), the same technique the
+  // security wing used, so the shared bake stays consistent. Each has the usual `Rack_<id>` +
   // `Screen_<id>` + 12× `StatusLED_<id>_*` meshes and an `anchor_<id>` Empty.
   // Live in code: AISLE_ORDER (portrait), the slotIndexByKey `order` tuple +
   // landscape `waveSlotCount` (=5), the `ml` wave colour `#a06bff`, and the
   // front-wall case in `wallNormalFor`. LEDs recolour at runtime from `color`.
   {
-    id: 'enclave',
-    name: 'Enclave',
+    id: 'tcg-cabt-lab',
+    name: 'TCG CABT Lab',
     cluster: 'ml',
-    headline: '0 B egress on-device · privacy measured per run',
+    headline: '360 held-out games · 2,881-parameter policy',
     blurb:
-      "An interactive workbench for clinical-document extraction that never phones home. Load a synthetic superbill, pick an extractor — a deterministic rules parser, a local on-device model (qwen2.5:3b via Ollama), or a hosted cloud model (Groq) — and watch a structured record fill in field-by-field against ground truth while a live gauge measures whether the document's bytes stayed on-device (0 B) or crossed to the cloud. Privacy isn't asserted, it's measured per run over 50 held-out synthetic superbills.",
-    stack: ['Next.js 16', 'AI SDK 5', 'Ollama', 'Groq', 'TypeScript'],
+      'A study of compact agents for the 60-card Pokémon Trading Card Game on the CABT simulation engine. It asks whether training against varied opponents helps on deck families the agent never trained on. Over 360 matched-pair games on held-out decks it did not: 58.3% for fixed-pool training against 57.8% for the diverse pool. The showcase lays every game out as a card on a table and replays any of them decision by decision.',
+    stack: ['Python', 'NumPy', 'CABT', 'Astro', 'Blender'],
     links: {
-      live: 'https://enclave-iota.vercel.app',
-      repo: 'https://github.com/Builder106/enclave',
+      live: 'https://tcg-cabt-lab.vercel.app',
+      repo: 'https://github.com/Builder106/tcg-cabt-lab',
     },
-    color: '#15c39a',
-    logo: '/img/projects/logos/enclave.webp',
-    demo: '/img/projects/demos/enclave.webm',
+    color: '#2d7be5',
+    logo: '/img/projects/logos/tcg-cabt-lab.webp',
+    demo: '/img/projects/demos/tcg-cabt-lab.webm',
   },
   {
-    id: 'helm',
-    name: 'Helm',
+    id: 'vgc-rulebreak',
+    name: 'VGC Rulebreak',
     cluster: 'ml',
-    headline: '99% invoice OCR · $0.0003/invoice · 15.4× faster',
+    headline: '1,188 held-out games · Protect 16 → 8 PP',
     blurb:
-      'A Gemini 3.1 Flash Lite + MCP executive co-pilot for small-business operations. Four back-office workflows — AP-invoice OCR, creator-payout reconciliation, Tier-1 customer-service responses, and cross-company KPI Q&A — run end-to-end with measured cost and accuracy per task. AP-invoice OCR hits 99% parse / 91.9% field accuracy at $0.0003 per invoice (15.4× faster than a 6-min manual baseline); the payout reconciler exposes where an LLM reasons badly about multi-step arithmetic, so a deterministic re-computer disposes what the model proposes.',
-    stack: ['React 19', 'Gemini 3.1 Flash Lite', 'MCP', 'libSQL', 'Node'],
+      'A study of how competitive agents handle rules they were not trained for, run on Pokémon Showdown. The first study cuts Protect from 16 PP to 8. In 1,188 recorded held-out games no agent ever ran out of Protect PP, and an audit found the compared formats differed in more than PP, so a Protect-only rerun comes next. The showcase is a fan-made battle client that plays back every recorded game with open team sheets.',
+    stack: ['Python', 'Pokémon Showdown', 'TypeScript', 'Astro'],
     links: {
-      live: 'https://helm-bridge.vercel.app',
-      repo: 'https://github.com/Builder106/helm',
+      live: 'https://vgc-rulebreak.vercel.app',
+      repo: 'https://github.com/Builder106/vgc-rulebreak',
     },
-    color: '#4f8cff',
-    logo: '/img/projects/logos/helm.webp',
-    demo: '/img/projects/demos/helm.webm',
+    color: '#c8f542',
+    logo: '/img/projects/logos/vgc-rulebreak.webp',
+    demo: '/img/projects/demos/vgc-rulebreak.webm',
   },
   {
     id: 'tradetell',
