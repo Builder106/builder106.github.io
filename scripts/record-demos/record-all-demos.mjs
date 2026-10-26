@@ -40,6 +40,8 @@ const VIDEO_BITRATE = "300k";
 // Order matches projects.ts. The analyst pages run a little longer
 // because they're long single-column reports with more to show.
 const TARGETS = [
+  // econos streams from a tailnet kernel; record it from a machine that can
+  // reach wss://econos-kernel.*.ts.net, or the capture shows the retry dialog.
   { id: "econos",         url: "https://econ-os.vercel.app",          durationMs: 14_000 },
   { id: "ocaml-lob",      url: "https://ocaml-lob.vercel.app",        durationMs: 14_000 },
   { id: "qforge",         url: "https://qforge-neural.vercel.app",    durationMs: 14_000 },
@@ -53,6 +55,26 @@ const TARGETS = [
   { id: "vgc-rulebreak",  url: "https://vgc-rulebreak.vercel.app",    durationMs: 16_000 },
   // tradetell uses a custom script — see scripts/record-demos/record-tradetell.mjs
 ];
+
+// Seconds of single-colour frames at the start of a recording. Samples the
+// first 4 s at 20 fps on a 64×40 grey thumbnail and returns the time just
+// after the last frame whose pixels are all one value. A page can paint a
+// frame and then blank again while it loads, so this looks for the last
+// blank frame rather than the first painted one.
+function blankLeadSec(file) {
+  const W = 64, H = 40, FPS = 20;
+  const raw = execFileSync("ffmpeg", [
+    "-loglevel", "error", "-t", "4", "-i", file,
+    "-vf", `fps=${FPS},scale=${W}:${H},format=gray`, "-f", "rawvideo", "-",
+  ], { maxBuffer: 16 * 1024 * 1024 });
+  const n = W * H;
+  let lastBlank = -1;
+  for (let i = 0; (i + 1) * n <= raw.length; i++) {
+    const frame = raw.subarray(i * n, (i + 1) * n);
+    if (frame.every((v) => v === frame[0])) lastBlank = i;
+  }
+  return lastBlank < 0 ? 0 : (lastBlank + 1) / FPS + 0.05;
+}
 
 async function recordOne(target) {
   const workdir = mkdtempSync(path.join(tmpdir(), `demo-${target.id}-`));
@@ -115,6 +137,11 @@ async function recordOne(target) {
     throw new Error(`[${target.id}] no .webm produced under ${workdir}`);
   }
 
+  // Playwright starts recording before the first paint, so every capture
+  // opens on up to ~2.5 s of blank frames that flash on each loop. Skip
+  // past them.
+  const leadSec = blankLeadSec(recorded);
+
   // Re-encode to VP9. Two-pass libvpx-vp9 at 300 kbps lands the
   // 1440×900 / 24 fps demos in the ~400–700 KB range, depending on
   // how scroll-heavy the source page is. Single-pass refuses to
@@ -123,6 +150,7 @@ async function recordOne(target) {
   const finalPath = path.join(OUT_DIR, `${target.id}.webm`);
   const passLogPrefix = path.join(workdir, "vp9pass");
   const common = [
+    "-ss", leadSec.toFixed(2),
     "-c:v", "libvpx-vp9",
     "-b:v", VIDEO_BITRATE,
     "-deadline", "good", "-cpu-used", "2", "-row-mt", "1",
