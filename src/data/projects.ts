@@ -85,7 +85,7 @@ export const projects: Project[] = [
     },
     image: '/img/projects/econos.webp',
     demo: '/img/projects/demos/econos.webm',
-    color: '#36d4ff',
+    color: '#b58fe0',
     logo: '/img/projects/logos/econos.webp',
   },
   {
@@ -138,7 +138,7 @@ export const projects: Project[] = [
     },
     image: '/img/projects/micromatch.webp',
     demo: '/img/projects/demos/micromatch.webm',
-    color: '#ff6f91',
+    color: '#ff6b6b',
     logo: '/img/projects/logos/micromatch.webp',
   },
   {
@@ -208,7 +208,7 @@ export const projects: Project[] = [
       repo: 'https://github.com/Builder106/datafest-2026',
     },
     demo: '/img/projects/demos/datafest-2026.webm',
-    color: '#3b9bff',
+    color: '#6fb3bd',
     logo: '/img/projects/logos/datafest-2026.webp',
   },
   {
@@ -335,7 +335,7 @@ export const projects: Project[] = [
       live: 'https://tradetell.streamlit.app',
       repo: 'https://github.com/Builder106/imc-prosperity',
     },
-    color: '#ff4b4b',
+    color: '#ee5a36',
     logo: '/img/projects/logos/tradetell.webp',
     demo: '/img/projects/demos/tradetell.webm',
   },
