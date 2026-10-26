@@ -1,7 +1,8 @@
 import { AISLE_ORDER, CLUSTER_DISPLAY, projects, type Project } from '@/data/projects';
 import { repoStats } from '@/data/repoStats.generated';
 import type { ActivePanel } from '@/scene/activePanel';
-import { useMemo } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { AisleStrip } from './AisleStrip';
 import { PanelShell } from './PanelShell';
 import { StackChip } from './StackChip';
 
@@ -10,6 +11,10 @@ interface ProjectCardProps {
   onClose: () => void;
   onNavigate: (target: ActivePanel) => void;
 }
+
+// Matches the close transition in Panel.css, so the last project stays
+// rendered until the chassis has retracted.
+const CLOSE_MS = 240;
 
 // Resolve a repo URL → "<owner>/<name>" slug, the same key the
 // build-time stats script uses.
@@ -31,20 +36,46 @@ function relativeTime(iso: string): string {
 }
 
 export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) {
-  // The shell is rendered even when project is null so the close
-  // animation can play out cleanly when the panel is dismissed.
   const open = project !== null;
-  const title = project ? `// node.${project.id}` : '// node';
-  const slug = project ? repoSlug(project.links.repo) : null;
+
+  // Keep the last project on screen while the panel closes, then drop it
+  // so the hidden video stops decoding.
+  const [shown, setShown] = useState<Project | null>(project);
+  if (project && project !== shown) setShown(project);
+  useEffect(() => {
+    if (project) return;
+    const id = window.setTimeout(() => setShown(null), CLOSE_MS);
+    return () => window.clearTimeout(id);
+  }, [project]);
+
+  // The demo loops, so it needs a pause control (WCAG 2.2.2). Visitors who
+  // ask for reduced motion start with it paused.
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [paused, setPaused] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true,
+  );
+  const togglePlayback = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      void video.play();
+      setPaused(false);
+      return;
+    }
+    video.pause();
+    setPaused(true);
+  };
+
+  const slug = shown ? repoSlug(shown.links.repo) : null;
   const stats = slug ? repoStats[slug] : null;
 
-  // Aisle neighbours for the prev/next footer. Wraps around so the
-  // user can keep paging through projects without ever closing the
-  // panel — bottom of the analyst stack rolls back to the front of
-  // the quant stack.
+  // Aisle neighbours for prev/next. Wraps around so the user can keep
+  // paging through projects without ever closing the panel.
   const { prevProject, nextProject } = useMemo(() => {
-    if (!project) return { prevProject: null, nextProject: null };
-    const idx = AISLE_ORDER.indexOf(project.id as (typeof AISLE_ORDER)[number]);
+    if (!shown) return { prevProject: null, nextProject: null };
+    const idx = AISLE_ORDER.indexOf(shown.id as (typeof AISLE_ORDER)[number]);
     if (idx === -1) return { prevProject: null, nextProject: null };
     const total = AISLE_ORDER.length;
     const prevId = AISLE_ORDER[(idx - 1 + total) % total];
@@ -53,187 +84,166 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
       prevProject: projects.find((p) => p.id === prevId) ?? null,
       nextProject: projects.find((p) => p.id === nextId) ?? null,
     };
-  }, [project]);
+  }, [shown]);
 
-  // Cluster modifier flows --cluster-color through every component on
-  // the panel via Panel.css. Falls back to a non-cluster variant if
-  // project is null (during the close animation).
-  const variantClass = project
-    ? `panel--project panel--project--${project.cluster}`
-    : 'panel--project';
+  const bezel = shown && (prevProject || nextProject) && (
+    <nav className="project-card__nav" aria-label="Project navigation">
+      {prevProject && (
+        <button
+          type="button"
+          className="project-card__nav-btn project-card__nav-btn--prev"
+          onClick={() => onNavigate({ kind: 'project', projectId: prevProject.id })}
+          aria-label={`Previous rack: ${prevProject.name}`}
+        >
+          <span aria-hidden>←</span>
+          <span className="project-card__nav-name" aria-hidden>
+            {prevProject.name}
+          </span>
+        </button>
+      )}
+      <AisleStrip activeId={shown.id} />
+      {nextProject && (
+        <button
+          type="button"
+          className="project-card__nav-btn project-card__nav-btn--next"
+          onClick={() => onNavigate({ kind: 'project', projectId: nextProject.id })}
+          aria-label={`Next rack: ${nextProject.name}`}
+        >
+          <span className="project-card__nav-name" aria-hidden>
+            {nextProject.name}
+          </span>
+          <span aria-hidden>→</span>
+        </button>
+      )}
+    </nav>
+  );
 
   return (
-    <PanelShell open={open} title={title} onClose={onClose} variantClass={variantClass}>
-      {project && (
+    <PanelShell
+      open={open}
+      title={shown?.name ?? 'Project'}
+      onClose={onClose}
+      variantClass="panel--project"
+      bezel={bezel}
+      accent={shown?.color}
+    >
+      {shown && (
         <>
-          {/* Identity strip: cluster lozenge + project name + repo slug.
-              The lozenge is filled with the cluster colour so each card
-              telegraphs its cluster at first glance instead of relying
-              on a small uppercase label. Reads first now (above the
-              hero) so the recruiter-relevant signal — "this is a
-              <cluster> project called <name>" — lands before they
-              even see the demo video. */}
-          <section className="panel__section project-card__identity">
-            <span className="project-card__cluster">{CLUSTER_DISPLAY[project.cluster]}</span>
-            <h3 className="project-card__name">{project.name}</h3>
-            {slug && (
-              <span className="project-card__slug" title={slug}>
-                {slug}
-              </span>
-            )}
-          </section>
-
-          {/* Money-shot headline. Bigger and cluster-tinted so it lands
-              as the card's signature stat rather than a regular line of
-              copy. Promoted above the hero so the "16,203 trades ·
-              +2.58% alpha" type of stat hits the eye before the visual
-              evidence. */}
-          {project.headline && <p className="project-card__headline">{project.headline}</p>}
-
-          {(project.demo || project.image) && (
-            <section
-              className="panel__section panel__section--media"
-              style={{ position: 'relative' }}
-            >
-              {/* Shimmer placeholder underneath the real media —
-                  prevents the brief blank flash between panel-open
-                  and first-frame-decoded. The video/img above paints
-                  on top once loaded. */}
-              <div className="panel__hero-skeleton" aria-hidden />
-              {project.demo ? (
-                <video
-                  className="panel__hero panel__hero--video"
-                  src={project.demo}
-                  // Posters can't go through <picture>, but every
-                  // supported browser handles WebP natively now — swap
-                  // the .png extension to .webp so the poster is the
-                  // smaller asset.
-                  poster={project.image?.replace(/\.png$/, '.webp')}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  aria-label={`${project.name} demo loop`}
-                  style={{ position: 'relative', zIndex: 1 }}
-                />
+          {(shown.demo || shown.image) && (
+            <div className="project-card__media">
+              {/* Shimmer underneath the media so the box isn't blank
+                  before the first frame decodes. */}
+              <div className="project-card__media-skeleton" aria-hidden />
+              {shown.demo ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    className="panel__hero panel__hero--video"
+                    src={shown.demo}
+                    autoPlay={!paused}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    aria-label={`${shown.name} demo loop`}
+                  />
+                  <button type="button" className="project-card__playback" onClick={togglePlayback}>
+                    {paused ? 'play' : 'pause'}
+                    <span className="sr-only"> demo</span>
+                  </button>
+                </>
               ) : (
                 <picture>
-                  <source srcSet={project.image?.replace(/\.png$/, '.webp')} type="image/webp" />
+                  <source srcSet={shown.image?.replace(/\.png$/, '.webp')} type="image/webp" />
                   <img
-                    src={project.image}
-                    alt={`${project.name} banner`}
+                    src={shown.image}
+                    alt={`${shown.name} banner`}
                     loading="lazy"
                     decoding="async"
                     className="panel__hero"
-                    style={{ position: 'relative', zIndex: 1 }}
                   />
                 </picture>
               )}
-            </section>
-          )}
-
-          <p className="project-card__blurb">{project.blurb}</p>
-
-          <section className="panel__section">
-            <div className="panel__section-label">stack</div>
-            <div className="project-card__chips">
-              {project.stack.map((tag) => (
-                <StackChip key={tag} tag={tag} />
-              ))}
             </div>
-          </section>
+          )}
 
-          {stats && (
-            <section className="panel__section">
-              <div className="panel__section-label">repo</div>
-              <div className="project-card__repo">
-                {stats.lang && (
-                  <>
-                    <span className="project-card__repo-stat">{stats.lang}</span>
-                    <span className="project-card__repo-divider" aria-hidden />
-                  </>
+          <div className="project-card__text">
+            {shown.headline && (
+              <p className="project-card__headline">
+                {shown.headline.split(' · ').map((part, i) => (
+                  <Fragment key={part}>
+                    {i > 0 && (
+                      <span className="project-card__headline-rule" aria-hidden>
+                        |
+                      </span>
+                    )}
+                    {i > 0 && <span className="sr-only">, </span>}
+                    {part}
+                  </Fragment>
+                ))}
+              </p>
+            )}
+
+            <p className="project-card__blurb">{shown.blurb}</p>
+
+            <p className="project-card__meta">
+              {CLUSTER_DISPLAY[shown.cluster]} wing
+              {slug && (
+                <>
+                  <span className="project-card__meta-rule" aria-hidden>
+                    |
+                  </span>
+                  <span className="sr-only">, </span>
+                  {slug}
+                </>
+              )}
+            </p>
+
+            <ul className="project-card__chips" aria-label="Stack">
+              {shown.stack.map((tag) => (
+                <li key={tag}>
+                  <StackChip tag={tag} />
+                </li>
+              ))}
+            </ul>
+
+            {(shown.links.live || shown.links.repo || stats) && (
+              <div className="project-card__actions">
+                {shown.links.live && (
+                  <a
+                    className="project-card__cta project-card__cta--primary"
+                    href={shown.links.live}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    open live demo
+                    <span aria-hidden>→</span>
+                  </a>
                 )}
-                <span className="project-card__repo-stat">
-                  <span aria-hidden>★</span> {stats.stars}
-                </span>
-                <span className="project-card__repo-divider" aria-hidden />
-                <span className="project-card__repo-stat">
-                  <span aria-hidden>⟳</span> {relativeTime(stats.pushed_at)}
-                </span>
+                {shown.links.repo && (
+                  <a
+                    className="project-card__cta project-card__cta--secondary"
+                    href={shown.links.repo}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    view source
+                  </a>
+                )}
+                {stats && (
+                  <span className="project-card__repo">
+                    <span className="project-card__repo-stat">
+                      <span aria-hidden>★</span> {stats.stars}
+                      <span className="sr-only"> stars</span>
+                    </span>
+                    <span className="project-card__repo-stat">
+                      pushed {relativeTime(stats.pushed_at)}
+                    </span>
+                  </span>
+                )}
               </div>
-            </section>
-          )}
-
-          {(project.links.live || project.links.repo) && (
-            <section className="panel__section project-card__ctas">
-              {project.links.live && (
-                <a
-                  className="project-card__cta project-card__cta--primary"
-                  href={project.links.live}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  open live demo
-                  <span className="project-card__cta-arrow" aria-hidden>
-                    →
-                  </span>
-                </a>
-              )}
-              {project.links.repo && (
-                <a
-                  className="project-card__cta project-card__cta--secondary"
-                  href={project.links.repo}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  view source
-                  <span className="project-card__cta-arrow" aria-hidden>
-                    →
-                  </span>
-                </a>
-              )}
-            </section>
-          )}
-
-          {/* Aisle-order prev/next so the user can page through
-              projects without closing the panel and re-clicking a
-              rack. Wraps so it's also a tour mode — keep clicking
-              "next" to cycle through all 9. */}
-          {(prevProject || nextProject) && (
-            <nav className="project-card__nav" aria-label="Project navigation">
-              {prevProject && (
-                <button
-                  type="button"
-                  className={`project-card__nav-btn project-card__nav-btn--prev project-card__nav-btn--${prevProject.cluster}`}
-                  onClick={() => onNavigate({ kind: 'project', projectId: prevProject.id })}
-                >
-                  <span className="project-card__nav-dir" aria-hidden>
-                    ←
-                  </span>
-                  <span className="project-card__nav-meta">
-                    <span className="project-card__nav-label">prev rack</span>
-                    <span className="project-card__nav-name">{prevProject.name}</span>
-                  </span>
-                </button>
-              )}
-              {nextProject && (
-                <button
-                  type="button"
-                  className={`project-card__nav-btn project-card__nav-btn--next project-card__nav-btn--${nextProject.cluster}`}
-                  onClick={() => onNavigate({ kind: 'project', projectId: nextProject.id })}
-                >
-                  <span className="project-card__nav-meta">
-                    <span className="project-card__nav-label">next rack</span>
-                    <span className="project-card__nav-name">{nextProject.name}</span>
-                  </span>
-                  <span className="project-card__nav-dir" aria-hidden>
-                    →
-                  </span>
-                </button>
-              )}
-            </nav>
-          )}
+            )}
+          </div>
         </>
       )}
     </PanelShell>

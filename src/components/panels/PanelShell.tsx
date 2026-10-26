@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type CSSProperties, type ReactNode } from 'react';
 import './Panel.css';
 
 interface PanelShellProps {
@@ -8,32 +8,52 @@ interface PanelShellProps {
   children: ReactNode;
   // Extra class applied to the outer .panel root. Used by callers
   // that need a wider/taller variant — e.g. TradingTerminal asks for
-  // `.panel--console` so the dashboard + log have room to breathe.
+  // `.panel--console` so the terminal + push list have room to breathe.
   variantClass?: string;
+  // Content placed in the bezel between the title and the close button:
+  // the aisle strip and prev/next on a project card, the aisle telemetry
+  // on the console.
+  bezel?: ReactNode;
+  // Accent colour of the thing that was clicked. Drives the chassis edge,
+  // glow, slats and primary action through --accent. Defaults to the
+  // room's cyan in Panel.css.
+  accent?: string;
 }
 
-// Shared chrome for every dialog panel (TradingTerminal, ProjectCard,
-// ContactPing). Gives each one the same Mac-style traffic-light header,
-// reticle-corner brackets, scan-line reveal, and close button so the
-// entrance animation is consistent across the site.
-export function PanelShell({ open, title, onClose, children, variantClass }: PanelShellProps) {
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Shared chassis for every dialog panel (TradingTerminal, ProjectCard,
+// ContactPing): rack-body housing, a bezel across the top with the title
+// and close control, and an accent taken from what was clicked.
+export function PanelShell({
+  open,
+  title,
+  onClose,
+  children,
+  variantClass,
+  bezel,
+  accent,
+}: PanelShellProps) {
   // Set the `inert` DOM property on the root when closed. inert removes
   // every descendant from focus + the accessibility tree, which fixes
   // the Lighthouse "aria-hidden=true with focusable descendents" audit
   // (the close button + the contact-card COPY buttons were tab-reachable
-  // even when the panel was visually hidden). Set via ref because
-  // React 18 doesn't type the inert JSX prop yet (added in React 19).
+  // even when the panel was visually hidden).
   const rootRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
 
   useEffect(() => {
     if (rootRef.current) rootRef.current.inert = !open;
 
     if (open) {
       previousFocusRef.current = document.activeElement as HTMLElement | null;
-      // Focus the close button when the panel opens so keyboard users start in dialog scope
+      // Move focus into the dialog so keyboard users start in its scope.
+      // A child that already took focus (the console prompt) keeps it.
       const focusTimer = window.setTimeout(() => {
+        if (rootRef.current?.contains(document.activeElement)) return;
         closeButtonRef.current?.focus();
       }, 50);
 
@@ -41,6 +61,22 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
         if (e.key === 'Escape') {
           e.preventDefault();
           onClose();
+          return;
+        }
+        if (e.key !== 'Tab' || !rootRef.current) return;
+        // Keep Tab inside the dialog: wrap from the last control to the
+        // first and back.
+        const focusable = rootRef.current.querySelectorAll<HTMLElement>(FOCUSABLE);
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const inside = rootRef.current.contains(document.activeElement);
+        if (e.shiftKey && (document.activeElement === first || !inside)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+          e.preventDefault();
+          first.focus();
         }
       };
 
@@ -55,42 +91,37 @@ export function PanelShell({ open, title, onClose, children, variantClass }: Pan
     }
   }, [open, onClose]);
 
+  const style = accent ? ({ '--accent': accent } as CSSProperties) : undefined;
+
   return (
     <div
       ref={rootRef}
       className={`panel ${open ? 'panel--open' : ''} ${variantClass ?? ''}`.trim()}
       role="dialog"
+      aria-modal={open}
+      aria-labelledby={titleId}
       aria-hidden={!open}
+      style={style}
     >
-      {/* Brackets sit on the outer wrapper so they aren't clipped by the
-          inner box's overflow:hidden + rounded corners. */}
-      <span className="panel__bracket panel__bracket--tl" aria-hidden />
-      <span className="panel__bracket panel__bracket--tr" aria-hidden />
-      <span className="panel__bracket panel__bracket--bl" aria-hidden />
-      <span className="panel__bracket panel__bracket--br" aria-hidden />
-
       <div className="panel__inner">
-        <span className="panel__scan" aria-hidden />
-        {/* Slow continuous scan-line overlay, only on variants that opt
-            in (currently just the control console). Sibling of the
-            scrollable body so it floats over content without moving
-            with scroll. */}
-        {variantClass?.includes('console') && <span className="panel__overlay-scan" aria-hidden />}
-
         <header className="panel__header">
-          <div className="panel__chrome">
-            <span className="panel__chrome-dot panel__chrome-dot--red" />
-            <span className="panel__chrome-dot panel__chrome-dot--amber" />
-            <span className="panel__chrome-dot panel__chrome-dot--green" />
-          </div>
-          <h2 className="panel__title">{title}</h2>
+          <h2 className="panel__title" id={titleId}>
+            {title}
+          </h2>
+          {bezel}
           <button
             ref={closeButtonRef}
+            type="button"
             className="panel__close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Close (Esc)"
           >
-            <span aria-hidden>esc</span>
+            <span className="panel__close-key" aria-hidden>
+              esc
+            </span>
+            <span className="panel__close-touch" aria-hidden>
+              close
+            </span>
           </button>
         </header>
 

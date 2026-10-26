@@ -7,7 +7,7 @@ interface ContactPingProps {
 }
 
 const NAME = 'Olayinka David Vaughan';
-const ROLE = "Economics and CS | Wesleyan '28";
+const ROLE = "Economics and CS, Wesleyan '28";
 const EMAIL = 'vaughanolayinka@gmail.com';
 const PHONE = '+1 475 331 4070';
 const MAILTO_SUBJECT = 'Hi Yinka';
@@ -35,70 +35,51 @@ export function ContactPing({ open, onClose }: ContactPingProps) {
 
   return (
     <PanelShell open={open} title="Contact" onClose={onClose} variantClass="panel--contact">
-      <section className="contact-identity">
-        <h3 className="contact-identity__name">{NAME}</h3>
-        <span className="contact-identity__role">{ROLE}</span>
-      </section>
+      <p className="contact__ask">Looking for an SWE or quant internship in summer 2027.</p>
+      <p className="contact__who">
+        {NAME}
+        <span className="contact__rule" aria-hidden>
+          |
+        </span>
+        <span className="sr-only">, </span>
+        {ROLE}
+        <br />
+        Based in Middletown, CT. Open to remote roles.
+      </p>
 
-      <section className="contact-pills" aria-label="Internship and location">
-        <div className="contact-pill">
-          <p className="contact-pill__value">
-            Looking for an SWE or quant internship in summer 2027.
-          </p>
-        </div>
-        <div className="contact-pill">
-          <p className="contact-pill__value">Based in Middletown, CT. Open to remote roles.</p>
-        </div>
-      </section>
+      <ul className="contact-methods" aria-label="Contact details">
+        <li className="contact-method">
+          <span className="contact-method__key">email</span>
+          <a className="contact-method__value" href={mailtoHref}>
+            {EMAIL}
+          </a>
+          <button type="button" className="contact-method__copy" onClick={() => copy(EMAIL)}>
+            {copied === EMAIL ? 'copied' : 'copy'}
+            <span className="sr-only"> email address</span>
+          </button>
+        </li>
+        <li className="contact-method">
+          <span className="contact-method__key">phone</span>
+          <a className="contact-method__value" href={`tel:${PHONE.replace(/\s/g, '')}`}>
+            {PHONE}
+          </a>
+          <button type="button" className="contact-method__copy" onClick={() => copy(PHONE)}>
+            {copied === PHONE ? 'copied' : 'copy'}
+            <span className="sr-only"> phone number</span>
+          </button>
+        </li>
+      </ul>
+      <p className="sr-only" role="status">
+        {copied ? 'Copied to the clipboard.' : ''}
+      </p>
 
-      <section className="panel__section" aria-label="Contact details">
-        <ul className="contact-methods">
-          <li className="contact-method">
-            <span className="contact-method__key">email</span>
-            <a className="contact-method__value" href={mailtoHref}>
-              {EMAIL}
-            </a>
-            <button
-              type="button"
-              className="contact-method__copy"
-              onClick={() => copy(EMAIL)}
-              aria-label="Copy email address"
-            >
-              {copied === EMAIL ? 'copied' : 'copy'}
-            </button>
-          </li>
-          <li className="contact-method">
-            <span className="contact-method__key">phone</span>
-            <a className="contact-method__value" href={`tel:${PHONE.replace(/\s/g, '')}`}>
-              {PHONE}
-            </a>
-            <button
-              type="button"
-              className="contact-method__copy"
-              onClick={() => copy(PHONE)}
-              aria-label="Copy phone number"
-            >
-              {copied === PHONE ? 'copied' : 'copy'}
-            </button>
-          </li>
-        </ul>
-      </section>
-
-      <div className="contact-profile">
-        <a className="contact-chip" href={DEVPOST} target="_blank" rel="noreferrer">
-          <span>Devpost profile</span>
-          <span className="contact-chip__arrow" aria-hidden>
-            →
-          </span>
-        </a>
-      </div>
-
-      <div className="contact-ctas">
+      <div className="contact__actions">
         <a className="contact-cta contact-cta--primary" href={mailtoHref}>
-          <span>Send email</span>
-          <span className="contact-cta__arrow" aria-hidden>
-            →
-          </span>
+          Send email
+          <span aria-hidden>→</span>
+        </a>
+        <a className="contact__link" href={DEVPOST} target="_blank" rel="noreferrer">
+          Devpost profile
         </a>
       </div>
     </PanelShell>

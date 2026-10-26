@@ -14,6 +14,7 @@ import {
   type KeyboardEvent,
   type SubmitEvent,
 } from 'react';
+import { AisleStrip } from './AisleStrip';
 import { PanelShell } from './PanelShell';
 
 interface TradingTerminalProps {
@@ -97,14 +98,11 @@ const SHORT_SHA = __BUILD_SHA__;
 const BUILD_MESSAGE = __BUILD_MESSAGE__;
 const BUILD_TIMESTAMP = __BUILD_TIMESTAMP__;
 
-// Initial console contents. A tiny ASCII glyph mark on the first line
-// signals "this isn't just a chat box" the moment the panel opens; the
-// build / boot lines below give the user something to *read* before
-// they start typing instead of a near-empty void with one hint line.
+// Initial console contents. The build / boot lines give the user
+// something to *read* before they start typing instead of a near-empty
+// void with one hint line.
 const INITIAL_LOG: LogEntry[] = [
-  { kind: 'banner', text: ' ╭─◇ control_console ◇─╮' },
-  { kind: 'banner', text: ' │  ov @ portfolio    │' },
-  { kind: 'banner', text: ' ╰────────────────────╯' },
+  { kind: 'output', text: 'ov@portfolio control console' },
   { kind: 'system', text: `boot: build ${SHORT_SHA}` },
   { kind: 'system', text: 'audio synth + aisleScroll attached.' },
   { kind: 'system', text: "ready. type 'help' for commands." },
@@ -502,7 +500,7 @@ export function TradingTerminal({
               kind: 'output',
               text: 'Quant, SWE, analyst, security, and AI/ML projects on a 3D rack-by-rack tour.',
             },
-            { kind: 'output', text: 'github @Builder106 · linkedin /in/yinka-vaughan/' },
+            { kind: 'output', text: 'github @Builder106 | linkedin /in/yinka-vaughan/' },
           ];
         case 'open':
         case 'goto': {
@@ -570,7 +568,7 @@ export function TradingTerminal({
         case 'whoami':
           markSecret('whoami');
           return [
-            { kind: 'output', text: 'ov · software engineer · level 1 · github.com/Builder106' },
+            { kind: 'output', text: 'ov | software engineer | level 1 | github.com/Builder106' },
           ];
 
         case 'ls':
@@ -817,13 +815,13 @@ export function TradingTerminal({
             .map((c) => ({ c, n: projects.filter((p) => p.cluster === c).length }))
             .filter((x) => x.n > 0)
             .map((x) => `${x.n} ${CLUSTER_DISPLAY[x.c]}`)
-            .join(' · ');
+            .join(' | ');
           return [
             { kind: 'output', text: `projects deployed: ${projects.length}` },
             { kind: 'output', text: `cluster split:     ${split}` },
             {
               kind: 'output',
-              text: `build:             ${SHORT_SHA} · ${relativeTime(BUILD_TIMESTAMP)}`,
+              text: `build:             ${SHORT_SHA} | ${relativeTime(BUILD_TIMESTAMP)}`,
             },
             { kind: 'output', text: 'frame budget:      16.6 ms (60 fps target)' },
             { kind: 'output', text: 'node_modules/:     yes' },
@@ -842,7 +840,7 @@ export function TradingTerminal({
             { kind: 'output', text: '' },
             { kind: 'output', text: 'ambient music:' },
             { kind: 'output', text: '  Vermillion Gaze — Sun Waves (full release, 4 tracks)' },
-            { kind: 'output', text: '  CC-BY 4.0 · archive.org/details/SunWaves' },
+            { kind: 'output', text: '  CC-BY 4.0 | archive.org/details/SunWaves' },
             { kind: 'output', text: '' },
             { kind: 'output', text: 'source: github.com/Builder106/builder106.github.io' },
           ];
@@ -1019,7 +1017,7 @@ export function TradingTerminal({
       case 'error':
         return '✗';
       case 'system':
-        return '·';
+        return '#';
       case 'banner':
         return ' ';
       default:
@@ -1030,206 +1028,157 @@ export function TradingTerminal({
   return (
     <PanelShell
       open={open}
-      title="// control_console"
+      title="Console"
       onClose={onClose}
       variantClass="panel--console"
+      bezel={<AisleStrip activeId={variant === 'portrait' ? activeRackId : null} />}
     >
-      <section className="panel__section">
-        <div className="console-pills">
-          <div className="console-pill console-pill--build">
-            <div className="console-pill__header">
-              <span className="console-pill__title">build</span>
-              <span className="console-pill__dot console-pill__dot--ok" aria-hidden />
-            </div>
-            <div className="console-pill__value">{SHORT_SHA}</div>
-            <div className="console-pill__sub" title={BUILD_MESSAGE}>
-              {BUILD_MESSAGE.length > 50 ? `${BUILD_MESSAGE.slice(0, 48)}…` : BUILD_MESSAGE}
-            </div>
-            <div className="console-pill__meta">{relativeTime(BUILD_TIMESTAMP)}</div>
+      <div className="console">
+        <section className="console__terminal" aria-label="Terminal">
+          <div className="console-log" ref={logRef} aria-live="polite">
+            {log.map((entry, i) => (
+              <div key={i} className={`console-log__entry console-log__entry--${entry.kind}`}>
+                {entry.kind !== 'banner' && (
+                  <span className="console-log__prefix" aria-hidden>
+                    {prefixFor(entry.kind)}
+                  </span>
+                )}
+                <span className="console-log__text">{entry.text}</span>
+              </div>
+            ))}
           </div>
+          <form className="console-input-row" onSubmit={handleSubmit}>
+            <span className="console-prompt-prefix" aria-hidden>
+              <span className="console-prompt-prefix__user">ov</span>
+              <span className="console-prompt-prefix__at">@</span>
+              <span className="console-prompt-prefix__host">portfolio</span>
+              <span className="console-prompt-prefix__sep">:</span>
+              <span className="console-prompt-prefix__cwd">~</span>
+              <span className="console-prompt-prefix__sigil">$</span>
+            </span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="console-input"
+              placeholder="type a command (try 'help')"
+              autoCapitalize="off"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label="console command"
+            />
+          </form>
+        </section>
 
-          {/* Telemetry pill. Two variants:
-              · Portrait (virtual aisle-scroll): scroll % + dominant
-                rack as a click-to-jump button. The widget was originally
-                a big horizontal aisle-map taking ~120 px of vertical
-                space; this denser pill replaced it because "see all 9
-                at once" didn't justify the room cost.
-              · Landscape (orbit camera): no scroll, so the % was always
-                0 and the rack button always pointed at slot 0. The
-                pill swaps to a SESSION uptime read here — same shape,
-                different signal. */}
-          <div
-            className={`console-pill console-pill--telemetry ${
-              flashedWidget === 'telemetry' ? 'console-pill--flash' : ''
+        <section className="console__pushes" aria-labelledby="console-pushes-title">
+          <h3 className="console__pushes-title" id="console-pushes-title">
+            Recent pushes
+          </h3>
+          <ul className="repo-list">
+            {repoRows.map(({ project, stats }) => (
+              <li key={project.id}>
+                <button
+                  type="button"
+                  className="repo-row"
+                  onClick={() => onNavigate({ kind: 'project', projectId: project.id })}
+                >
+                  <span className="repo-row__name">{project.name}</span>
+                  <span className="repo-row__time">{relativeTime(stats.pushed_at)}</span>
+                  <span className="repo-row__lang">
+                    {stats.lang ?? CLUSTER_DISPLAY[project.cluster]}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <footer className="console-status">
+          <span className="console-status__item" title={BUILD_MESSAGE}>
+            <span className="console-status__key">build</span> {SHORT_SHA}
+            <span className="console-status__muted"> {relativeTime(BUILD_TIMESTAMP)}</span>
+          </span>
+
+          {/* Portrait walks a virtual aisle, so the status line reports
+              the scroll position and the rack nearest the camera (also
+              lit in the bezel strip). Landscape orbits instead and never
+              scrolls, so it reports session uptime. */}
+          <span
+            className={`console-status__item ${
+              flashedWidget === 'telemetry' ? 'console-status__item--flash' : ''
             }`}
           >
             {variant === 'portrait' ? (
               <>
-                <div className="console-pill__header">
-                  <span className="console-pill__title">telemetry</span>
-                  <span className="console-pill__dot console-pill__dot--live" aria-hidden />
-                </div>
-                <div className="console-pill__value">
-                  {Math.round(progress * 100)}
-                  <span className="console-pill__unit">%</span>
-                </div>
-                <div
-                  className="console-pill__bar"
+                <span className="console-status__key">aisle</span> {Math.round(progress * 100)}%
+                <span
+                  className="console-status__bar"
                   role="progressbar"
+                  aria-label="Aisle position"
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={Math.round(progress * 100)}
                 >
-                  <div
-                    className="console-pill__bar-fill"
+                  <span
+                    className="console-status__bar-fill"
                     style={{ width: `${(progress * 100).toFixed(1)}%` }}
                   />
-                </div>
+                </span>
                 {activeRack ? (
                   <button
                     type="button"
-                    className={`console-pill__sub-link console-pill__sub-link--${activeRack.cluster}`}
+                    className="console-status__link"
                     onClick={() => onNavigate({ kind: 'project', projectId: activeRack.id })}
                   >
                     {activeRack.name}
-                    <span className="console-pill__sub-cluster"> · {activeRack.cluster}</span>
                   </button>
                 ) : (
-                  <div className="console-pill__sub">between racks</div>
+                  <span className="console-status__muted">between racks</span>
                 )}
               </>
             ) : (
               <>
-                <div className="console-pill__header">
-                  <span className="console-pill__title">session</span>
-                  <span className="console-pill__dot console-pill__dot--live" aria-hidden />
-                </div>
-                <div className="console-pill__value">{formatUptime(uptimeMs)}</div>
-                <div className="console-pill__sub">uptime · since boot</div>
+                <span className="console-status__key">session</span> {formatUptime(uptimeMs)}
               </>
             )}
-          </div>
+          </span>
 
-          <div
-            className={`console-pill console-pill--audio ${
-              flashedWidget === 'audio' ? 'console-pill--flash' : ''
+          {/* Track cycler. ‹ and › step through TRACKS. All four are from
+              the same Sun Waves release (CC-BY 4.0), so attribution is
+              identical across the set. */}
+          <span
+            className={`console-status__item console-status__item--audio ${
+              flashedWidget === 'audio' ? 'console-status__item--flash' : ''
             }`}
           >
-            <div className="console-pill__header">
-              <span className="console-pill__title">audio</span>
-              <span
-                className={`console-pill__dot ${
-                  audioEnabled ? 'console-pill__dot--ok' : 'console-pill__dot--muted'
-                }`}
-                aria-hidden
-              />
-            </div>
-            <div className="console-pill__value">
-              {audioEnabled ? 'online' : 'muted'}
-              <button type="button" className="console-pill__action" onClick={onToggleAudio}>
-                {audioEnabled ? 'mute' : 'unmute'}
-              </button>
-            </div>
-            {/* Track cycler. ‹ and › step through TRACKS; the middle
-                line shows artist · title for the currently playing cut.
-                All four are from the same Sun Waves release (CC-BY 4.0)
-                so attribution is identical across the set. */}
-            <div className="console-pill__track">
-              <button
-                type="button"
-                className="console-pill__track-step"
-                onClick={() => onSelectTrack(prevTrack.id)}
-                aria-label={`previous track: ${prevTrack.title}`}
-              >
-                ‹
-              </button>
-              <span className="console-pill__track-info">
-                <span className="console-pill__track-artist">
-                  {currentTrack.artist.toLowerCase()}
-                </span>
-                <span className="console-pill__track-title">
-                  {currentTrack.title.toLowerCase()}
-                </span>
-              </span>
-              <button
-                type="button"
-                className="console-pill__track-step"
-                onClick={() => onSelectTrack(nextTrack.id)}
-                aria-label={`next track: ${nextTrack.title}`}
-              >
-                ›
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="panel__section">
-        <div className="panel__section-label">
-          repo_activity
-          <span className="panel__section-meta">{repoRows.length} repos · last push</span>
-        </div>
-        <ul className="repo-list">
-          {repoRows.map(({ project, stats }) => (
-            <li key={project.id}>
-              <button
-                type="button"
-                className={`repo-row repo-row--${project.cluster}`}
-                onClick={() => onNavigate({ kind: 'project', projectId: project.id })}
-              >
-                <span className="repo-row__stripe" aria-hidden />
-                <span className="repo-row__cluster">{project.cluster}</span>
-                <span className="repo-row__name">{project.name}</span>
-                <span className="repo-row__lang">{stats.lang ?? '—'}</span>
-                <span className="repo-row__time">{relativeTime(stats.pushed_at)}</span>
-                <span className="repo-row__arrow" aria-hidden>
-                  ›
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="panel__section console-section">
-        <div className="panel__section-label">prompt</div>
-        <div className="console-log" ref={logRef} aria-live="polite">
-          {log.map((entry, i) => (
-            <div key={i} className={`console-log__entry console-log__entry--${entry.kind}`}>
-              {entry.kind !== 'banner' && (
-                <span className="console-log__prefix" aria-hidden>
-                  {prefixFor(entry.kind)}
-                </span>
-              )}
-              <span className="console-log__text">{entry.text}</span>
-            </div>
-          ))}
-        </div>
-        <form className="console-input-row" onSubmit={handleSubmit}>
-          <span className="console-prompt-prefix">
-            <span className="console-prompt-prefix__user">ov</span>
-            <span className="console-prompt-prefix__at">@</span>
-            <span className="console-prompt-prefix__host">portfolio</span>
-            <span className="console-prompt-prefix__sep">:</span>
-            <span className="console-prompt-prefix__cwd">~</span>
-            <span className="console-prompt-prefix__sigil">$</span>
+            <span className="console-status__key">audio</span> {audioEnabled ? 'on' : 'muted'}
+            <button type="button" className="console-status__action" onClick={onToggleAudio}>
+              {audioEnabled ? 'mute' : 'unmute'}
+            </button>
+            <button
+              type="button"
+              className="console-status__step"
+              onClick={() => onSelectTrack(prevTrack.id)}
+              aria-label={`previous track: ${prevTrack.title}`}
+            >
+              ‹
+            </button>
+            <span className="console-status__track">
+              {currentTrack.artist.toLowerCase()}, {currentTrack.title.toLowerCase()}
+            </span>
+            <button
+              type="button"
+              className="console-status__step"
+              onClick={() => onSelectTrack(nextTrack.id)}
+              aria-label={`next track: ${nextTrack.title}`}
+            >
+              ›
+            </button>
           </span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="console-input"
-            placeholder="type a command (try 'help')"
-            autoCapitalize="off"
-            autoComplete="off"
-            spellCheck={false}
-            aria-label="console command"
-          />
-          <span className="console-caret" aria-hidden />
-        </form>
-      </section>
+        </footer>
+      </div>
     </PanelShell>
   );
 }

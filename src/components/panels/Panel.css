@@ -1,584 +1,277 @@
-/* The brackets and scan line reveal panel content after the camera settles. */
+/* Panel chassis shared by ProjectCard, TradingTerminal and ContactPing.
+ *
+ * Each panel is the face of what was clicked: a rack-body housing with a
+ * bezel across the top, lit in --accent (the project's own colour on a
+ * rack card, room cyan on the console and contact). Only three lines are
+ * drawn: the chassis edge, the bezel's lower edge, and the console's
+ * status-line rule. Nothing else gets a border.
+ */
 
 .panel {
+  --accent: var(--neon-cyan);
+  --panel-bg: #0a0b14;
+  --panel-screen: #04050a;
+  --panel-muted: #9aa1b9;
+  --panel-text: rgba(230, 233, 242, 0.88);
+
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0.965);
-  width: min(720px, 92vw);
-  max-height: 80vh;
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-  opacity: 0;
-  pointer-events: none;
-  /* Delay the whole entrance ~280ms so the CameraRig push-in to the rack
-     lands and holds before the panel reveals over it (otherwise the panel
-     covers the very rack the camera flew to). The scale + overshoot
-     cubic-bezier makes the panel spring/morph into place, not flat-fade. */
-  transition:
-    opacity 260ms ease-out 280ms,
-    transform 460ms cubic-bezier(0.34, 1.4, 0.5, 1) 280ms;
   z-index: 50;
   display: flex;
   flex-direction: column;
-  /* No background / border / overflow on the outer wrapper — those live
-   * on .panel__inner so the brackets can sit at the actual corners
-   * without being clipped by the rounded inner box. */
+  width: min(720px, calc(100vw - 48px));
+  max-height: min(90vh, 880px);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, calc(-50% + 12px));
+  /* Closing starts at once and is quick: the body retracts into the
+     bezel, then the bezel fades while the camera flies back. */
+  transition:
+    opacity 100ms ease-in 120ms,
+    transform 220ms ease-in;
 }
 
 .panel--open {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
   pointer-events: auto;
+  transform: translate(-50%, -50%);
+  /* Opening waits ~280ms for the CameraRig push-in to land so the panel
+     doesn't reveal over a camera still in flight. The bezel appears
+     quickly; the body then extends below it. */
+  transition:
+    opacity 120ms ease-out 280ms,
+    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 280ms;
 }
 
 .panel__inner {
-  position: relative;
-  flex: 1;
-  background: rgba(8, 10, 18, 0.92);
-  border: 1px solid transparent;
-  border-radius: 6px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: none;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-height: 0;
   overflow: hidden;
-  transition:
-    border-color 220ms ease-out 460ms,
-    box-shadow 280ms ease-out 460ms;
+  background: var(--panel-bg);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 2px;
+  /* The glow is the rack's floor light: the accent spilling around the
+     housing, not a glass blur. */
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 28px 80px rgba(0, 0, 0, 0.65),
+    0 0 64px color-mix(in srgb, var(--accent) 14%, transparent);
+  /* Background and content are clipped together, so the body extends
+     down out of the bezel instead of showing an empty box first. */
+  clip-path: inset(0 0 calc(100% - 48px) 0);
+  transition: clip-path 180ms cubic-bezier(0.5, 0, 0.75, 0);
 }
 
 .panel--open .panel__inner {
-  border-color: rgba(76, 242, 255, 0.25);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    0 0 80px rgba(76, 242, 255, 0.08),
-    inset 0 1px 0 rgba(76, 242, 255, 0.15);
-}
-
-/* Reticle corner brackets — small Ls drawn with a 2-sided border. They
- * start at 40% scale and snap out to full size on open. */
-.panel__bracket {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border: 1.5px solid var(--neon-cyan);
-  pointer-events: none;
-  opacity: 0;
-  transform: scale(0.3);
-  filter: drop-shadow(0 0 6px rgba(76, 242, 255, 0.8));
-  z-index: 6;
-  transition:
-    opacity 220ms ease-out,
-    transform 280ms cubic-bezier(0.2, 1.2, 0.4, 1);
-}
-
-.panel__bracket--tl {
-  top: -6px;
-  left: -6px;
-  border-right: none;
-  border-bottom: none;
-  transform-origin: top left;
-}
-.panel__bracket--tr {
-  top: -6px;
-  right: -6px;
-  border-left: none;
-  border-bottom: none;
-  transform-origin: top right;
-}
-.panel__bracket--bl {
-  bottom: -6px;
-  left: -6px;
-  border-right: none;
-  border-top: none;
-  transform-origin: bottom left;
-}
-.panel__bracket--br {
-  bottom: -6px;
-  right: -6px;
-  border-left: none;
-  border-top: none;
-  transform-origin: bottom right;
-}
-
-.panel--open .panel__bracket {
-  opacity: 1;
-  transform: scale(1);
-}
-.panel--open .panel__bracket--tl {
-  transition-delay: 280ms;
-}
-.panel--open .panel__bracket--tr {
-  transition-delay: 330ms;
-}
-.panel--open .panel__bracket--bl {
-  transition-delay: 380ms;
-}
-.panel--open .panel__bracket--br {
-  transition-delay: 430ms;
-}
-
-/* Scan line — a thin cyan beam that starts at the top of the panel
- * and sweeps down. Off-canvas in the resting state; the keyframe
- * animation only fires when --open is applied. */
-.panel__scan {
-  position: absolute;
-  left: 1px;
-  right: 1px;
-  top: 0;
-  height: 2px;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(76, 242, 255, 0.85) 30%,
-    rgba(76, 242, 255, 1) 50%,
-    rgba(76, 242, 255, 0.85) 70%,
-    transparent 100%
-  );
-  box-shadow:
-    0 0 12px rgba(76, 242, 255, 0.85),
-    0 0 28px rgba(76, 242, 255, 0.4);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.panel--open .panel__scan {
-  animation: panel-scan-sweep 480ms cubic-bezier(0.4, 0, 0.2, 1) 520ms forwards;
-}
-
-@keyframes panel-scan-sweep {
-  0% {
-    top: 1px;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  92% {
-    opacity: 1;
-  }
-  100% {
-    top: calc(100% - 2px);
-    opacity: 0;
-  }
-}
-
-/* Content reveal — the header and body are clipped from the bottom
- * upward in their resting state. As --open is added, the inset
- * animates back to zero, releasing content top-down in step with the
- * scan line. */
-.panel__header,
-.panel__body {
-  clip-path: inset(0 0 100% 0);
-  transition: clip-path 480ms cubic-bezier(0.4, 0, 0.2, 1) 520ms;
-}
-
-.panel--open .panel__header,
-.panel--open .panel__body {
   clip-path: inset(0 0 0 0);
+  transition: clip-path 440ms cubic-bezier(0.65, 0, 0.35, 1) 340ms;
 }
+
+/* ---------- Bezel ---------- */
 
 .panel__header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(76, 242, 255, 0.15);
-}
-
-.panel__chrome {
-  display: flex;
-  gap: 6px;
-}
-
-.panel__chrome-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  opacity: 0.6;
-}
-
-.panel__chrome-dot--red {
-  background: #ff5f56;
-}
-.panel__chrome-dot--amber {
-  background: #ffbd2e;
-}
-.panel__chrome-dot--green {
-  background: #27c93f;
+  gap: 16px;
+  min-height: 48px;
+  padding: 0 10px 0 20px;
+  background: var(--bg-rack);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .panel__title {
-  flex: 1;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  color: var(--neon-cyan);
-  text-transform: lowercase;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .panel__close {
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  border: 1px solid rgba(107, 113, 136, 0.3);
-  border-radius: 3px;
-  padding: 3px 8px;
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 32px;
+  margin-left: auto;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--panel-muted);
+  border-radius: 2px;
   transition:
-    color 150ms ease,
-    border-color 150ms ease;
+    color 140ms ease,
+    background 140ms ease;
 }
 
 .panel__close:hover {
-  color: var(--neon-cyan);
-  border-color: var(--neon-cyan);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.panel__body {
-  padding: 18px 22px 22px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(
-      in srgb,
-      var(--cluster-color, var(--neon-cyan)) 45%,
-      rgba(255, 255, 255, 0.15)
-    )
-    rgba(10, 12, 20, 0.6);
+.panel__close-touch {
+  display: none;
 }
 
-.panel__body::-webkit-scrollbar {
-  width: 6px;
+@media (pointer: coarse) {
+  .panel__close-key {
+    display: none;
+  }
+  .panel__close-touch {
+    display: inline;
+  }
 }
 
-.panel__body::-webkit-scrollbar-track {
-  background: rgba(10, 12, 20, 0.6);
-  border-radius: 4px;
-  margin: 6px 0;
+/* Drawn inside the control: the chassis clips anything outside it. */
+.panel :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
-.panel__body::-webkit-scrollbar-thumb {
-  background: color-mix(
-    in srgb,
-    var(--cluster-color, var(--neon-cyan)) 45%,
-    rgba(255, 255, 255, 0.15)
-  );
-  border-radius: 4px;
-}
+/* ---------- Aisle strip ----------
+ * One slat per rack in aisle order, each in that project's colour. The
+ * slats power on left to right once the panel has opened. */
 
-.panel__body::-webkit-scrollbar-thumb:hover {
-  background: var(--cluster-color, var(--neon-cyan));
-  box-shadow: 0 0 8px var(--cluster-color, var(--neon-cyan));
-}
-
-.panel__section-label {
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.panel__chart {
-  display: flex;
+.aisle {
+  display: inline-flex;
+  flex-shrink: 0;
   align-items: flex-end;
   gap: 3px;
-  height: 80px;
-  padding: 8px 4px;
-  background: rgba(76, 242, 255, 0.04);
-  border: 1px solid rgba(76, 242, 255, 0.1);
-  border-radius: 3px;
+  height: 22px;
 }
 
-.panel__bar {
-  flex: 1;
-  background: linear-gradient(to top, var(--neon-cyan), rgba(76, 242, 255, 0.2));
+.aisle__slat {
+  width: 4px;
+  height: 12px;
+  background: var(--slat);
   border-radius: 1px;
-  animation: panel-bar-pulse 2.4s ease-in-out infinite;
+  opacity: 0.38;
+  transform: scaleY(0);
   transform-origin: bottom;
+  transition: transform 120ms ease-in;
 }
 
-@keyframes panel-bar-pulse {
-  0%,
-  100% {
-    transform: scaleY(1);
-    opacity: 0.85;
-  }
-  50% {
-    transform: scaleY(0.6);
-    opacity: 1;
-  }
+.aisle__slat--wing {
+  margin-left: 6px;
 }
 
-.panel__list {
-  list-style: none;
+.aisle__slat--active {
+  height: 22px;
+  opacity: 1;
+  box-shadow: 0 0 8px var(--slat);
+}
+
+.panel--open .aisle__slat {
+  transform: scaleY(1);
+  transition:
+    transform 200ms ease-out calc(440ms + var(--i) * 14ms),
+    height 200ms ease-out,
+    opacity 200ms ease-out;
+}
+
+/* ---------- Body ---------- */
+
+.panel__body {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 14px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent;
 }
 
-.panel__list-item {
-  padding: 12px 14px;
-  background: rgba(76, 242, 255, 0.03);
-  border-left: 2px solid var(--neon-cyan);
-  border-radius: 0 3px 3px 0;
-}
+/* ---------- Project card ---------- */
 
-.panel__list-row {
+.project-card__nav {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 6px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
 }
 
-.panel__list-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.panel__list-stack {
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-}
-
-.panel__list-blurb {
-  font-family: var(--font-display);
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--text-muted);
-}
-
-/* ---------- Mobile / narrow viewport ---------- */
-
-@media (max-width: 720px) {
-  .panel {
-    width: 95vw;
-    max-height: 85vh;
-  }
-  .panel__header {
-    padding: 10px 12px;
-  }
-  .panel__title {
-    font-size: 11px;
-  }
-  .panel__body {
-    padding: 14px 16px 18px;
-    gap: 18px;
-  }
-  .panel__bracket {
-    width: 16px;
-    height: 16px;
-  }
-  .panel__bracket--tl {
-    top: -5px;
-    left: -5px;
-  }
-  .panel__bracket--tr {
-    top: -5px;
-    right: -5px;
-  }
-  .panel__bracket--bl {
-    bottom: -5px;
-    left: -5px;
-  }
-  .panel__bracket--br {
-    bottom: -5px;
-    right: -5px;
-  }
-}
-
-/* ---------- Laptop / mid-range readability ----------
- *
- * The panel renders at its full 720px width on any viewport wider than
- * 720px — including 13–15" laptops where recruiters typically review.
- * Fixed-px sizes in the 9–10px range are genuinely hard to read at
- * 96 DPI without a magnifier. This breakpoint bumps those floors so
- * section labels, chip text, and badge text stay legible without
- * disturbing the visual hierarchy (de-emphasis is carried by color
- * and opacity, not size alone).
- */
-@media (min-width: 721px) {
-  .panel__section-label,
-  .panel__close,
-  .panel__chip,
-  .project-card__cluster,
-  .project-card__chip,
-  .panel__list-stack {
-    font-size: 11px;
-  }
-}
-
-.panel__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.panel__chip {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  padding: 4px 9px;
-  border: 1px solid rgba(76, 242, 255, 0.2);
-  background: rgba(76, 242, 255, 0.04);
-  border-radius: 3px;
-  color: var(--neon-cyan);
-}
-
-/* Live-from-GitHub stat chips: warmer, more readout-y, with the dot /
- * star / cycle glyph in a slightly brighter cyan than the surrounding
- * stack tags. */
-.panel__chip--stat {
-  text-transform: none;
-  letter-spacing: 0.04em;
-  color: rgba(180, 245, 255, 0.92);
-  border-color: rgba(76, 242, 255, 0.28);
-  background: rgba(76, 242, 255, 0.06);
+.project-card__nav-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--panel-muted);
+  border-radius: 2px;
+  transition:
+    color 140ms ease,
+    background 140ms ease;
 }
 
-.panel__chip--stat > span {
-  color: var(--neon-cyan);
-  text-shadow: 0 0 6px rgba(76, 242, 255, 0.4);
+.project-card__nav-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.panel__links {
-  display: flex;
-  gap: 18px;
+.project-card__nav-name {
+  max-width: 120px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.panel__links a {
-  font-size: 13px;
-  color: var(--neon-cyan);
-  border-bottom: 1px dotted rgba(76, 242, 255, 0.3);
-  padding-bottom: 1px;
-}
-
-.panel__links a:hover {
-  border-bottom-style: solid;
-  text-decoration: none;
-}
-
-/* Hero image / demo video inside a ProjectCard. The wrapper section
-   extends edge-to-edge inside the panel body's padding via negative
-   horizontal margins, then a subtle border + tonal gradient ties it
-   back into the panel chrome. No vertical negative margin — the
-   media section is no longer the first child of the body (identity
-   + headline land above it), so pulling it upward would overlap the
-   headline. */
-.panel__section--media {
-  margin: 0 -22px;
-  padding: 0;
-  border-top: 1px solid rgba(76, 242, 255, 0.15);
+/* The demo box is always 2:1. The recorders capture 1440 px wide for this
+   720 CSS px box; contain keeps any other source whole. */
+.project-card__media {
+  position: relative;
+  flex-shrink: 0;
+  aspect-ratio: 2 / 1;
+  background: var(--panel-screen);
 }
 
 .panel__hero {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
-  /* All bundled demo recordings ship at 1440×900 (8:5). object-fit:
-     contain handles any future outliers by letterboxing rather than
-     cropping. 1440 is exactly 2× the .panel default width (720 CSS
-     px), so the video is sharp on retina without upscaling.
-     max-height: 360 caps the hero so it doesn't dominate the panel
-     and push the primary CTAs below the fold on a typical 900 px
-     desktop. At a panel width of 720 the hero renders 720 × 360
-     (= 2:1 element ratio) with the 8:5 source contained inside —
-     ~56 px of dark letterbox on each side, no source cropped. */
+  height: 100%;
   object-fit: contain;
   object-position: center;
-  border-bottom: 1px solid rgba(76, 242, 255, 0.15);
-  background: rgba(0, 0, 0, 0.4);
-  max-height: 360px;
 }
 
-.panel__hero--video {
-  /* Video heroes share the same aspect-ratio rule above; this hook
-     exists so future per-format tweaks (e.g. a play/pause overlay)
-     can target videos specifically. */
-}
-
-/* Signature one-liner above the blurb. Bigger than body text, cyan
- * accent, monospace so the stats read as a terminal readout. */
-.panel__headline {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--neon-cyan);
-  letter-spacing: 0.02em;
-  margin: 0 0 12px;
-  text-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
-}
-
-/* Hero variant of the cyan-headline: sits below the demo video in
-   TradingTerminal as the panel's signature stat (e.g. "~18M orders/sec
-   · p99 < 1µs"). Slightly larger and padded to read as a marquee. */
-.panel__headline--hero {
-  font-size: 14px;
-  margin: 14px 22px 0;
-}
-
-/* CTA-shaped variant of the panel__links row: full-width pill style
-   that pops more than a plain text link. Used for "open live terminal"
-   in TradingTerminal. */
-.panel__links--cta {
-  padding: 4px 22px 14px;
-}
-
-.panel__cta-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid rgba(76, 242, 255, 0.35);
-  border-radius: 3px;
-  background: rgba(76, 242, 255, 0.06);
+.project-card__playback {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1;
+  min-width: 56px;
+  min-height: 28px;
+  padding: 0 10px;
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
-  color: var(--neon-cyan);
-  transition:
-    background 150ms ease,
-    border-color 150ms ease;
+  color: var(--text-primary);
+  background: rgba(4, 5, 10, 0.85);
+  border-radius: 2px;
 }
 
-.panel__cta-link:hover,
-.panel__cta-link:focus-visible {
-  background: rgba(76, 242, 255, 0.12);
-  border-color: rgba(76, 242, 255, 0.55);
-  text-decoration: none;
-  outline: none;
-}
-
-/* Skeleton placeholder behind a video / image hero. Prevents the brief
-   blank flash between panel-open and media-load — particularly
-   noticeable on slow mobile connections where preload="metadata"
-   waits for first frame. Sits *behind* the actual hero (lower
-   z-index) so it disappears the moment real pixels paint. */
-.panel__hero-skeleton {
+.project-card__media-skeleton {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(76, 242, 255, 0.02) 0%,
-    rgba(76, 242, 255, 0.08) 50%,
-    rgba(76, 242, 255, 0.02) 100%
+    transparent 0%,
+    color-mix(in srgb, var(--accent) 7%, transparent) 50%,
+    transparent 100%
   );
   background-size: 200% 100%;
   animation: panel-skeleton-shimmer 1600ms linear infinite;
-  pointer-events: none;
 }
 
 @keyframes panel-skeleton-shimmer {
@@ -590,1234 +283,185 @@
   }
 }
 
-@media (max-width: 720px) {
-  .panel__section--media {
-    margin: 0 -16px;
-  }
-  .panel__hero {
-    /* Mobile cap is tighter so the hero doesn't eat half the screen
-       on a phone-portrait viewport, where the panel is already
-       95vh tall. */
-    max-height: 260px;
-  }
-  .panel__headline--hero {
-    margin: 12px 16px 0;
-    font-size: 13px;
-  }
-  .panel__links--cta {
-    padding: 2px 16px 12px;
-  }
-}
-
-/* Keep the contact panel readable over the animated room behind it. */
-.panel--contact .panel__inner {
-  background: rgba(8, 10, 18, 0.96);
-}
-
-.panel--contact .panel__chrome {
-  display: none;
-}
-
-/* ---------- Contact panel ---------- */
-
-.contact-identity {
+.project-card__text {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0;
-  margin: -4px 0 -4px;
-}
-
-.contact-identity__name {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: 0.005em;
-}
-
-.contact-identity__role {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
-}
-
-.contact-pills {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 10px;
-  padding: 0;
-}
-
-.contact-pill {
-  padding: 12px 14px;
-  background: rgba(8, 10, 18, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-}
-
-.contact-pill__value {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.contact-methods {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-}
-
-.contact-method {
-  display: grid;
-  grid-template-columns: 70px 1fr auto;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 14px;
-  background: rgba(8, 10, 18, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease;
-}
-
-.contact-method:hover,
-.contact-method:focus-within {
-  background: rgba(76, 242, 255, 0.06);
-  border-color: rgba(76, 242, 255, 0.22);
-}
-
-.contact-method__key {
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.contact-method__value {
-  color: var(--text-primary);
-  text-decoration: none;
-  letter-spacing: 0.01em;
-  word-break: break-all;
-  transition:
-    color 140ms ease,
-    text-shadow 140ms ease;
-}
-
-.contact-method__value:hover,
-.contact-method__value:focus-visible {
-  color: var(--neon-cyan);
-  text-shadow: 0 0 8px rgba(76, 242, 255, 0.3);
-  text-decoration: none;
-  outline: none;
-}
-
-.contact-method__copy {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  background: rgba(76, 242, 255, 0.04);
-  border: 1px solid rgba(76, 242, 255, 0.22);
-  color: var(--neon-cyan);
-  border-radius: 3px;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease;
-}
-
-.contact-method__copy:hover,
-.contact-method__copy:focus-visible {
-  background: rgba(76, 242, 255, 0.12);
-  border-color: rgba(76, 242, 255, 0.5);
-  outline: none;
-}
-
-.contact-profile {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.contact-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: rgba(76, 242, 255, 0.05);
-  border: 1px solid rgba(76, 242, 255, 0.18);
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--neon-cyan);
-  text-decoration: none;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
-}
-
-.contact-chip:hover,
-.contact-chip:focus-visible {
-  background: rgba(76, 242, 255, 0.12);
-  border-color: rgba(76, 242, 255, 0.5);
-  text-decoration: none;
-  outline: none;
-  transform: translateY(-1px);
-}
-
-.contact-chip__arrow {
-  transition: transform 140ms ease;
-}
-
-.contact-chip:hover .contact-chip__arrow,
-.contact-chip:focus-visible .contact-chip__arrow {
-  transform: translateX(3px);
-}
-
-.contact-ctas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-top: 4px;
-}
-
-.contact-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  border-radius: 3px;
-  border: 1px solid;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    box-shadow 150ms ease,
-    transform 150ms ease;
-}
-
-.contact-cta--primary {
-  background: rgba(92, 255, 157, 0.12);
-  border-color: rgba(92, 255, 157, 0.45);
-  color: var(--terminal-green);
-  text-shadow: 0 0 6px rgba(92, 255, 157, 0.4);
-  box-shadow:
-    0 0 20px rgba(92, 255, 157, 0.12),
-    inset 0 1px 0 rgba(92, 255, 157, 0.2);
-}
-
-.contact-cta--primary:hover,
-.contact-cta--primary:focus-visible {
-  background: rgba(92, 255, 157, 0.22);
-  border-color: rgba(92, 255, 157, 0.7);
-  box-shadow:
-    0 0 28px rgba(92, 255, 157, 0.25),
-    inset 0 1px 0 rgba(92, 255, 157, 0.3);
-  text-decoration: none;
-  outline: none;
-  transform: translateY(-1px);
-}
-
-.contact-cta__arrow {
-  transition: transform 150ms ease;
-  margin-left: auto;
-}
-
-.contact-cta:hover .contact-cta__arrow,
-.contact-cta:focus-visible .contact-cta__arrow {
-  transform: translateX(3px);
-}
-
-@media (max-width: 720px) {
-  .contact-identity__name {
-    font-size: 18px;
-  }
-  .contact-pill__value {
-    font-size: 13px;
-  }
-  .contact-method {
-    grid-template-columns: 56px 1fr auto;
-    gap: 10px;
-    padding: 9px 12px;
-    font-size: 12px;
-  }
-  .contact-cta {
-    padding: 9px 14px;
-    font-size: 11px;
-  }
-}
-
-/* ---------- Project card (ProjectCard panel) ----------
- *
- * Each project's panel inherits the cluster accent (cyan / amber /
- * magenta) via --cluster-color. The same token threads through:
- *   - the identity-strip cluster badge,
- *   - the money-shot headline tint,
- *   - the stack chips' left edge,
- *   - the primary CTA glow,
- *   - the prev/next nav button hover state.
- *
- * Layout flow inside the panel body (already gapped by .panel__body):
- *   hero → identity → headline → blurb → stack → repo → ctas → nav
- *
- * The identity strip is intentionally NOT a boxed section — it reads
- * as a continuation of the hero (no border, no background), which
- * keeps the panel from devolving back into "stacked rectangles".
- */
-
-.panel--project--quant {
-  --cluster-color: var(--neon-cyan);
-}
-.panel--project--swe {
-  --cluster-color: var(--neon-amber);
-}
-.panel--project--analyst {
-  --cluster-color: var(--neon-magenta);
-}
-
-/* Project panel sizing. Default .panel is 80vh which clipped the
-   CTAs below the fold once the hero + 8 sections of content stacked
-   up — measured at 946 px content vs 674 px visible body. 92vh +
-   tighter body padding gives ~150 px of additional vertical room so
-   the primary "open live demo" button and prev/next nav both sit
-   above the fold on a 900 px desktop. Mobile keeps the default 95vw,
-   bumps to 92vh too. */
-.panel--project {
-  max-height: 92vh;
-}
-
-.panel--project .panel__body {
-  padding: 14px 22px 18px;
-  gap: 14px;
-}
-
-@media (max-width: 720px) {
-  .panel--project {
-    max-height: 92vh;
-  }
-  .panel--project .panel__body {
-    padding: 12px 14px 14px;
-    gap: 12px;
-  }
-}
-
-.project-card__identity {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 0;
-  margin: -4px 0 -4px;
-}
-
-.project-card__cluster {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--cluster-color) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--cluster-color) 45%, transparent);
-  color: var(--cluster-color);
-  text-shadow: 0 0 8px color-mix(in srgb, var(--cluster-color) 50%, transparent);
-}
-
-.project-card__name {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: 0.005em;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.project-card__slug {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
-  opacity: 0.8;
+  gap: 16px;
+  padding: 24px 28px 28px;
 }
 
 .project-card__headline {
-  font-family: var(--font-mono);
-  font-size: 15px;
-  line-height: 1.45;
-  font-weight: 500;
-  color: var(--cluster-color);
-  text-shadow: 0 0 10px color-mix(in srgb, var(--cluster-color) 30%, transparent);
-  letter-spacing: 0.015em;
-  margin: 0;
-  padding: 10px 14px;
-  /* Subtle cluster-tinted "marquee" treatment so the signature stat
-     reads as the panel's hero copy rather than a regular paragraph. */
-  background: color-mix(in srgb, var(--cluster-color) 5%, transparent);
-  border-left: 2px solid var(--cluster-color);
-  border-radius: 0 3px 3px 0;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 30%, transparent);
+  text-wrap: balance;
+}
+
+.project-card__headline-rule,
+.project-card__meta-rule,
+.contact__rule {
+  margin: 0 0.5em;
+  color: rgba(255, 255, 255, 0.28);
+  text-shadow: none;
 }
 
 .project-card__blurb {
-  font-family: var(--font-display);
-  font-size: 14px;
+  max-width: 64ch;
+  font-size: 15px;
   line-height: 1.6;
-  color: rgba(220, 226, 240, 0.85);
-  margin: 0;
+  color: var(--panel-text);
+}
+
+.project-card__meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--panel-muted);
 }
 
 .project-card__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px 18px;
+  list-style: none;
 }
 
 .project-card__chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
-  padding: 4px 10px 4px 12px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--cluster-color) 6%, rgba(8, 10, 18, 0.4));
-  border: 1px solid color-mix(in srgb, var(--cluster-color) 22%, transparent);
-  border-left: 2px solid color-mix(in srgb, var(--cluster-color) 55%, transparent);
-  color: rgba(220, 226, 240, 0.92);
+  font-size: 12px;
+  color: var(--panel-text);
 }
 
 .project-card__chip-icon {
-  width: 11px;
-  height: 11px;
   flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+}
+
+.project-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 22px;
+  margin-top: 4px;
+}
+
+.project-card__cta,
+.contact-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.project-card__cta--primary,
+.contact-cta--primary {
+  min-height: 44px;
+  padding: 0 18px;
+  font-weight: 600;
+  color: var(--bg-deep);
+  background: var(--accent);
+  border-radius: 2px;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 30%, transparent);
+  transition:
+    box-shadow 150ms ease,
+    filter 150ms ease;
+}
+
+.project-card__cta--primary:hover,
+.contact-cta--primary:hover {
+  text-decoration: none;
+  filter: brightness(1.1);
+  box-shadow: 0 0 32px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.project-card__cta--secondary,
+.contact__link {
+  min-height: 44px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 44px;
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  text-underline-offset: 5px;
+}
+
+.project-card__cta--secondary:hover,
+.contact__link:hover {
+  color: var(--accent);
 }
 
 .project-card__repo {
   display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 16px;
+  margin-left: auto;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgba(220, 226, 240, 0.9);
-}
-
-.project-card__repo-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  letter-spacing: 0.02em;
+  color: var(--panel-muted);
 }
 
 .project-card__repo-stat > span[aria-hidden] {
-  color: var(--cluster-color);
-  text-shadow: 0 0 6px color-mix(in srgb, var(--cluster-color) 50%, transparent);
+  color: var(--accent);
 }
 
-.project-card__repo-divider {
-  display: inline-block;
-  width: 1px;
-  height: 11px;
-  background: rgba(255, 255, 255, 0.18);
-  margin: 0 4px;
-}
+/* ---------- Console ---------- */
 
-/* CTA row. Primary (live demo) gets the cluster-colored fill so it
-   pops as the main call. Secondary (source) is an outlined sibling. */
-.project-card__ctas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-top: 4px;
-}
-
-.project-card__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  border-radius: 3px;
-  border: 1px solid;
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    box-shadow 150ms ease,
-    transform 150ms ease;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.project-card__cta--primary {
-  background: color-mix(in srgb, var(--cluster-color) 18%, transparent);
-  border-color: color-mix(in srgb, var(--cluster-color) 55%, transparent);
-  color: var(--cluster-color);
-  text-shadow: 0 0 6px color-mix(in srgb, var(--cluster-color) 40%, transparent);
-  box-shadow:
-    0 0 18px color-mix(in srgb, var(--cluster-color) 12%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--cluster-color) 20%, transparent);
-}
-
-.project-card__cta--primary:hover,
-.project-card__cta--primary:focus-visible {
-  background: color-mix(in srgb, var(--cluster-color) 28%, transparent);
-  border-color: color-mix(in srgb, var(--cluster-color) 75%, transparent);
-  box-shadow:
-    0 0 28px color-mix(in srgb, var(--cluster-color) 24%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--cluster-color) 30%, transparent);
-  text-decoration: none;
-  outline: none;
-  transform: translateY(-1px);
-}
-
-.project-card__cta--secondary {
-  background: rgba(76, 242, 255, 0.04);
-  border-color: rgba(76, 242, 255, 0.22);
-  color: var(--neon-cyan);
-}
-
-.project-card__cta--secondary:hover,
-.project-card__cta--secondary:focus-visible {
-  background: rgba(76, 242, 255, 0.1);
-  border-color: rgba(76, 242, 255, 0.5);
-  text-decoration: none;
-  outline: none;
-  transform: translateY(-1px);
-}
-
-.project-card__cta-arrow {
-  transition: transform 150ms ease;
-}
-
-.project-card__cta:hover .project-card__cta-arrow,
-.project-card__cta:focus-visible .project-card__cta-arrow {
-  transform: translateX(3px);
-}
-
-/* Prev/next rack navigation. Two buttons (or one, at the wrap
-   boundaries) that page through AISLE_ORDER. Each adopts the cluster
-   colour of the project it would navigate *to*, so the hover preview
-   tells the user which cluster they're stepping into. */
-.project-card__nav {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 4px;
-  padding-top: 14px;
-  border-top: 1px dashed rgba(76, 242, 255, 0.14);
-}
-
-.project-card__nav-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 3px;
-  color: var(--text-primary);
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease;
-}
-
-.project-card__nav-btn--quant {
-  --cluster-color: var(--neon-cyan);
-}
-.project-card__nav-btn--swe {
-  --cluster-color: var(--neon-amber);
-}
-.project-card__nav-btn--analyst {
-  --cluster-color: var(--neon-magenta);
-}
-
-.project-card__nav-btn:hover,
-.project-card__nav-btn:focus-visible {
-  background: color-mix(in srgb, var(--cluster-color) 6%, transparent);
-  border-color: color-mix(in srgb, var(--cluster-color) 28%, transparent);
-  outline: none;
-}
-
-.project-card__nav-btn--prev {
-  justify-content: flex-start;
-}
-
-.project-card__nav-btn--next {
-  justify-content: flex-end;
-  text-align: right;
-}
-
-.project-card__nav-dir {
-  font-family: var(--font-mono);
-  font-size: 16px;
-  color: var(--cluster-color);
-  text-shadow: 0 0 6px color-mix(in srgb, var(--cluster-color) 45%, transparent);
-  transition: transform 140ms ease;
-}
-
-.project-card__nav-btn:hover .project-card__nav-dir,
-.project-card__nav-btn:focus-visible .project-card__nav-dir {
-  transform: translateX(0);
-}
-
-.project-card__nav-btn--prev:hover .project-card__nav-dir,
-.project-card__nav-btn--prev:focus-visible .project-card__nav-dir {
-  transform: translateX(-3px);
-}
-
-.project-card__nav-btn--next:hover .project-card__nav-dir,
-.project-card__nav-btn--next:focus-visible .project-card__nav-dir {
-  transform: translateX(3px);
-}
-
-.project-card__nav-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.project-card__nav-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.project-card__nav-name {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-primary);
-  letter-spacing: 0.02em;
-}
-
-.project-card__nav-btn:hover .project-card__nav-name,
-.project-card__nav-btn:focus-visible .project-card__nav-name {
-  color: var(--cluster-color);
-}
-
-@media (max-width: 720px) {
-  .project-card__name {
-    font-size: 18px;
-  }
-  .project-card__headline {
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-  .project-card__blurb {
-    font-size: 13px;
-  }
-  .project-card__cta {
-    padding: 9px 14px;
-    font-size: 11px;
-  }
-  .project-card__nav {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ---------- Control console (TradingTerminal panel) ----------
- *
- * Two stacked sections inside the standard panel body:
- *
- *   1. Dashboard grid: 4 widgets (build, telemetry, audio, repo
- *      activity). auto-fit wrap so narrow viewports stack to one
- *      column without explicit breakpoints. The repo-activity tile
- *      spans the full row on wide layouts via --span. Each widget
- *      header has a status dot (.console-widget__dot--{ok,live,muted})
- *      that pulses or pins depending on what the widget reports.
- *
- *   2. Console: scrolling log + single-line prompt. Entries carry a
- *      one-char prefix glyph (', '✓', '✗', '·') so a scan of the
- *      gutter tells you what each row is without reading the text.
- *      The prompt prefix is split into user / host / cwd spans so
- *      each can be coloured like a real shell PS1, and a CSS-only
- *      blinking caret pulses at the end of the input row.
- */
-
-/* Wider + taller variant for the control_console panel. The default
-   .panel sizing (720 × 80vh) was designed around a project card with
-   a single hero image + text — the console has a 4-tile dashboard
-   *plus* a 6-row repo list *plus* a multi-line log, and the log
-   tended to be the part that got squeezed off the bottom of the
-   viewport. Bump width to 1080 (still capped at 88vw on mid-width
-   desktops) and max-height to 88vh so all three sections fit on a
-   typical 900 px–1080 px desktop without inner scroll. Mobile keeps
-   the default 95vw / 85vh — only one widget per row anyway. */
 .panel--console {
-  width: min(1080px, 88vw);
-  max-height: 92vh;
+  width: min(1080px, calc(100vw - 48px));
 }
 
-.panel--console .panel__body {
-  gap: 14px;
-  padding: 14px 22px 18px;
-}
-
-@media (max-width: 720px) {
-  .panel--console {
-    width: 95vw;
-    max-height: 92vh;
-  }
-  .panel--console .panel__body {
-    padding: 12px 14px 14px;
-    gap: 12px;
-  }
-}
-
-/* Per-cluster accent tokens. Reused by the aisle map nodes, the
-   compact pills, and the repo-row left-stripes so a single cluster
-   reads with the same colour everywhere on the panel. */
-.cluster-bar--quant,
-.repo-row--quant,
-.console-pill__sub-link--quant {
-  --cluster-color: var(--neon-cyan);
-}
-.cluster-bar--swe,
-.repo-row--swe,
-.console-pill__sub-link--swe {
-  --cluster-color: var(--neon-amber);
-}
-.cluster-bar--analyst,
-.repo-row--analyst,
-.console-pill__sub-link--analyst {
-  --cluster-color: var(--neon-magenta);
-}
-
-/* Slow vertical scan-line that sweeps the entire panel whenever the
-   console variant is mounted. Lives as a sibling of .panel__body
-   inside .panel__inner (which is position: relative + overflow:
-   hidden), so it floats over scrolling content without moving with
-   the scroll. Pointer-events disabled to never intercept clicks. */
-.panel__overlay-scan {
-  position: absolute;
-  inset: 0;
-  top: 38px; /* clear the header chrome */
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 2;
-}
-
-.panel__overlay-scan::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 120%;
-  top: -10%;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    transparent 46%,
-    rgba(76, 242, 255, 0.08) 50%,
-    transparent 54%,
-    transparent 100%
-  );
-  animation: console-scan-sweep 7s linear infinite;
-}
-
-@keyframes console-scan-sweep {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(100%);
-  }
-}
-
-/* One-shot widget flash. Applied to the aisle map or a pill when a
-   typed command modifies that widget, so the prompt and dashboard
-   feel visually coupled — type `scroll 0.5` and the aisle map lights
-   up; type `mute` and the audio pill lights up. The animation runs
-   for ~600 ms and removes the class via JS timeout. */
-@keyframes console-widget-flash {
-  0% {
-    border-color: rgba(76, 242, 255, 0.6);
-    box-shadow:
-      0 0 0 1px rgba(76, 242, 255, 0.4),
-      0 0 28px rgba(76, 242, 255, 0.35),
-      inset 0 1px 0 rgba(76, 242, 255, 0.4);
-  }
-  100% {
-    border-color: rgba(76, 242, 255, 0.14);
-    box-shadow: inset 0 1px 0 rgba(76, 242, 255, 0.08);
-  }
-}
-
-.console-pill--flash {
-  animation: console-widget-flash 600ms ease-out;
-}
-
-/* Compact pills row (build / telemetry / audio / cluster_load) -- */
-
-.console-pills {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 10px;
-}
-
-.console-pill {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 14px;
-  background: linear-gradient(135deg, rgba(76, 242, 255, 0.05) 0%, rgba(76, 242, 255, 0.01) 100%);
-  border: 1px solid rgba(76, 242, 255, 0.14);
-  /* Cut the top-left corner so the row stops reading as another row
-     of plain rectangles. Tiny diagonal slice — visible without
-     making the shape feel novelty. */
-  clip-path: polygon(
-    14px 0,
-    100% 0,
-    100% calc(100% - 14px),
-    calc(100% - 14px) 100%,
-    0 100%,
-    0 14px
-  );
-  border-radius: 0;
-  box-shadow: inset 0 1px 0 rgba(76, 242, 255, 0.08);
-}
-
-.console-pill__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-}
-
-.console-pill__title {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.console-pill__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--terminal-green);
-  box-shadow: 0 0 6px var(--terminal-green);
-  flex-shrink: 0;
-}
-
-.console-pill__dot--muted {
-  background: var(--text-muted);
-  box-shadow: none;
-}
-
-.console-pill__value {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--neon-cyan);
-  text-shadow: 0 0 8px rgba(76, 242, 255, 0.25);
-  letter-spacing: 0.02em;
-}
-
-.console-pill__sub {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-/* Small unit suffix (e.g. "%") inside the pill value. Lower contrast
-   than the main number so the digits stay the focal read. */
-.console-pill__unit {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-left: 2px;
-  font-weight: 400;
-  text-shadow: none;
-}
-
-/* Telemetry-specific progress bar under the % value. Mirrors the
-   width of the pill, fills cluster-cyan as scroll advances. */
-.console-pill__bar {
-  height: 3px;
-  background: rgba(76, 242, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-  margin: 4px 0 2px;
-}
-
-.console-pill__bar-fill {
-  height: 100%;
-  background: linear-gradient(to right, rgba(76, 242, 255, 0.6), var(--neon-cyan));
-  box-shadow: 0 0 6px rgba(76, 242, 255, 0.5);
-  transition: width 220ms ease-out;
-  border-radius: 2px;
-}
-
-/* Clickable rack readout in the telemetry pill. Reset native button
-   chrome, then tint the name in the cluster colour. */
-.console-pill__sub-link {
-  background: transparent;
-  border: none;
-  padding: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  text-align: left;
-  color: var(--cluster-color, var(--text-primary));
-  text-shadow: 0 0 6px color-mix(in srgb, var(--cluster-color, var(--neon-cyan)) 30%, transparent);
-  transition: filter 150ms ease;
-}
-
-.console-pill__sub-link:hover,
-.console-pill__sub-link:focus-visible {
-  outline: none;
-  filter: brightness(1.2);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.console-pill__sub-cluster {
-  color: var(--text-muted);
-  text-shadow: none;
-}
-
-.console-pill__meta {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-
-.console-pill__action {
-  margin-left: auto;
-  padding: 3px 9px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: lowercase;
-  background: rgba(76, 242, 255, 0.06);
-  border: 1px solid rgba(76, 242, 255, 0.25);
-  color: var(--neon-cyan);
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    background 150ms ease,
-    border-color 150ms ease;
-}
-
-.console-pill__action:hover,
-.console-pill__action:focus-visible {
-  background: rgba(76, 242, 255, 0.14);
-  border-color: rgba(76, 242, 255, 0.5);
-  outline: none;
-}
-
-/* Audio track switcher — replaces the static credit line in the audio
-   pill. The ‹ › buttons cycle through TRACKS (see useAisleAudio.ts);
-   the middle stack shows artist + title for the current cut. */
-.console-pill__track {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.console-pill__track-step {
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
+.panel--console .panel__header .aisle {
+  flex: 1;
   justify-content: center;
-  padding: 0;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1;
-  color: rgba(76, 242, 255, 0.7);
-  background: rgba(76, 242, 255, 0.05);
-  border: 1px solid rgba(76, 242, 255, 0.2);
-  border-radius: 4px;
-  cursor: pointer;
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease;
 }
 
-.console-pill__track-step:hover,
-.console-pill__track-step:focus-visible {
-  background: rgba(76, 242, 255, 0.14);
-  border-color: rgba(76, 242, 255, 0.5);
-  color: var(--neon-cyan);
-  outline: none;
+.console {
+  display: grid;
+  grid-template-areas:
+    'term pushes'
+    'status status';
+  grid-template-columns: minmax(0, 1fr) 260px;
+  min-height: 0;
 }
 
-.console-pill__track-info {
+/* The terminal is the desk monitor's screen: the deepest surface on the
+   panel, with the prompt attached to the log. */
+.console__terminal {
   display: flex;
+  grid-area: term;
   flex-direction: column;
-  flex: 1 1 auto;
   min-width: 0;
-  font-family: var(--font-mono);
-  letter-spacing: 0.04em;
-}
-
-.console-pill__track-artist {
-  font-size: 11px;
-  color: var(--text-muted);
-  opacity: 0.7;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.console-pill__track-title {
-  font-size: 10px;
-  color: var(--neon-cyan);
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  text-shadow: 0 0 6px rgba(76, 242, 255, 0.25);
-}
-
-/* Cluster-load mini bars ---------------------------------------- */
-
-.cluster-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 2px;
-}
-
-.cluster-bar {
-  display: grid;
-  grid-template-columns: 50px 1fr 22px;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--cluster-color, var(--text-muted));
-}
-
-.cluster-bar__label {
-  letter-spacing: 0.08em;
-}
-
-.cluster-bar__track {
-  height: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.cluster-bar__fill {
-  display: block;
-  height: 100%;
-  background: linear-gradient(to right, var(--cluster-color), var(--cluster-color));
-  box-shadow: 0 0 6px var(--cluster-color);
-  border-radius: 2px;
-}
-
-.cluster-bar__count {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--cluster-color);
-  text-shadow: 0 0 6px var(--cluster-color);
-}
-
-/* Repo activity list (no longer inside a "widget"; full-width
-   row-by-row layout with a cluster-coloured left stripe) ---- */
-
-.panel__section-meta {
-  margin-left: 10px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  text-transform: none;
-  opacity: 0.65;
-}
-
-.repo-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin: 0;
-  padding: 0;
-}
-
-.repo-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: 70px 1fr auto auto 14px;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 9px 14px 9px 22px;
-  background: rgba(8, 10, 18, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-primary);
-  cursor: pointer;
-  text-align: left;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
-}
-
-.repo-row__stripe {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 3px;
-  background: var(--cluster-color);
-  box-shadow: 0 0 8px var(--cluster-color);
-}
-
-.repo-row:hover,
-.repo-row:focus-visible {
-  background: rgba(76, 242, 255, 0.06);
-  border-color: rgba(76, 242, 255, 0.22);
-  outline: none;
-  transform: translateX(2px);
-}
-
-.repo-row__cluster {
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--cluster-color);
-  text-shadow: 0 0 6px var(--cluster-color);
-}
-
-.repo-row__name {
-  font-size: 13px;
-  color: var(--text-primary);
-}
-
-.repo-row:hover .repo-row__name,
-.repo-row:focus-visible .repo-row__name {
-  color: var(--neon-cyan);
-}
-
-.repo-row__lang {
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
-}
-
-.repo-row__time {
-  font-size: 10px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.repo-row__arrow {
-  font-size: 16px;
-  color: var(--text-muted);
-  opacity: 0.5;
-  transition:
-    transform 140ms ease,
-    opacity 140ms ease,
-    color 140ms ease;
-}
-
-.repo-row:hover .repo-row__arrow,
-.repo-row:focus-visible .repo-row__arrow {
-  opacity: 1;
-  color: var(--neon-cyan);
-  transform: translateX(3px);
-}
-
-/* Console log + prompt ----------------------------------------- */
-
-.console-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 18px 24px 0;
+  background: var(--panel-screen);
 }
 
 .console-log {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.55;
-  background:
-    /* Two stacked layers: a near-black base + a faint scan-line
-       gradient that gives the log surface a CRT readout texture. */
-    repeating-linear-gradient(
-      to bottom,
-      rgba(76, 242, 255, 0.03) 0px,
-      rgba(76, 242, 255, 0.03) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(76, 242, 255, 0.14);
-  border-radius: 3px;
-  padding: 10px 12px;
-  height: 168px;
+  height: 260px;
   overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
   color: var(--text-primary);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(76, 242, 255, 0.25) transparent;
-}
-
-.console-log::-webkit-scrollbar {
-  width: 6px;
-}
-
-.console-log::-webkit-scrollbar-thumb {
-  background: rgba(76, 242, 255, 0.25);
-  border-radius: 3px;
 }
 
 .console-log__entry {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .console-log__prefix {
   flex-shrink: 0;
-  width: 8px;
+  width: 10px;
   text-align: center;
   user-select: none;
   opacity: 0.75;
@@ -1833,21 +477,16 @@
 }
 
 .console-log__entry--input .console-log__prefix {
-  color: var(--neon-cyan);
+  color: var(--accent);
   opacity: 1;
 }
 
 .console-log__entry--output {
-  color: rgba(220, 226, 240, 0.88);
+  color: var(--panel-text);
 }
 
 .console-log__entry--ok {
   color: var(--terminal-green);
-}
-
-.console-log__entry--ok .console-log__prefix {
-  color: var(--terminal-green);
-  text-shadow: 0 0 6px rgba(92, 255, 157, 0.4);
 }
 
 .console-log__entry--error {
@@ -1856,19 +495,16 @@
 
 .console-log__entry--error .console-log__prefix {
   color: #ff7a66;
-  text-shadow: 0 0 6px rgba(255, 122, 102, 0.4);
 }
 
 .console-log__entry--system {
-  color: var(--text-muted);
-  font-style: italic;
+  color: var(--panel-muted);
 }
 
 .console-log__entry--banner {
-  color: var(--neon-cyan);
-  font-style: normal;
+  color: var(--accent);
   letter-spacing: 0.05em;
-  text-shadow: 0 0 10px rgba(76, 242, 255, 0.3);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .console-log__entry--banner .console-log__text {
@@ -1878,118 +514,461 @@
 .console-input-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(76, 242, 255, 0.03) 0px,
-      rgba(76, 242, 255, 0.03) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(76, 242, 255, 0.18);
-  border-radius: 3px;
-  padding: 8px 12px;
-  transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease;
+  gap: 10px;
+  padding: 12px 0 16px;
+  box-shadow: inset 0 -2px 0 transparent;
+  transition: box-shadow 150ms ease;
 }
 
 .console-input-row:focus-within {
-  border-color: rgba(76, 242, 255, 0.6);
-  box-shadow: 0 0 14px rgba(76, 242, 255, 0.2);
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-/* Shell-style PS1: each span gets its own colour so the prompt reads
-   as a real terminal prefix instead of a single cyan string. */
 .console-prompt-prefix {
+  flex-shrink: 0;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   white-space: nowrap;
   user-select: none;
-  flex-shrink: 0;
 }
 
-.console-prompt-prefix__user {
-  color: var(--terminal-green);
-  font-weight: 500;
-}
-.console-prompt-prefix__at {
-  color: var(--text-muted);
-}
+.console-prompt-prefix__user,
 .console-prompt-prefix__host {
   color: var(--terminal-green);
 }
+
+.console-prompt-prefix__at,
 .console-prompt-prefix__sep {
-  color: var(--text-muted);
+  color: var(--panel-muted);
 }
-.console-prompt-prefix__cwd {
-  color: var(--neon-cyan);
-}
+
+.console-prompt-prefix__cwd,
 .console-prompt-prefix__sigil {
-  color: var(--neon-cyan);
+  color: var(--accent);
+}
+
+.console-prompt-prefix__sigil {
   margin-left: 4px;
 }
 
 .console-input {
   flex: 1;
   min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-primary);
   background: transparent;
   border: none;
+  caret-color: var(--accent);
+}
+
+/* The row's underline carries focus for the prompt. */
+.console-input:focus-visible {
   outline: none;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-primary);
-  caret-color: var(--neon-cyan);
 }
 
 .console-input::placeholder {
-  color: var(--text-muted);
-  opacity: 0.5;
-  font-style: italic;
+  color: var(--panel-muted);
+  opacity: 0.8;
 }
 
-/* Blinking block caret sits at the end of the input row. Pure visual
-   affordance — the real caret is the <input>'s native one (which
-   collapses to a thin line). This block flickers next to it as a
-   "console is live" cue. */
-.console-caret {
-  width: 8px;
-  height: 14px;
-  background: var(--neon-cyan);
-  box-shadow: 0 0 6px rgba(76, 242, 255, 0.5);
-  border-radius: 1px;
-  opacity: 0;
-  flex-shrink: 0;
+.console__pushes {
+  grid-area: pushes;
+  min-width: 0;
+  padding: 18px 20px;
 }
 
-.console-input-row:focus-within .console-caret {
-  animation: console-caret-blink 1s steps(2, end) infinite;
+.console__pushes-title {
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
-@keyframes console-caret-blink {
-  0%,
-  50% {
-    opacity: 0.9;
+.repo-list {
+  list-style: none;
+}
+
+.repo-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  width: calc(100% + 20px);
+  margin: 0 -10px;
+  padding: 8px 10px;
+  text-align: left;
+  border-radius: 2px;
+  transition: background 140ms ease;
+}
+
+.repo-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.repo-row__name {
+  overflow: hidden;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.repo-row:hover .repo-row__name {
+  color: var(--accent);
+}
+
+.repo-row__time,
+.repo-row__lang {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--panel-muted);
+}
+
+.repo-row__time {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.repo-row__lang {
+  grid-column: 1 / -1;
+}
+
+/* tmux-style status line along the bottom of the console. */
+.console-status {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: status;
+  align-items: center;
+  gap: 6px 28px;
+  padding: 10px 24px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--panel-text);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.console-status__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  white-space: nowrap;
+  border-radius: 2px;
+}
+
+.console-status__key,
+.console-status__muted {
+  color: var(--panel-muted);
+}
+
+.console-status__item--audio {
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.console-status__item--flash {
+  animation: console-status-flash 600ms ease-out;
+}
+
+@keyframes console-status-flash {
+  0% {
+    color: var(--accent);
+    text-shadow: 0 0 12px var(--accent);
   }
-  51%,
   100% {
-    opacity: 0;
+    text-shadow: none;
   }
 }
+
+.console-status__bar {
+  display: inline-block;
+  width: 64px;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 2px;
+}
+
+.console-status__bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 220ms ease-out;
+}
+
+.console-status__link,
+.console-status__action {
+  min-height: 24px;
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.console-status__step {
+  width: 24px;
+  height: 24px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--panel-muted);
+  border-radius: 2px;
+}
+
+.console-status__step:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.console-status__track {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 240px;
+  overflow: hidden;
+  color: var(--panel-muted);
+  text-overflow: ellipsis;
+}
+
+/* ---------- Contact ---------- */
+
+.panel--contact {
+  width: min(560px, calc(100vw - 48px));
+}
+
+.panel--contact .panel__body {
+  gap: 18px;
+  padding: 26px 28px 28px;
+}
+
+.contact__ask {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.contact__who {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--panel-muted);
+}
+
+.contact-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  list-style: none;
+}
+
+.contact-method {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+
+.contact-method__key {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--panel-muted);
+}
+
+.contact-method__value {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.contact-method__value:hover {
+  color: var(--accent);
+}
+
+.contact-method__copy {
+  min-width: 44px;
+  min-height: 32px;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: 2px;
+}
+
+.contact-method__copy:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  margin-top: 6px;
+}
+
+/* ---------- Mobile: bottom sheet ----------
+ * The sheet rises from the bottom edge, so the top of the screen keeps
+ * showing the rack the camera framed and the sheet sits over the HUD
+ * instead of colliding with it. */
 
 @media (max-width: 720px) {
-  /* Tighter log on phones so the dashboard above stays visible
-     without forcing the user to scroll past it to reach the prompt. */
+  .panel,
+  .panel--console,
+  .panel--contact {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 84dvh;
+    transform: translateY(100%);
+    transition:
+      opacity 200ms ease-in,
+      transform 200ms ease-in;
+  }
+
+  .panel--open,
+  .panel--open.panel--console,
+  .panel--open.panel--contact {
+    transform: translateY(0);
+    transition:
+      opacity 160ms ease-out 280ms,
+      transform 340ms cubic-bezier(0.2, 0.8, 0.2, 1) 280ms;
+  }
+
+  .panel__inner,
+  .panel--open .panel__inner {
+    padding-bottom: env(safe-area-inset-bottom);
+    border-width: 1px 0 0;
+    clip-path: none;
+  }
+
+  .panel__header {
+    gap: 10px;
+    padding: 0 6px 0 16px;
+  }
+
+  .project-card__nav {
+    gap: 4px;
+  }
+
+  .project-card__nav-btn {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .project-card__nav-name {
+    display: none;
+  }
+
+  .project-card__text {
+    gap: 14px;
+    padding: 20px 18px 24px;
+  }
+
+  .project-card__headline {
+    font-size: 21px;
+  }
+
+  .project-card__repo {
+    margin-left: 0;
+  }
+
+  .console {
+    grid-template-areas:
+      'term'
+      'status'
+      'pushes';
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .console__terminal {
+    padding: 14px 16px 0;
+  }
+
   .console-log {
-    height: 132px;
-    font-size: 11px;
+    height: 26dvh;
+    font-size: 12px;
   }
-  .console-widget__value {
-    font-size: 16px;
+
+  .console-status {
+    gap: 4px 20px;
+    padding: 8px 16px;
   }
-  .console-prompt-prefix {
-    font-size: 10px;
+
+  .console-status__item--audio {
+    margin-left: 0;
+  }
+
+  .console__pushes {
+    padding: 16px;
+  }
+
+  .panel--contact .panel__body {
+    padding: 22px 18px 24px;
+  }
+
+  .contact__ask {
+    font-size: 22px;
+  }
+
+  .contact-method__value {
+    font-size: 14px;
+  }
+}
+
+/* At the narrowest phones the decorative strip gives way so the prev/next
+   buttons keep their full touch targets. */
+@media (max-width: 380px) {
+  .project-card__nav .aisle {
+    display: none;
+  }
+}
+
+/* ---------- Reduced motion ----------
+ * Opacity only. The panel is placed at its final position and nothing
+ * moves, clips or powers on. */
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .panel--open {
+    transform: translate(-50%, -50%);
+    transition: opacity 120ms linear;
+  }
+
+  .panel__inner,
+  .panel--open .panel__inner {
+    clip-path: none;
+    transition: none;
+  }
+
+  .aisle__slat,
+  .panel--open .aisle__slat {
+    transform: none;
+    transition: none;
+  }
+
+  .project-card__media-skeleton {
+    animation: none;
+  }
+
+  .console-status__item--flash {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 720px) {
+  .panel,
+  .panel--open,
+  .panel--console,
+  .panel--contact {
+    transform: none;
   }
 }

@@ -24,8 +24,9 @@ describe('ProjectCard stack chips', () => {
       <ProjectCard project={null} onClose={() => {}} onNavigate={() => {}} />,
     );
     expect(html).toContain('aria-hidden="true"');
-    expect(html).toContain('// node');
+    expect(html).toContain('>Project</h2>');
     expect(html).not.toContain('project-card__blurb');
+    expect(html).not.toContain('Project navigation');
   });
 
   it('renders media, stats, links, and navigation for a complete project', () => {
@@ -44,6 +45,8 @@ describe('ProjectCard stack chips', () => {
     expect(html).toContain('open live demo');
     expect(html).toContain('view source');
     expect(html).toContain('Project navigation');
+    expect(html).toContain(`>${project.name}</h2>`);
+    expect(html).toContain(`--accent:${project.color}`);
     expect(navigated).toHaveLength(0);
   });
 
