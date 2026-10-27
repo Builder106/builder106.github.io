@@ -42,6 +42,11 @@ export default tseslint.config(
   react.configs.flat.recommended,
   react.configs.flat['jsx-runtime'],
   {
+    settings: {
+      react: { version: 'detect' },
+    },
+  },
+  {
     plugins: {
       'react-hooks': reactHooks,
     },
@@ -66,9 +71,6 @@ export default tseslint.config(
         ...globals.node,
         ...globals.es2024,
       },
-    },
-    settings: {
-      react: { version: '19.2' },
     },
     rules: {
       // Handled at compile time by TypeScript
