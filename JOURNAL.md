@@ -5,6 +5,14 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-27: Limit deploy token scopes #ci #security
+
+The Pages build can update the ledger, and the deploy job can publish the site. Their write permissions now stay on those jobs; Lighthouse keeps read access.
+
+## 2026-10-27: Make accessibility failures block CI #ci #decision
+
+CI now pins Lighthouse to `v12.6.2`. The axe step now fails when the CLI reports violations. This keeps accessibility failures visible in the job result.
+
 ## 2026-10-27: Retire the activity monitor #decision
 
 Disabled the four-hour monitor after its digests repeatedly tagged people from upstream comments. Removed the workflow and polling code so it cannot post again if the workflow is re-enabled by accident. Kept the last saved state as an archive. The Ledger's separate data refresh and page deployment continue through `deploy.yml`.

@@ -113,14 +113,14 @@ jobs:
       - name: Open-source license compliance scan
         run: npx license-checker --summary --production
       - name: Lighthouse CI & Web Vitals Audit
-        uses: treosh/lighthouse-ci-action@v12
+        uses: treosh/lighthouse-ci-action@v12.6.2
         with:
           configPath: ./.lighthouserc.ci.json
           uploadArtifacts: true
           temporaryPublicStorage: true
           artifactName: lighthouse-ci-results
       - name: Accessibility & DOM validation check
-        run: npx axe-core-cli dist/index.html || echo "axe-core automated check passed"
+        run: npx axe-core-cli dist/index.html
 
   e2e:
     name: Multi-viewport smoke tests

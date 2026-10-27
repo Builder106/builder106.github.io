@@ -12,9 +12,7 @@ on:
     types: [refresh-tracker]
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: pages
@@ -22,6 +20,8 @@ concurrency:
 
 jobs:
   build:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -60,6 +60,9 @@ jobs:
 
   deploy:
     needs: build
+    permissions:
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -107,7 +110,7 @@ jobs:
     name: lighthouse (${{ matrix.profile }})
     steps:
       - uses: actions/checkout@v7
-      - uses: treosh/lighthouse-ci-action@v12
+      - uses: treosh/lighthouse-ci-action@v12.6.2
         with:
           urls: |
             ${{ needs.deploy.outputs.url }}
