@@ -56,21 +56,11 @@ and deploys.
 python3 oss-contribution-tracker/refresh.py     # needs an authenticated gh + curl, run from the portfolio repo root
 ```
 
-## Monitoring for new activity
+## Activity monitor
 
-`monitor.py`checks every tracked issue/PR in`data.json` -- the five target
-repos plus the "Other Contributions" list -- for new comments or a state
-change since the last check, and posts a digest to a rolling GitHub issue on
-`builder106.github.io` when there's something to report (silent otherwise).
-It runs every 4 hours via the portfolio's `.github/workflows/monitor.yml`,
-using the same default Actions token `refresh.py` already relies on, which is
-why it can reach repos outside this one without any extra setup: unlike a
-scoped session, a public repo's issues/comments are just a normal
-authenticated API read.
-
-```sh
-python3 oss-contribution-tracker/monitor.py     # needs an authenticated gh, run from the portfolio repo root
-```
+The activity monitor was retired on 2026-10-27. Its last saved state remains
+in `monitor_state.json` for reference. Ledger data refresh and page deployment
+continue through `deploy.yml`.
 
 ## Logging a non-PR touch
 
@@ -90,11 +80,8 @@ The next `refresh.py` run rolls it into the ○ counters.
 | `template.html` | Page skeleton with injection markers |
 | `style.css` | Inlined into the generated page |
 | `CONTRIBUTIONS_LOG.md` | Source of the self-logged ○ rows |
-| `data.json` | Last snapshot; also what`monitor.py` reads to know what to track |
-| `monitor.py` | Checks tracked issues/PRs for new comments/state, writes`monitor_state.json`, posts a digest issue on new activity |
-| `monitor_state.json` | Last-seen comment count/state per tracked item, for diffing over time |
+| `data.json` | Last snapshot used to render the ledger page |
+| `monitor_state.json` | Archived last-seen activity state from the retired monitor |
 
-The two GitHub Actions workflows that drive this (refresh-on-push/schedule
-and the 4-hourly monitor) live at the portfolio repo root:
-[`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) and
-[`.github/workflows/monitor.yml`](../.github/workflows/monitor.yml).
+The GitHub Actions workflow for refresh and deployment lives at the portfolio
+repo root: [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml).
