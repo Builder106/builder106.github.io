@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-27: Stop digest comments from mentioning contributors #incident
+
+The activity monitor copied upstream comment excerpts into its public issue with active mentions. Repeated digests notified contributors and subscribed them again after they unsubscribed. The posting function now replaces ASCII at signs with fullwidth at signs before creating an issue or adding a comment. Usernames remain readable. Regression tests cover both posting paths and run before the scheduled monitor can post. Existing upstream comments and monitoring state remain intact.
+
 ## 2026-10-26: Keep the public ledger focused on accounts #decision
 
 Removed the supplementary record, supplementary backlog, and other contributions sections from the site, including their posting instructions and unused rendering styles. The page now ends after the repository accounts. Existing contribution data and monitoring remain available.

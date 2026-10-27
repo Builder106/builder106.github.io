@@ -22,6 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Verify digest mention protection
+        run: python3 -m unittest discover -s oss-contribution-tracker -p test_monitor.py
+
       - name: Check tracked issues/PRs for new activity
         run: python3 oss-contribution-tracker/monitor.py
 

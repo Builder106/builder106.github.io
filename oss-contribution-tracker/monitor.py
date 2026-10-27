@@ -148,6 +148,8 @@ def find_open_digest_issue() -> int | None:
 
 
 def post_digest(body: str) -> None:
+    # Copied mentions must not subscribe contributors to the digest issue.
+    body = body.replace("@", "＠")
     num = find_open_digest_issue()
     if num is None:
         run(["gh", "issue", "create", "--repo", REPO, "--title", DIGEST_TITLE, "--body", body])
