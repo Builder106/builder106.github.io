@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-27: Retire the activity monitor #decision
+
+Disabled the four-hour monitor after its digests repeatedly tagged people from upstream comments. Removed the workflow and polling code so it cannot post again if the workflow is re-enabled by accident. Kept the last saved state as an archive. The Ledger's separate data refresh and page deployment continue through `deploy.yml`.
+
 ## 2026-10-27: Stop digest comments from mentioning contributors #incident
 
 The activity monitor copied upstream comment excerpts into its public issue with active mentions. Repeated digests notified contributors and subscribed them again after they unsubscribed. The posting function now replaces ASCII at signs with fullwidth at signs before creating an issue or adding a comment. Usernames remain readable. Regression tests cover both posting paths and run before the scheduled monitor can post. Existing upstream comments and monitoring state remain intact.
