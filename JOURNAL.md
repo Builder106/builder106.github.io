@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-10-28: Replace the phantom axe step with a Playwright check #ci #decision
+
+The workflow ran `npx axe-core-cli` with an echo fallback, and that package has never existed on npm, so the accessibility check passed without checking anything. Removing the fallback exposed it. The homepage is now scanned with axe through `@axe-core/playwright` for WCAG 2.2 A and AA rules at mobile and desktop widths inside the existing e2e job. The first real run found rack labels under the 24px target size. The scene scales those labels to about 0.6 with distance, so their base height is now 44px.
+
 ## 2026-10-27: Limit deploy token scopes #ci #security
 
 The Pages build can update the ledger, and the deploy job can publish the site. Their write permissions now stay on those jobs; Lighthouse keeps read access.
