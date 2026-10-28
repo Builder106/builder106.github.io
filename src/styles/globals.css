@@ -121,7 +121,12 @@ button {
 .rack-label {
   display: inline-flex;
   flex-direction: column;
+  justify-content: center;
   gap: 2px;
+  /* WCAG 2.2 target size (2.5.8) is measured on the rendered box, and the
+     scene scales each label to roughly 0.6 with camera distance, so the
+     base height must stay well above the 24px minimum. */
+  min-height: 44px;
   padding: 6px 12px;
   /* Fully opaque so adjacent rack labels can't bleed through one
      another when they project to overlapping screen positions in
