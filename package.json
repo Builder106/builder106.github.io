@@ -35,12 +35,14 @@
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@elevenlabs/elevenlabs-js": "^2.73.0",
     "@playwright/test": "1.64.1",
     "@types/node": "^26.6.5",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@types/three": "^0.186.0",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.1.2",
     "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^9.39.5",
@@ -51,7 +53,6 @@
     "prettier": "^3.9.10",
     "prettier-plugin-organize-imports": "^4.3.0",
     "replicate": "^1.4.0",
-    "@typescript/native": "npm:typescript@^7.0.2",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-eslint": "^8.71.2",
     "vite": "^8.3.4",
