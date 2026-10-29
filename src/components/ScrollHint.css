@@ -45,8 +45,8 @@
   }
 }
 
-/* Only render the hint on portrait. Landscape has no scroll
-   mechanic — the OrbitControls + click flies own the camera. */
+/* Show this hint only in portrait. In landscape, users can orbit the scene
+   or click a rack to move the camera. */
 @media (min-aspect-ratio: 4/5) {
   .scroll-hint {
     display: none;
