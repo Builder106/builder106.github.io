@@ -344,31 +344,19 @@ def resolved_items(items: list[dict]) -> list[dict]:
     return [i for i in items if i["state"] != "open"]
 
 
-def leader_entry(item: dict) -> str:
-    return (f'<a class="entry" href="{item["url"]}" title="{esc(item["title"])}" '
-            f'target="_blank" rel="noopener noreferrer">'
-            f'<span class="entry__id">#{item["n"]}</span>'
-            f'<span class="entry__leader" aria-hidden="true"></span>'
-            f'<span class="entry__state">open</span></a>')
+def item_row(item: dict) -> str:
+    state = item["state"]
+    return (f'<li class="item item--{state}">'
+            f'<a href="{item["url"]}" target="_blank" rel="noopener noreferrer">'
+            f'<span class="item__n">#{item["n"]}</span>'
+            f'<span class="item__title">{esc(item["title"])}</span></a>'
+            + (f'<span class="item__state">{state}</span>' if state != "open" else "")
+            + '</li>')
 
 
-def cleared_entry(item: dict) -> str:
-    word = "merged" if item["state"] == "merged" else "closed"
-    return (f'<a class="entry entry--cleared" href="{item["url"]}" title="{esc(item["title"])}" '
-            f'target="_blank" rel="noopener noreferrer">'
-            f'<span class="entry__id">#{item["n"]}</span>'
-            f'<span class="entry__leader" aria-hidden="true"></span>'
-            f'<span class="entry__state">{word}</span></a>')
-
-
-def balance_line(active: int, target: int) -> str:
-    fig = f'<span class="bal__fig">{active}&#8202;/&#8202;{target}</span>'
-    if active >= target:
-        over = "" if active == target else f'<span class="bal__over">+{active - target} over</span>'
-        return f'<div class="bal">{fig}<span class="bal__word bal__word--ok">balanced</span>{over}</div>'
-    short = target - active
-    return (f'<div class="bal">{fig}'
-            f'<span class="bal__word bal__word--short">{short} to fill</span></div>')
+def count_label(active: int, target: int) -> str:
+    cls = "count" if active >= target else "count count--short"
+    return f'<span class="{cls}">{active} of {target}</span>'
 
 
 def esc(s: str) -> str:
@@ -380,76 +368,54 @@ def account_column(items: list[dict], target: int, label: str) -> str:
     active = [i for i in items if i["state"] == "open"]
     resolved = resolved_items(items)
     if active:
-        entries = "".join(leader_entry(i) for i in active)
+        entries = '<ul class="items">' + "".join(item_row(i) for i in active) + "</ul>"
     else:
-        entries = '<div class="entry entry--empty">no open entries</div>'
-    cleared = ""
+        entries = '<p class="none">Nothing open.</p>'
+    done = ""
     if resolved:
-        cleared = ('<div class="cleared"><span class="cleared__label">cleared &middot; repost</span>'
-                   + "".join(cleared_entry(i) for i in resolved) + "</div>")
+        done = (f'<details class="done"><summary>{len(resolved)} merged or closed</summary>'
+                '<ul class="items">' + "".join(item_row(i) for i in resolved) + "</ul></details>")
     return (f'<div class="col">'
-            f'<div class="col__head">{label}</div>'
-            f'<div class="entries">{entries}</div>'
-            f'{balance_line(len(active), target)}'
-            f'{cleared}</div>')
+            f'<h4 class="col__head">{label} {count_label(len(active), target)}</h4>'
+            f'{entries}{done}</div>')
 
 
 def account_mark(repo: dict, cls: str) -> str:
-    """A logo mark where one is vendored (colors baked into the SVG's own
-    fills), else the plain colour tab/dot for repos with no official brand."""
+    """The vendored logo with its own fills, or nothing for repos without one."""
     body, view_box, fill = logo_svg(repo["logo"])
-    if body:
-        fill_attr = f' fill="{fill}"' if fill else ""
-        return (f'<span class="{cls} {cls}--logo" title="{esc(repo["name"])}" aria-hidden="true">'
-                f'<svg viewBox="{view_box}"{fill_attr} xmlns="http://www.w3.org/2000/svg">{body}</svg></span>')
-    return f'<span class="{cls}" style="background:{repo["color"]}" title="{esc(repo["name"])}"></span>'
+    if not body:
+        return ""
+    fill_attr = f' fill="{fill}"' if fill else ""
+    return (f'<span class="{cls}" aria-hidden="true">'
+            f'<svg viewBox="{view_box}"{fill_attr} xmlns="http://www.w3.org/2000/svg">{body}</svg></span>')
 
 
-def compact_mark(repo: dict, cls: str = "tb__dot") -> str:
-    """Render the repository logo inline with running text."""
-    return account_mark(repo, cls)
+HOSTS = {"github": "GitHub", "gitea": "projects.blender.org", "gitlab": "GitLab"}
 
 
 def account_block(repo: dict, target: int) -> str:
-    host = "Gitea" if repo["host"] == "gitea" else "GitHub"
-    mark = account_mark(repo, "account__tab")
-
     pause_notice = ""
     if "paused_until" in repo:
         from datetime import datetime
         pause_date = datetime.strptime(repo["paused_until"], "%Y-%m-%d")
-        pause_text = pause_date.strftime("%b %d")
-        pause_icon = ('<svg class="account__pause__icon" viewBox="0 0 24 24" fill="currentColor">'
-                      '<rect x="6" y="4" width="3" height="16" rx="1"/>'
-                      '<rect x="15" y="4" width="3" height="16" rx="1"/></svg>')
-        pause_notice = f'<div class="account__pause">{pause_icon}paused until {pause_text}</div>'
+        pause_notice = f'<p class="pause">Paused until {pause_date.strftime("%B %-d")}.</p>'
 
     return (f'''
-      <section class="account">
-        <div class="account__head">
-          {mark}
-          <h3 class="account__name">{repo['name']}</h3>
-          <span class="account__host">{host}</span>
-        </div>
+      <section class="project" id="{repo['key']}">
+        <h3 class="project__name">{account_mark(repo, "logo")}{repo['name']}
+          <span class="project__host">on {HOSTS.get(repo["host"], repo["host"])}</span></h3>
         {pause_notice}
-        <div class="account__cols">
+        <div class="project__cols">
           {account_column(repo['issues'], target, 'Issues')}
           {account_column(repo['prs'], target, 'Pull requests')}
         </div>
       </section>''')
 
 
-def trial_row(repo: dict, target: int) -> str:
-    def cell(n: int) -> str:
-        cls = "tb__ok" if n >= target else "tb__short"
-        return f'<span class="{cls}">{n}&#8202;/&#8202;{target}</span>'
-    mark = compact_mark(repo)
+def summary_row(repo: dict, target: int) -> str:
     ai, ap = active_count(repo["issues"]), active_count(repo["prs"])
-    return (f'<div class="tb__row" role="row">'
-            f'<span class="tb__acct" role="cell">{mark}'
-            f'{repo["name"]}</span>'
-            f'<span class="tb__cell" role="cell">{cell(ai)}</span>'
-            f'<span class="tb__cell" role="cell">{cell(ap)}</span></div>')
+    return (f'<tr><th scope="row"><a href="#{repo["key"]}">{account_mark(repo, "logo")}{repo["name"]}</a></th>'
+            f'<td>{count_label(ai, target)}</td><td>{count_label(ap, target)}</td></tr>')
 
 def build_html(data: dict) -> str:
     repos = data["repos"]
@@ -461,7 +427,7 @@ def build_html(data: dict) -> str:
     total_merged = sum(1 for r in repos for i in r["prs"] if i["state"] == "merged")
     cap = sum(r["target"] for r in repos)
 
-    trial_rows = "".join(trial_row(by_key[k], by_key[k]["target"]) for k in order)
+    trial_rows = "".join(summary_row(by_key[k], by_key[k]["target"]) for k in order)
     accounts = "".join(account_block(by_key[k], by_key[k]["target"]) for k in order)
 
     posted = active_issues + active_prs

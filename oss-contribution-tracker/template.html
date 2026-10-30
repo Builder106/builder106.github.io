@@ -3,62 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OSS Ledger · Builder106</title>
-<meta name="description" content="A double-entry ledger of open-source standing: 3 open issues + 3 open PRs kept on the books per repo across Blender, CPython, FURY, and Neovim.">
+<title>Open-source contributions | Builder106</title>
+<meta name="description" content="Open issues and pull requests I keep in Blender, glTF-Blender-IO, CPython, FURY, Neovim, and GitLab, counted daily.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>/*STYLE*/</style>
 </head>
 <body>
-<main class="book">
+<main class="page">
 
-  <header class="masthead">
-    <div class="masthead__title">
-      <p class="colophon">GSoC 2027 &middot; contribution account book</p>
-      <h1>The OSS Ledger</h1>
-      <p class="subtitle">A running account of upstream standing, kept by double entry: three open issues and three open pull requests carried on the books for every project, at all times. When one clears, a fresh entry is posted to hold the balance.</p>
-    </div>
-    <div class="masthead__stamp">
-      <span class="stamp__line">statement of</span>
-      <span class="stamp__name"><!--AUTHOR--></span>
-      <span class="stamp__line">as of <!--ASOF--></span>
-      <button type="button" class="refresh-trigger" id="run-refresh-btn">
-        <span class="refresh-trigger__icon" aria-hidden="true">&#x21bb;</span> Run Refresh
-      </button>
-      <div id="refresh-status" class="refresh-status" aria-live="polite"></div>
-    </div>
+  <header class="intro">
+    <h1>Open-source contributions</h1>
+    <p>I keep three issues and three pull requests open in each project I work on, one of each for the smaller GitLab repositories. When something merges or closes, I open a replacement. This page counts what is open today, for Google Summer of Code 2027.</p>
   </header>
 
-  <section class="trial" aria-label="Trial balance">
-    <h2 class="trial__head">Trial balance</h2>
-    <p class="trial__statement">
-      <b class="trial__fig"><!--TB_POSTED--></b> of <!--TB_CAP--> positions posted
-      <span class="trial__sep">&mdash;</span>
-      <b class="trial__red"><!--TB_TOFILL--></b> to fill.
-      Issues <span class="trial__num"><!--TB_ISSUES-->&#8202;/&#8202;<!--TB_CAPHALF--></span>,
-      pull requests <span class="trial__num"><!--TB_PRS-->&#8202;/&#8202;<!--TB_CAPHALF--></span>.
-      <!--TB_MERGED--> merged and struck since opening the book.
-    </p>
-    <div class="trial__ledger" role="table" aria-label="Per-project balances">
-      <div class="tb__row tb__row--head" role="row">
-        <span class="tb__acct" role="columnheader">Account</span>
-        <span class="tb__cell" role="columnheader">Issues</span>
-        <span class="tb__cell" role="columnheader">PRs</span>
-      </div>
-      <!--TRIAL_ROWS-->
-    </div>
+  <section class="summary" aria-labelledby="summary-head">
+    <h2 id="summary-head" class="visually-hidden">Summary</h2>
+    <p class="summary__total"><b><!--TB_POSTED--></b> of <!--TB_CAP--> open, with <!--TB_TOFILL--> to replace. <!--TB_MERGED--> pull requests merged so far.</p>
+    <table class="summary__table">
+      <thead><tr><th scope="col">Project</th><th scope="col">Issues</th><th scope="col">Pull requests</th></tr></thead>
+      <tbody><!--TRIAL_ROWS--></tbody>
+    </table>
   </section>
 
-  <section class="ledger" aria-label="Accounts">
-    <h2 class="section__label">Accounts</h2>
-    <p class="section__note">Only open entries carry toward each 3&#8202;/&#8202;3 balance. Cleared items (merged or closed) drop off the balance and are listed beneath it, marked for reposting. Figures are pulled live from GitHub and the Gitea API at projects.blender.org.</p>
+  <section class="projects" aria-labelledby="projects-head">
+    <h2 id="projects-head">By project</h2>
     <!--ACCOUNTS-->
   </section>
 
   <footer class="foot">
-    <span class="foot__rule" aria-hidden="true"></span>
-    Balance to maintain: three open issues and three open pull requests per project, at all times. A cleared entry is posted anew, not banked.<br>
-    Figures pulled <!--ASOF--> from GitHub (gh) and projects.blender.org (Gitea API). The book reposts itself daily.
+    <p>Pulled from GitHub, GitLab, and projects.blender.org on <!--ASOF-->. The page rebuilds daily. Maintained by <!--AUTHOR-->.</p>
+    <button type="button" class="refresh-trigger" id="run-refresh-btn">Refresh now</button>
+    <span id="refresh-status" class="refresh-status" aria-live="polite"></span>
   </footer>
 
 </main>
@@ -67,17 +43,17 @@
   <div class="modal__backdrop" data-close-token-modal></div>
   <div class="modal__card" role="document">
     <header class="modal__header">
-      <h2 id="token-modal-title" class="modal__title">Connect GitHub Token</h2>
+      <h2 id="token-modal-title" class="modal__title">GitHub token</h2>
       <button type="button" class="modal__close" data-close-token-modal aria-label="Close modal">&times;</button>
     </header>
     <div class="modal__body">
-      <p class="modal__intro">To run <code>refresh.py</code> directly from this page, enter a GitHub Personal Access Token (stored locally in your browser for 1-click refreshes):</p>
+      <p class="modal__intro">Paste a personal access token to start the refresh workflow. It stays in this browser&rsquo;s local storage.</p>
       <form id="token-save-form" class="dispatch-form">
         <div class="dispatch-form__field">
           <input type="password" id="gh-token-input" placeholder="ghp_... or github_pat_..." autocomplete="off" class="input-text" required />
-          <button type="submit" class="btn btn--primary">Save &amp; Run Refresh</button>
+          <button type="submit" class="btn btn--primary">Save and refresh</button>
         </div>
-        <p class="token-help">Token needs <code>workflow</code> or <code>repo</code> scope.</p>
+        <p class="token-help">Needs the <code>workflow</code> or <code>repo</code> scope.</p>
       </form>
     </div>
   </div>
@@ -123,9 +99,9 @@
     function dispatchRefresh(token) {
       if (!runBtn || !statusEl) return;
       runBtn.disabled = true;
-      runBtn.innerHTML = '<span class="refresh-trigger__icon spin" aria-hidden="true">&#x21bb;</span> Running...';
+      runBtn.textContent = "Running\u2026";
       statusEl.className = "refresh-status refresh-status--info";
-      statusEl.textContent = "Triggering refresh workflow...";
+      statusEl.textContent = "Starting the refresh workflow\u2026";
 
       fetch("https://api.github.com/repos/Builder106/Builder106.github.io/actions/workflows/deploy.yml/dispatches", {
         method: "POST",
@@ -138,11 +114,11 @@
       }).then(function (res) {
         if (res.ok || res.status === 204) {
           statusEl.className = "refresh-status refresh-status--success";
-          statusEl.textContent = "\u2713 Triggered! Page updates in ~1 min.";
-          runBtn.innerHTML = '<span aria-hidden="true">\u2713</span> Triggered';
+          statusEl.textContent = "Started. The page updates in about a minute.";
+          runBtn.textContent = "Started";
           setTimeout(function () {
             runBtn.disabled = false;
-            runBtn.innerHTML = '<span class="refresh-trigger__icon" aria-hidden="true">&#x21bb;</span> Run Refresh';
+            runBtn.textContent = "Refresh now";
           }, 5000);
         } else {
           if (res.status === 401 || res.status === 403) {
@@ -159,7 +135,7 @@
         statusEl.className = "refresh-status refresh-status--error";
         statusEl.textContent = "Failed: " + err.message;
         runBtn.disabled = false;
-        runBtn.innerHTML = '<span class="refresh-trigger__icon" aria-hidden="true">&#x21bb;</span> Run Refresh';
+        runBtn.textContent = "Refresh now";
       });
     }
 
