@@ -3,6 +3,10 @@ name: Deploy
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.markdownlint*'
   schedule:
     # Keeps the OSS Ledger subpage's live counts fresh even on days with no
     # portfolio commits. Matches the tracker's old standalone-repo cadence.
