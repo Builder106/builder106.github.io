@@ -44,7 +44,7 @@ REPOS = [
     ("cpython", "python/cpython", "github", "python/cpython", "#3776AB", "cpython.svg", 3),
     ("fury", "FURY", "github", "fury-gl/fury", "#ffcc00", "fury.svg", 3),
     ("neovim", "neovim/neovim", "github", "neovim/neovim", "#57A143", "neovim.svg", 3),
-    ("glaxnimate", "KDE Glaxnimate", "invent", "graphics/glaxnimate", "#3250B0", None, 1),
+    ("glaxnimate", "KDE Glaxnimate", "invent", "graphics/glaxnimate", "#3250B0", "glaxnimate.svg", 1),
     ("gitlab-cli", "gitlab-org/cli", "gitlab", "gitlab-org/cli", "#FC6D26", "gitlab.svg", 1),
     ("gitlab", "gitlab-org/gitlab", "gitlab", "gitlab-org/gitlab", "#FC6D26", "gitlab.svg", 1),
     ("gitlab-runner", "gitlab-org/gitlab-runner", "gitlab", "gitlab-org/gitlab-runner", "#FC6D26", "gitlab.svg", 1),

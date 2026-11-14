@@ -235,7 +235,7 @@
       "name": "KDE Glaxnimate",
       "host": "invent",
       "color": "#3250B0",
-      "logo": null,
+      "logo": "glaxnimate.svg",
       "target": 1,
       "issues": [],
       "prs": [
