@@ -18,8 +18,9 @@ The refresh script collects two types of contribution data:
 - **● Verifiable.** Currently-open issues and PRs, plus the triage and review
 
   touches GitHub can surface. Pulled live from GitHub with `gh` and from
-  Blender's Gitea instance through its public REST API. Nothing here is
-  hand-entered.
+  Blender's Gitea instance and KDE Invent through their public REST APIs.
+  KDE Invent uses the `buildercontrib` account. If it is unavailable, the
+  page marks its last saved results as such.
 
 - **○ Self-logged.** Bug triage, patch review, module-meeting attendance, and
 
@@ -30,8 +31,11 @@ The page displays authored issues and pull requests. The snapshot also keeps
 supplementary activity for monitoring.
 
 Target repos: `KhronosGroup/glTF-Blender-IO`, `blender/blender` (Gitea),
-`python/cpython`, `fury-gl/fury`, `neovim/neovim`. Goal: keep 3 issues + 3 PRs
-open per repo at all times. Only open items count toward the 3/3; a merged or
+`python/cpython`, `fury-gl/fury`, `neovim/neovim`, and KDE Glaxnimate, along
+with the listed GitLab projects. The target is three issues and three PRs for
+the first five projects and one of each for KDE Glaxnimate and the GitLab
+projects. KDE's Bugzilla reports are not included in the Invent issue count.
+Only open items count toward the target; a merged or
 closed one drops out of the active count and shows up in a "resolved, needs
 replacing" list on its card instead of quietly still counting.
 

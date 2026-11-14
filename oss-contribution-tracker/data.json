@@ -231,6 +231,23 @@
       ]
     },
     {
+      "key": "glaxnimate",
+      "name": "KDE Glaxnimate",
+      "host": "invent",
+      "color": "#3250B0",
+      "logo": null,
+      "target": 1,
+      "issues": [],
+      "prs": [
+        {
+          "n": 118,
+          "url": "https://invent.kde.org/graphics/glaxnimate/-/merge_requests/118",
+          "state": "open",
+          "title": "Fix out-of-bounds access in Python method calls"
+        }
+      ]
+    },
+    {
       "key": "gitlab-cli",
       "name": "gitlab-org/cli",
       "host": "gitlab",

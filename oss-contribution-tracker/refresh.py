@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate index.html from live contribution data.
 
-Pulls authored issues/PRs from GitHub (via `gh`) and from Blender's Gitea
+Pulls authored issues/PRs from GitHub (via `gh`), GitLab, KDE Invent, and Blender's Gitea
 instance (via the public REST API), counts non-PR triage/review touches that
 GitHub can surface, tallies the manual rows in CONTRIBUTIONS_LOG.md, and writes
 a static, self-contained index.html.
@@ -44,6 +44,7 @@ REPOS = [
     ("cpython", "python/cpython", "github", "python/cpython", "#3776AB", "cpython.svg", 3),
     ("fury", "FURY", "github", "fury-gl/fury", "#ffcc00", "fury.svg", 3),
     ("neovim", "neovim/neovim", "github", "neovim/neovim", "#57A143", "neovim.svg", 3),
+    ("glaxnimate", "KDE Glaxnimate", "invent", "graphics/glaxnimate", "#3250B0", None, 1),
     ("gitlab-cli", "gitlab-org/cli", "gitlab", "gitlab-org/cli", "#FC6D26", "gitlab.svg", 1),
     ("gitlab", "gitlab-org/gitlab", "gitlab", "gitlab-org/gitlab", "#FC6D26", "gitlab.svg", 1),
     ("gitlab-runner", "gitlab-org/gitlab-runner", "gitlab", "gitlab-org/gitlab-runner", "#FC6D26", "gitlab.svg", 1),
@@ -208,6 +209,30 @@ def gitlab_items(slug: str, kind: str) -> list[dict]:
         return []
 
 
+def invent_items(slug: str, kind: str) -> list[dict]:
+    encoded_slug = urllib.parse.quote(slug, safe="")
+    url = (f"https://invent.kde.org/api/v4/projects/{encoded_slug}/{kind}"
+           "?author_username=buildercontrib&state=all&per_page=100")
+    items = json.loads(run(["curl", "-fsS", "--max-time", "20", url]))
+    if not isinstance(items, list):
+        raise ValueError("KDE Invent returned an invalid item list")
+    return [{"n": i["iid"], "url": i["web_url"],
+             "state": "open" if i["state"] == "opened" else i["state"],
+             "title": i["title"]} for i in items]
+
+
+def invent_data(slug: str) -> tuple[list[dict], list[dict], bool]:
+    try:
+        return invent_items(slug, "issues"), invent_items(slug, "merge_requests"), False
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError, ValueError, KeyError):
+        snapshot = json.loads((ROOT / "data.json").read_text(encoding="utf-8"))
+        cached = next((repo for repo in snapshot["repos"] if repo["key"] == "glaxnimate"), None)
+        if cached is None:
+            raise RuntimeError("KDE Invent is unavailable and no saved Glaxnimate data exists")
+        print("KDE Invent is unavailable; using saved Glaxnimate data", file=sys.stderr)
+        return cached["issues"], cached["prs"], True
+
+
 def collect() -> dict:
     """Build the data structure that drives the page."""
     # gh search wants alternating "--repo <slug>" flags; build that flat list.
@@ -229,6 +254,7 @@ def collect() -> dict:
 
     repos = []
     for key, name, host, slug, col, logo, target in REPOS:
+        stale = False
         if host == "github":
             issues = gh_items(gh_issues, slug)
             prs = gh_items(gh_prs, slug)
@@ -254,8 +280,13 @@ def collect() -> dict:
                     "state": "open" if i["state"] == "opened" else i["state"],
                     "title": i["title"]}
                    for i in gitlab_items(slug, "merge_requests")]
-        repos.append({"key": key, "name": name, "host": host, "color": col,
-                      "logo": logo, "target": target, "issues": issues, "prs": prs})
+        elif host == "invent":
+            issues, prs, stale = invent_data(slug)
+        repo = {"key": key, "name": name, "host": host, "color": col,
+                "logo": logo, "target": target, "issues": issues, "prs": prs}
+        if stale:
+            repo["stale"] = True
+        repos.append(repo)
 
     comments = gh_supp("issues", "--commenter")
     reviews = gh_supp("prs", "--reviewed-by")
@@ -390,11 +421,13 @@ def account_mark(repo: dict, cls: str) -> str:
             f'<svg viewBox="{view_box}"{fill_attr} xmlns="http://www.w3.org/2000/svg">{body}</svg></span>')
 
 
-HOSTS = {"github": "GitHub", "gitea": "projects.blender.org", "gitlab": "GitLab"}
+HOSTS = {"github": "GitHub", "gitea": "projects.blender.org", "gitlab": "GitLab", "invent": "KDE Invent"}
 
 
 def account_block(repo: dict, target: int) -> str:
     pause_notice = ""
+    stale_notice = '<p class="pause">KDE Invent unavailable; showing last saved results.</p>' if repo.get("stale") else ""
+    issue_label = "Invent issues" if repo["host"] == "invent" else "Issues"
     if "paused_until" in repo:
         from datetime import datetime
         pause_date = datetime.strptime(repo["paused_until"], "%Y-%m-%d")
@@ -404,9 +437,9 @@ def account_block(repo: dict, target: int) -> str:
       <section class="project" id="{repo['key']}">
         <h3 class="project__name">{account_mark(repo, "logo")}{repo['name']}
           <span class="project__host">on {HOSTS.get(repo["host"], repo["host"])}</span></h3>
-        {pause_notice}
+        {pause_notice}{stale_notice}
         <div class="project__cols">
-          {account_column(repo['issues'], target, 'Issues')}
+          {account_column(repo['issues'], target, issue_label)}
           {account_column(repo['prs'], target, 'Pull requests')}
         </div>
       </section>''')
@@ -414,13 +447,14 @@ def account_block(repo: dict, target: int) -> str:
 
 def summary_row(repo: dict, target: int) -> str:
     ai, ap = active_count(repo["issues"]), active_count(repo["prs"])
-    return (f'<tr><th scope="row"><a href="#{repo["key"]}">{account_mark(repo, "logo")}{repo["name"]}</a></th>'
+    stale = " (saved results)" if repo.get("stale") else ""
+    return (f'<tr><th scope="row"><a href="#{repo["key"]}">{account_mark(repo, "logo")}{repo["name"]}{stale}</a></th>'
             f'<td>{count_label(ai, target)}</td><td>{count_label(ap, target)}</td></tr>')
 
 def build_html(data: dict) -> str:
     repos = data["repos"]
     by_key = {r["key"]: r for r in repos}
-    order = ["gltf", "blender", "cpython", "fury", "neovim", "gitlab-cli", "gitlab", "gitlab-runner"]
+    order = [repo[0] for repo in REPOS]
 
     active_issues = sum(active_count(r["issues"]) for r in repos)
     active_prs = sum(active_count(r["prs"]) for r in repos)
