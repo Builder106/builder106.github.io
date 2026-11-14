@@ -11,7 +11,7 @@
 
 ## 💡 What is this Portfolio?
 
-Instead of a flat webpage, this portfolio is an interactive 3D virtual environment built in WebGL. Visitors navigate through a stylized server room where each physical rack represents a real software project. Clicking any server rack flies the camera directly to that project's architecture breakdown, live demo link, and metrics.
+This portfolio is an interactive 3D server room built with WebGL. Each rack represents a software project. Select a rack to move the camera to its architecture, demo link, and metrics.
 
 **Live site:** [yinkavaughan.me](https://yinkavaughan.me/)
 
@@ -34,7 +34,7 @@ The portfolio renders as a single WebGL canvas. Clicks raycast into the scene, r
 
 The scene itself is authored in Blender (`blend/`), exported to glTF, and loaded once at startup. Each project's `id` matches an empty Blender object named `anchor_<id>`, which the runtime resolves to a 3D coordinate (documented in [docs/blender-contract.md](docs/blender-contract.md)). Project metadata lives in [src/data/projects.ts](src/data/projects.ts); adding a new rack requires adding an entry there and a matching anchor in the 3D scene.
 
-Public repository stats (stars, latest updates, language distribution) are generated at build time by [scripts/fetch-repo-stats.mjs](scripts/fetch-repo-stats.mjs) to keep performance fast.
+Public repository stats (stars, latest updates, language distribution) are generated at build time by [scripts/fetch-repo-stats.mjs](scripts/fetch-repo-stats.mjs).
 
 ## Subprojects
 
