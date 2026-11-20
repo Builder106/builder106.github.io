@@ -298,13 +298,14 @@ export const projects: Project[] = [
     id: 'tcg-cabt-lab',
     name: 'TCG CABT Lab',
     cluster: 'ml',
-    headline: '360 held-out games with a 2,881-parameter policy',
+    headline: '4 preregistered studies, 7,200 held-out games each',
     blurb:
-      "A study of small agents for the 60-card Pokémon Trading Card Game, run on the CABT simulation engine. It asks whether training against varied opponents helps on deck families the agent never trained on. Over 360 matched-pair games on held-out decks, it didn't: 58.3% for fixed-pool training and 57.8% for the diverse pool. The showcase lays every game out as a card on a table, and you can replay any of them one decision at a time.",
+      'A study of small agents for the 60-card Pokémon Trading Card Game, run on the CABT simulation engine. It asks whether training against varied opponents helps on deck families the agent never trained on. Across four preregistered studies, each with 30 training seeds per arm, no study found a difference: the fixed and diverse pools differed by 1.6 points at most, and each 90% interval sits inside 5 points. The first study could not have found an effect, so the later ones change the teacher and let the policy learn from play. The showcase lays 360 games from an earlier run out as cards, and you can replay any of them one decision at a time.',
     stack: ['Python', 'NumPy', 'CABT', 'Astro', 'Blender'],
     links: {
       live: 'https://tcg-cabt-lab.vercel.app',
       repo: 'https://github.com/Builder106/tcg-cabt-lab',
+      paper: '/research/opponent-pool-preprint.pdf',
     },
     color: '#2d7be5',
     logo: '/img/projects/logos/tcg-cabt-lab.webp',
