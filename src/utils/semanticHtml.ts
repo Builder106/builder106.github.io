@@ -111,6 +111,11 @@ export function buildSemanticContentHTML(): string {
         `<li>Repository: <a href="${escape(p.links.repo)}">${escape(p.links.repo)}</a></li>`,
       );
     }
+    if (p.links.paper) {
+      links.push(
+        `<li>Preprint: <a href="${escape(p.links.paper)}">${escape(p.links.paper)}</a></li>`,
+      );
+    }
     const linksBlock = links.length > 0 ? `<ul>${links.join('')}</ul>` : '';
     const headline = p.headline ? `<p><strong>${escape(p.headline)}</strong></p>` : '';
     return [

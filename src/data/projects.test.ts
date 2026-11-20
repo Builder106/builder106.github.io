@@ -26,6 +26,9 @@ describe('portfolio projects data', () => {
       if (p.links.repo) {
         expect(p.links.repo).toMatch(/^https?:\/\//);
       }
+      if (p.links.paper) {
+        expect(p.links.paper).toMatch(/^(https?:\/\/|\/)/);
+      }
     });
   });
 

@@ -44,7 +44,7 @@ export interface Project {
   cluster: ProjectCluster;
   blurb: string;
   stack: string[];
-  links: { live?: string; repo?: string };
+  links: { live?: string; repo?: string; paper?: string };
   // Path to a banner / thumbnail under public/. Optional.
   image?: string;
   // Path to a looping WebM demo under public/. Optional.

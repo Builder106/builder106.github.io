@@ -193,7 +193,7 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
               ))}
             </ul>
 
-            {(shown.links.live || shown.links.repo || stats) && (
+            {(shown.links.live || shown.links.repo || shown.links.paper || stats) && (
               <div className="project-card__actions">
                 {shown.links.live && (
                   <a
@@ -214,6 +214,16 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
                     rel="noreferrer"
                   >
                     view source
+                  </a>
+                )}
+                {shown.links.paper && (
+                  <a
+                    className="project-card__cta project-card__cta--secondary"
+                    href={shown.links.paper}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    read the preprint
                   </a>
                 )}
                 {stats && (

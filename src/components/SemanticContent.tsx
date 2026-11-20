@@ -57,7 +57,7 @@ export function SemanticContent() {
             <p>
               Cluster: {p.cluster}.{p.stack.length > 0 && <> Stack: {p.stack.join(', ')}.</>}
             </p>
-            {(p.links.live || p.links.repo) && (
+            {(p.links.live || p.links.repo || p.links.paper) && (
               <ul>
                 {p.links.live && (
                   <li>
@@ -67,6 +67,11 @@ export function SemanticContent() {
                 {p.links.repo && (
                   <li>
                     Repository: <a href={p.links.repo}>{p.links.repo}</a>
+                  </li>
+                )}
+                {p.links.paper && (
+                  <li>
+                    Preprint: <a href={p.links.paper}>{p.links.paper}</a>
                   </li>
                 )}
               </ul>
