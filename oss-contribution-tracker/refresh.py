@@ -188,11 +188,37 @@ def discourse_post_count(base_url: str, username: str) -> int | None:
         return None
 
 
-def gitea(slug: str, kind: str) -> list[dict]:
+def gitea_items(slug: str, kind: str) -> list[dict]:
     url = (f"https://projects.blender.org/api/v1/repos/{slug}/issues"
            f"?type={kind}&state=all&created_by={AUTHOR}&limit=50")
-    out = run(["curl", "-s", url])
-    return json.loads(out or "[]")
+    out = run(["curl", "-fsS", "--max-time", "20", url])
+    items = json.loads(out or "[]")
+    if not isinstance(items, list):
+        raise ValueError("Gitea returned an invalid item list")
+    if kind == "issues":
+        return [{"n": i["number"],
+                 "url": f"https://projects.blender.org/{slug}/issues/{i['number']}",
+                 "state": i["state"], "title": i["title"]}
+                for i in items]
+    else:
+        return [{"n": i["number"],
+                 "url": f"https://projects.blender.org/{slug}/pulls/{i['number']}",
+                 "state": ("merged" if i.get("pull_request", {}).get("merged")
+                           else i["state"]),
+                 "title": i["title"]}
+                for i in items]
+
+
+def gitea_data(slug: str) -> tuple[list[dict], list[dict], bool]:
+    try:
+        return gitea_items(slug, "issues"), gitea_items(slug, "pulls"), False
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError, ValueError, KeyError):
+        snapshot = json.loads((ROOT / "data.json").read_text(encoding="utf-8"))
+        cached = next((repo for repo in snapshot["repos"] if repo["key"] == "blender"), None)
+        if cached is None:
+            raise RuntimeError("Gitea is unavailable and no saved Blender data exists")
+        print("Gitea is unavailable; using saved Blender data", file=sys.stderr)
+        return cached["issues"], cached["prs"], True
 
 
 def gitlab_items(slug: str, kind: str) -> list[dict]:
@@ -259,16 +285,7 @@ def collect() -> dict:
             issues = gh_items(gh_issues, slug)
             prs = gh_items(gh_prs, slug)
         elif host == "gitea":
-            issues = [{"n": i["number"],
-                       "url": f"https://projects.blender.org/{slug}/issues/{i['number']}",
-                       "state": i["state"], "title": i["title"]}
-                      for i in gitea(slug, "issues")]
-            prs = [{"n": i["number"],
-                    "url": f"https://projects.blender.org/{slug}/pulls/{i['number']}",
-                    "state": ("merged" if i.get("pull_request", {}).get("merged")
-                              else i["state"]),
-                    "title": i["title"]}
-                   for i in gitea(slug, "pulls")]
+            issues, prs, stale = gitea_data(slug)
         elif host == "gitlab":
             issues = [{"n": i["iid"],
                        "url": i["web_url"],
