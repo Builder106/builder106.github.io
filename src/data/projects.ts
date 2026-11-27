@@ -204,13 +204,14 @@ export const projects: Project[] = [
     id: 'capitol-alpha',
     name: 'CapitolAlpha',
     cluster: 'analyst',
-    headline: '16,203 congressional trades, +2.58% alpha (p < 0.05)',
+    headline: '3,942 House stock buys, no edge after disclosure',
     blurb:
-      "An audit of stock trades disclosed by members of Congress, scraped from Senate and House filings. Built for Wesleyan's Data for Good course.",
+      "Can you beat the market by copying Congress's stock buys once they're disclosed? No: copying them earned about -1.6% a year, while copying company insiders the same way earned 8.5%.",
     stack: ['Python', 'Playwright', 'pdfplumber', 'pandas', 'scipy', 'Jupyter'],
     links: {
       live: 'https://capitolalpha.vercel.app',
       repo: 'https://github.com/Builder106/capitol-alpha',
+      paper: 'https://doi.org/10.5281/zenodo.24560053',
     },
     demo: '/img/projects/demos/capitol-alpha.webm',
     color: '#ff3b5c',
