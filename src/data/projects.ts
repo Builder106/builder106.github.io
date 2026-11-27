@@ -38,6 +38,27 @@ export const AISLE_ORDER = [
 
 export type AisleProjectId = (typeof AISLE_ORDER)[number];
 
+// Order the prev/next buttons and the aisle strip follow: clockwise around the
+// landscape room as seen from above. Back wall left to right, right wall back
+// to front, front wall right to left, then left wall front to back.
+export const TOUR_ORDER: readonly AisleProjectId[] = [
+  'econos',
+  'ocaml-lob',
+  'qforge',
+  'quarry',
+  'halberd',
+  'clearhash',
+  'tcg-cabt-lab',
+  'vgc-rulebreak',
+  'tradetell',
+  'micromatch',
+  'staija',
+  'studysprint',
+  'capitol-alpha',
+  'datafest-2026',
+  'linuxbenchhub',
+];
+
 export interface Project {
   id: string;
   name: string;

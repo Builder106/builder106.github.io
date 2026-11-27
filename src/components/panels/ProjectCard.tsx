@@ -1,4 +1,4 @@
-import { AISLE_ORDER, CLUSTER_DISPLAY, projects, type Project } from '@/data/projects';
+import { CLUSTER_DISPLAY, projects, TOUR_ORDER, type Project } from '@/data/projects';
 import { repoStats } from '@/data/repoStats.generated';
 import type { ActivePanel } from '@/scene/activePanel';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -75,11 +75,11 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
   // paging through projects without ever closing the panel.
   const { prevProject, nextProject } = useMemo(() => {
     if (!shown) return { prevProject: null, nextProject: null };
-    const idx = AISLE_ORDER.indexOf(shown.id as (typeof AISLE_ORDER)[number]);
+    const idx = TOUR_ORDER.indexOf(shown.id as (typeof TOUR_ORDER)[number]);
     if (idx === -1) return { prevProject: null, nextProject: null };
-    const total = AISLE_ORDER.length;
-    const prevId = AISLE_ORDER[(idx - 1 + total) % total];
-    const nextId = AISLE_ORDER[(idx + 1) % total];
+    const total = TOUR_ORDER.length;
+    const prevId = TOUR_ORDER[(idx - 1 + total) % total];
+    const nextId = TOUR_ORDER[(idx + 1) % total];
     return {
       prevProject: projects.find((p) => p.id === prevId) ?? null,
       nextProject: projects.find((p) => p.id === nextId) ?? null,

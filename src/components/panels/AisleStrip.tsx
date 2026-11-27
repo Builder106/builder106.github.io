@@ -1,4 +1,4 @@
-import { AISLE_ORDER, projects } from '@/data/projects';
+import { TOUR_ORDER, projects } from '@/data/projects';
 import type { CSSProperties } from 'react';
 
 interface AisleStripProps {
@@ -7,11 +7,11 @@ interface AisleStripProps {
   activeId: string | null;
 }
 
-const RACKS = AISLE_ORDER.map((id) => projects.find((p) => p.id === id)).filter(
+const RACKS = TOUR_ORDER.map((id) => projects.find((p) => p.id === id)).filter(
   (p): p is (typeof projects)[number] => p !== undefined,
 );
 
-// One light slat per rack in aisle order, drawn like the slats on the rack
+// One light slat per rack in tour order, drawn like the slats on the rack
 // faces and tinted with each project's own colour. A gap opens wherever the
 // aisle moves to another wing. Decorative: navigation lives on the
 // prev/next buttons beside it, and the rack names are in the panel text.

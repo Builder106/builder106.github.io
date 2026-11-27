@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AISLE_ORDER, CLUSTER_DISPLAY, projects } from './projects';
+import { AISLE_ORDER, CLUSTER_DISPLAY, projects, TOUR_ORDER } from './projects';
 
 describe('portfolio projects data', () => {
   it('contains unique non-empty IDs for every project', () => {
@@ -38,14 +38,18 @@ describe('portfolio projects data', () => {
     expect(aisleIds).toEqual(projectIds);
   });
 
+  it('TOUR_ORDER is a permutation of AISLE_ORDER', () => {
+    expect([...TOUR_ORDER].sort()).toEqual([...AISLE_ORDER].sort());
+  });
+
   it('every project has valid prev and next rack targets', () => {
-    const total = AISLE_ORDER.length;
+    const total = TOUR_ORDER.length;
     projects.forEach((project) => {
-      const idx = AISLE_ORDER.indexOf(project.id as (typeof AISLE_ORDER)[number]);
+      const idx = TOUR_ORDER.indexOf(project.id as (typeof TOUR_ORDER)[number]);
       expect(idx).toBeGreaterThanOrEqual(0);
 
-      const prevId = AISLE_ORDER[(idx - 1 + total) % total];
-      const nextId = AISLE_ORDER[(idx + 1) % total];
+      const prevId = TOUR_ORDER[(idx - 1 + total) % total];
+      const nextId = TOUR_ORDER[(idx + 1) % total];
 
       const prevProject = projects.find((p) => p.id === prevId);
       const nextProject = projects.find((p) => p.id === nextId);
