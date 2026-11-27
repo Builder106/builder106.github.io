@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-11-27: Lighter demo playback #decision
+
+The project panel now offers each demo as H.264 MP4 first and VP9 WebM second. VP9 has no hardware decoder on Safari or older Macs, so it decoded on the CPU while the 3D room rendered behind the panel. The room also stops rendering once the camera has settled behind an open panel (frameloop switches to on-demand after 1.5 s) and wakes for the next camera flight.
+
 ## 2026-11-27: Demos captured frame by frame #decision
 
 The demo loops stuttered because Playwright's video capture drops frames when the headless renderer falls behind, and the recorder scrolled in 60 jumps. The recorders now build each video one frame at a time (`scripts/record-demos/capture.mjs`): a clock shim takes over the page's timers, animation frames and CSS animations and advances them exactly 1/30 s per screenshot, so scrolls and the page's own motion play at true speed however slow capture is. Chrome's built-in virtual time was tried first, but headless screenshots stall for seconds per frame while it is paused. Videos are 1440×720 to match the 2:1 demo box, intro dialogs are dismissed first, and `CHROME_PATH` lets a desktop Chrome render on the Mac GPU, which cut capture time several-fold. OCaml LOB was recorded after its Funnel route was restored.

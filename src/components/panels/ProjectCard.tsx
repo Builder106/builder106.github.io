@@ -141,17 +141,24 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
               <div className="project-card__media-skeleton" aria-hidden />
               {shown.demo ? (
                 <>
+                  {/* H.264 first: every device decodes it in hardware, while
+                      VP9 falls back to the CPU on Safari and older Macs and
+                      competes with the 3D scene. Keyed so switching racks
+                      loads the new sources. */}
                   <video
+                    key={shown.demo}
                     ref={videoRef}
                     className="panel__hero panel__hero--video"
-                    src={shown.demo}
                     autoPlay={!paused}
                     muted
                     loop
                     playsInline
                     preload="metadata"
                     aria-label={`${shown.name} demo loop`}
-                  />
+                  >
+                    <source src={shown.demo.replace(/\.webm$/, '.mp4')} type="video/mp4" />
+                    <source src={shown.demo} type="video/webm" />
+                  </video>
                   <button type="button" className="project-card__playback" onClick={togglePlayback}>
                     {paused ? 'play' : 'pause'}
                     <span className="sr-only"> demo</span>

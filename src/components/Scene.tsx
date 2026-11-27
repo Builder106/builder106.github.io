@@ -339,6 +339,19 @@ export function Scene({ active, onSelect }: SceneProps) {
   const panelOpen = active.kind !== 'none';
   const freezeOrbit = panelOpen;
 
+  // While a panel covers the room, stop rendering once the camera has
+  // landed: the scene sits dimmed behind the drawer, and drawing it every
+  // frame competes with the demo video for the GPU and main thread. A new
+  // camera target (prev/next, port keys) wakes it for the next flight.
+  const CAMERA_SETTLE_MS = 1500;
+  const [settledTarget, setSettledTarget] = useState<typeof cameraTarget | null>(null);
+  useEffect(() => {
+    if (!panelOpen) return;
+    const id = window.setTimeout(() => setSettledTarget(cameraTarget), CAMERA_SETTLE_MS);
+    return () => window.clearTimeout(id);
+  }, [panelOpen, cameraTarget]);
+  const sceneAsleep = panelOpen && settledTarget === cameraTarget;
+
   // Track whether the user is currently idle. Drift only kicks in after
   // IDLE_DELAY_MS without any orbit/pan/zoom, and only while no panel
   // is open. Any interaction resets the timer; panel close also resets.
@@ -393,7 +406,7 @@ export function Scene({ active, onSelect }: SceneProps) {
     // globals.css under the (max-aspect-ratio: 4/5) media query.
     <div className="scene-canvas-wrapper" style={{ width: '100%', height: '100%' }}>
       <Canvas
-        frameloop={isAutomated ? 'demand' : 'always'}
+        frameloop={isAutomated || sceneAsleep ? 'demand' : 'always'}
         // Cap DPR so we don't shade 9x more pixels on a phone. Big perf
         // win on high-DPI screens where 1.5x and 2x already look great.
         // DPR cap: Mobile gets 1.0; Desktop gets [1, 1.5] for crispness without fillrate penalties.
