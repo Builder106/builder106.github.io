@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-11-27: Demos captured frame by frame #decision
+
+The demo loops stuttered because Playwright's video capture drops frames when the headless renderer falls behind, and the recorder scrolled in 60 jumps. The recorders now build each video one frame at a time (`scripts/record-demos/capture.mjs`): a clock shim takes over the page's timers, animation frames and CSS animations and advances them exactly 1/30 s per screenshot, so scrolls and the page's own motion play at true speed however slow capture is. Chrome's built-in virtual time was tried first, but headless screenshots stall for seconds per frame while it is paused. Videos are 1440×720 to match the 2:1 demo box, intro dialogs are dismissed first, and `CHROME_PATH` lets a desktop Chrome render on the Mac GPU, which cut capture time several-fold. OCaml LOB was recorded after its Funnel route was restored.
+
 ## 2026-11-26: Panels become the rack's KVM drawer #decision
 
 The panels were still a dark box with a neon edge floating over the room, which read as a generic modal. Each one is now the console drawer a real rack carries: a 1U front with ears, handles and a label-maker tag for the title, and a screen that hinges up behind it. The hardware is rendered in Blender (`blend/kvm_parts.py`, output in `public/img/kvm`) in the racks' own powder coat, not drawn in CSS. The aisle strip became the KVM switch's port keys, one per rack with an LED in its colour, and they are real buttons now instead of decoration. The room dims behind an open drawer, the title takes focus on open so the eject key no longer lights up as if pressed, the headline and button glows are gone, and the demo box caps at 42vh so the links sit above the fold. On phones the drawer rises from the bottom edge and keeps only prev, next and eject. The OCaml LOB demo still opens on its own site's intro dialog and needs a re-record.

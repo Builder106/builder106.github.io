@@ -1,11 +1,11 @@
 // Record short looping screen captures of every project's live site
 // and write them as VP9 WebMs under public/img/projects/demos/. Used
-// as both the in-scene rack-screen textures *and* the ProjectCard
-// hero video, so the source needs to be retina-friendly: previously
-// captured at 720×450 with deviceScaleFactor: 1, which the browser
-// then 2×-upscaled on retina panels, giving the hero a blurry read.
-// Now 1440×900 — sharp at 1× on the rack screens (which downsample
-// in the GPU anyway) and at 2× on the project panel.
+// as both the in-scene rack-screen textures and the ProjectCard hero
+// video.
+//
+// Frames are captured one at a time (see capture.mjs), so the scroll
+// is smooth no matter how slowly the machine renders. 1440×720 is the 2:1 shape
+// of the ProjectCard demo box, so nothing is letterboxed.
 //
 // Usage:
 //   node scripts/record-demos/record-all-demos.mjs               # all
@@ -15,26 +15,25 @@
 // Dependencies: @playwright/test (already in package.json), ffmpeg on PATH.
 
 import { chromium } from "@playwright/test";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, readdirSync, statSync } from "node:fs";
+import { mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { encodeFrames, frameRecorder, installClock, launchOptions } from "./capture.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const OUT_DIR = path.join(REPO_ROOT, "public", "img", "projects", "demos");
 
-// Render dimensions. 1440×900 is exactly 2× the panel's CSS-pixel
-// width (the .panel default is 720 px), so retina displays no longer
-// need to upscale. Keeps the 8:5 aspect the existing demos use.
 const VIDEO_W = 1440;
-const VIDEO_H = 900;
-// 24 fps reads as motion (15 fps stuttered on the larger viewport),
-// 300 kbps holds VP9 quality through scroll-heavy pages at 1440×900
-// while keeping each demo under ~700 KB.
-const VIDEO_FPS = 24;
-const VIDEO_BITRATE = "300k";
+const VIDEO_H = 720;
+// 30 fps with no dropped frames reads as smooth scrolling; 700 kbps keeps
+// text edges clean through the scroll at about 1 to 1.5 MB per demo.
+const VIDEO_FPS = 30;
+const VIDEO_BITRATE = "700k";
+// Opening and closing holds, in ms of video.
+const HOLD_START_MS = 2_500;
+const HOLD_END_MS = 2_000;
 
 // Per-project recording config. Live URL + total recording duration.
 // Order matches projects.ts. The analyst pages run a little longer
@@ -59,121 +58,67 @@ const TARGETS = [
   // tradetell uses a custom script — see scripts/record-demos/record-tradetell.mjs
 ];
 
-// Seconds of single-colour frames at the start of a recording. Samples the
-// first 4 s at 20 fps on a 64×40 grey thumbnail and returns the time just
-// after the last frame whose pixels are all one value. A page can paint a
-// frame and then blank again while it loads, so this looks for the last
-// blank frame rather than the first painted one.
-function blankLeadSec(file) {
-  const W = 64, H = 40, FPS = 20;
-  const raw = execFileSync("ffmpeg", [
-    "-loglevel", "error", "-t", "4", "-i", file,
-    "-vf", `fps=${FPS},scale=${W}:${H},format=gray`, "-f", "rawvideo", "-",
-  ], { maxBuffer: 16 * 1024 * 1024 });
-  const n = W * H;
-  let lastBlank = -1;
-  for (let i = 0; (i + 1) * n <= raw.length; i++) {
-    const frame = raw.subarray(i * n, (i + 1) * n);
-    if (frame.every((v) => v === frame[0])) lastBlank = i;
+// Close intro dialogs and cookie banners so the demo opens on the page
+// itself. Escape first, then any visible close or accept control.
+async function dismissOverlays(page) {
+  await page.keyboard.press("Escape").catch(() => {});
+  const controls = page.locator(
+    [
+      '[role="dialog"] button[aria-label*="close" i]',
+      '[role="dialog"] button:has-text("×")',
+      'button:has-text("Explore")',
+      'button:has-text("Accept")',
+      'button:has-text("Got it")',
+      'button:has-text("Dismiss")',
+    ].join(", "),
+  );
+  for (let i = 0; i < 3; i++) {
+    const first = controls.first();
+    if (!(await first.isVisible({ timeout: 500 }).catch(() => false))) break;
+    await first.click({ timeout: 2_000 }).catch(() => {});
+    await page.waitForTimeout(400);
   }
-  return lastBlank < 0 ? 0 : (lastBlank + 1) / FPS + 0.05;
 }
 
 async function recordOne(target) {
   const workdir = mkdtempSync(path.join(tmpdir(), `demo-${target.id}-`));
-  console.log(`[${target.id}] recording ${VIDEO_W}×${VIDEO_H} → ${workdir}`);
+  console.log(`[${target.id}] recording ${VIDEO_W}×${VIDEO_H} @ ${VIDEO_FPS} fps → ${workdir}`);
 
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({
-    viewport: { width: VIDEO_W, height: VIDEO_H },
-    // deviceScaleFactor stays at 1 — we *are* the high-res capture
-    // now. Bumping to 2 would inflate VP9 file size for no extra
-    // detail beyond what the 1440×900 grid already encodes.
-    recordVideo: {
-      dir: workdir,
-      size: { width: VIDEO_W, height: VIDEO_H },
-    },
-  });
-  const page = await context.newPage();
+  const browser = await chromium.launch(launchOptions);
+  try {
+    const context = await browser.newContext({ viewport: { width: VIDEO_W, height: VIDEO_H } });
+    await installClock(context);
+    const page = await context.newPage();
 
-  // Some live demos keep a websocket/SSE connection open after first
-  // paint (ocaml-lob's order-book stream, qforge's training feed),
-  // so "networkidle" never fires. domcontentloaded + a generous dwell
-  // is both more reliable and faster.
-  await page.goto(target.url, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  await page.waitForTimeout(2_500);
+    // Some live demos keep a websocket/SSE connection open after first
+    // paint, so "networkidle" never fires. domcontentloaded plus a dwell
+    // lets them settle before capture starts.
+    await page.goto(target.url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(3_000);
+    await dismissOverlays(page);
+    await page.evaluate(() => window.scrollTo(0, 0));
 
-  // Slow page-scroll to expose the full document in the video. Most
-  // pages on the live deploys are tall single-column reports — a
-  // smooth scroll from top to bottom is the most readable narrative.
-  // For interactive demos (ocaml-lob, qforge) this still works
-  // because the landing page is the demo surface.
-  const totalScrollMs = target.durationMs - 3_500;
-  const scrollSteps = 60;
-  const stepMs = Math.max(50, Math.floor(totalScrollMs / scrollSteps));
-  await page.evaluate(
-    async ({ steps, stepMs }) => {
-      const max = Math.max(
-        document.body.scrollHeight - window.innerHeight,
-        document.documentElement.scrollHeight - window.innerHeight,
-      );
-      for (let i = 1; i <= steps; i++) {
-        window.scrollTo({ top: (max * i) / steps, behavior: "instant" });
-        await new Promise((r) => setTimeout(r, stepMs));
-      }
-    },
-    { steps: scrollSteps, stepMs },
-  );
+    const rec = await frameRecorder(page, { fps: VIDEO_FPS, dir: workdir });
+    await rec.hold(HOLD_START_MS);
 
-  // Hold the end-frame so the loop has a clear "rest" beat before it cuts.
-  await page.waitForTimeout(2_000);
+    // Glide from top to bottom so the whole page shows in the loop.
+    const max = await page.evaluate(() =>
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+    );
+    const scrollMs = target.durationMs - HOLD_START_MS - HOLD_END_MS;
+    await rec.tween(scrollMs, (t) => page.evaluate((y) => window.scrollTo(0, y), Math.round(max * t)));
+    await rec.hold(HOLD_END_MS);
 
-  await context.close();
-  await browser.close();
-
-  // Playwright drops the recording at a randomized filename inside workdir.
-  const recorded = readdirSync(workdir)
-    .filter((f) => f.endsWith(".webm"))
-    .map((f) => path.join(workdir, f))
-    .filter((f) => statSync(f).size > 0)[0];
-  if (!recorded) {
-    throw new Error(`[${target.id}] no .webm produced under ${workdir}`);
+    const finalPath = path.join(OUT_DIR, `${target.id}.webm`);
+    encodeFrames(workdir, VIDEO_FPS, finalPath, VIDEO_BITRATE);
+    console.log(
+      `[${target.id}] wrote ${path.relative(REPO_ROOT, finalPath)} ` +
+        `(${rec.count} frames, capture took ${rec.slowdown.toFixed(1)}× real time, ${(statSync(finalPath).size / 1024).toFixed(1)} KB)`,
+    );
+  } finally {
+    await browser.close();
+    rmSync(workdir, { recursive: true, force: true });
   }
-
-  // Playwright starts recording before the first paint, so every capture
-  // opens on up to ~2.5 s of blank frames that flash on each loop. Skip
-  // past them.
-  const leadSec = blankLeadSec(recorded);
-
-  // Re-encode to VP9. Two-pass libvpx-vp9 at 300 kbps lands the
-  // 1440×900 / 24 fps demos in the ~400–700 KB range, depending on
-  // how scroll-heavy the source page is. Single-pass refuses to
-  // honour the budget on motion-heavy clips; pass 1 builds the
-  // first-pass stats, pass 2 actually writes the file.
-  const finalPath = path.join(OUT_DIR, `${target.id}.webm`);
-  const passLogPrefix = path.join(workdir, "vp9pass");
-  const common = [
-    "-ss", leadSec.toFixed(2),
-    "-c:v", "libvpx-vp9",
-    "-b:v", VIDEO_BITRATE,
-    "-deadline", "good", "-cpu-used", "2", "-row-mt", "1",
-    "-vf", `scale=${VIDEO_W}:${VIDEO_H}:flags=lanczos,fps=${VIDEO_FPS}`,
-    "-an",
-    "-passlogfile", passLogPrefix,
-  ];
-  execFileSync("ffmpeg", [
-    "-y", "-loglevel", "error", "-i", recorded,
-    ...common, "-pass", "1", "-f", "null", "/dev/null",
-  ], { stdio: "inherit" });
-  execFileSync("ffmpeg", [
-    "-y", "-loglevel", "error", "-i", recorded,
-    ...common, "-pass", "2", finalPath,
-  ], { stdio: "inherit" });
-  rmSync(workdir, { recursive: true, force: true });
-  console.log(
-    `[${target.id}] wrote ${path.relative(REPO_ROOT, finalPath)} ` +
-      `(${(statSync(finalPath).size / 1024).toFixed(1)} KB)`,
-  );
 }
 
 // CLI: positional args select a subset of TARGETS. No args = record

@@ -10,7 +10,7 @@
 // This script fixes both:
 //   - Phase 1 wakes the app in a throwaway context (no recording), so the
 //     startup spinner never reaches the video.
-//   - Phase 2 records at 1440×720 — exactly the 2:1 aspect of the card's
+//   - Phase 2 captures frame by frame (capture.mjs) at 1440×720 — exactly the 2:1 aspect of the card's
 //     hero box, so object-fit:contain doesn't letterbox. It holds on the
 //     headline, scrolls to the section, sweeps the probe across all four
 //     recorded days, then rests on the order book at the last tick.
@@ -18,11 +18,11 @@
 // Usage: node scripts/record-demos/record-tradetell.mjs
 
 import { chromium } from "@playwright/test";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, readdirSync, statSync } from "node:fs";
+import { mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { encodeFrames, frameRecorder, installClock, launchOptions } from "./capture.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
@@ -40,8 +40,8 @@ const ORDER_BOOK = '[aria-label="Order book at the probe"]';
 // so it stays sharp on retina.
 const VIDEO_W = 1440;
 const VIDEO_H = 720;
-const VIDEO_FPS = 24;
-const VIDEO_BITRATE = "320k";
+const VIDEO_FPS = 30;
+const VIDEO_BITRATE = "700k";
 
 // Returns the app iframe Frame once the probe slider is visible inside it.
 async function waitForSectionReady(page, timeoutMs = 120_000) {
@@ -70,17 +70,10 @@ async function scrollTop(appFrame, top) {
   return appFrame.evaluate(`${SCROLLER}.scrollTop = ${top}`);
 }
 
-// Scroll so `top` (content px) sits at the top of the viewport, easing
-// over `durationMs` so the move reads in the video.
-async function glideTo(appFrame, page, top, durationMs) {
-  const steps = 30;
+// Ease the scroll to `top` (content px) over `ms` of video.
+async function glideTo(appFrame, rec, top, ms) {
   const start = await scrollTop(appFrame);
-  for (let i = 1; i <= steps; i++) {
-    const t = i / steps;
-    const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
-    await scrollTop(appFrame, start + (top - start) * eased);
-    await page.waitForTimeout(durationMs / steps);
-  }
+  await rec.tween(ms, (t) => scrollTop(appFrame, start + (top - start) * t));
 }
 
 // Content-space top of the first element matching `selector`.
@@ -96,7 +89,7 @@ async function topOf(appFrame, selector, margin = 24) {
 // the final video.
 async function wakeApp() {
   console.log("[tradetell] phase 1 — waking app (no recording)");
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch(launchOptions);
   const ctx = await browser.newContext({ viewport: { width: VIDEO_W, height: VIDEO_H } });
   const page = await ctx.newPage();
 
@@ -119,115 +112,96 @@ async function wakeApp() {
 // Phase 2 — record the section walkthrough.
 async function recordDemo() {
   const workdir = mkdtempSync(path.join(tmpdir(), "demo-tradetell-"));
-  console.log(`[tradetell] phase 2 — recording to ${workdir}`);
+  console.log(`[tradetell] phase 2 — capturing to ${workdir}`);
 
-  const browser = await chromium.launch({ headless: true });
-  const ctx = await browser.newContext({
-    viewport: { width: VIDEO_W, height: VIDEO_H },
-    recordVideo: { dir: workdir, size: { width: VIDEO_W, height: VIDEO_H } },
-  });
+  const browser = await chromium.launch(launchOptions);
+  try {
+    const ctx = await browser.newContext({ viewport: { width: VIDEO_W, height: VIDEO_H } });
+    await installClock(ctx);
 
-  // Pin a dark background in every frame (outer shell + the Streamlit
-  // iframe) before any script runs, so the recording never opens on the
-  // white pre-theme flash.
-  await ctx.addInitScript(() => {
-    const apply = () => {
-      const s = document.createElement("style");
-      s.textContent = "html,body{background:#0e1117 !important;}";
-      (document.head || document.documentElement).appendChild(s);
-    };
-    if (document.head || document.documentElement) apply();
-    else document.addEventListener("DOMContentLoaded", apply);
-  });
+    // Pin a dark background in every frame (outer shell + the Streamlit
+    // iframe) before any script runs, so no frame shows the white
+    // pre-theme flash.
+    await ctx.addInitScript(() => {
+      const apply = () => {
+        const s = document.createElement("style");
+        s.textContent = "html,body{background:#0e1117 !important;}";
+        (document.head || document.documentElement).appendChild(s);
+      };
+      if (document.head || document.documentElement) apply();
+      else document.addEventListener("DOMContentLoaded", apply);
+    });
 
-  const page = await ctx.newPage();
-  // Video recording begins roughly when the page is created. Timestamp it so
-  // we can trim the variable iframe-reconnect lead-in to exactly the moment
-  // content first paints (see leadSec below).
-  const tStart = Date.now();
+    const page = await ctx.newPage();
+    await page.goto(APP_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(2_000);
 
-  await page.goto(APP_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  await page.waitForTimeout(2_000);
-
-  // Guard: click wake again if the app fell back asleep between phases.
-  const wakeBtn = page.locator('[data-testid="wakeup-button-viewer"]');
-  if (await wakeBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await wakeBtn.click();
-  }
-
-  const appFrame = await waitForSectionReady(page);
-  console.log("[tradetell] section ready in recording context");
-
-  // The "Hosted with Streamlit" kite badge lives in the OUTER shell page,
-  // outside the iframe, so it has to be hidden from here.
-  await page.addStyleTag({
-    content: `a[href*="streamlit.io"], [class*="viewerBadge"], [data-testid="stStatusWidget"] { display: none !important; }`,
-  }).catch(() => {});
-
-  // Park the probe on the first tick so the sweep starts at the left edge.
-  await appFrame.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    el.focus({ preventScroll: true });
-    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
-  }, PROBE);
-  await scrollTop(appFrame, 0);
-  await appFrame.getByRole("heading", { level: 1 }).first()
-    .waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
-  await page.waitForTimeout(600);
-  // Everything recorded before now is the empty-dark reconnect lead-in.
-  // Keep ~0.4s of it so the open isn't an abrupt hard cut.
-  const leadSec = Math.max(0, (Date.now() - tStart) / 1000 - 0.4);
-  console.log(`[tradetell] trimming ${leadSec.toFixed(1)}s lead-in`);
-
-  // Beat 1: hold on the headline so the viewer reads what this is.
-  await page.waitForTimeout(3_000);
-
-  // Beat 2: bring the price section into frame and sweep the probe across
-  // all four days. PageUp moves it 100 ticks, so 400 presses cross 40,000.
-  // The presses are dispatched inside the page in batches of four: one
-  // Playwright round trip per press stretched the sweep past two minutes.
-  await glideTo(appFrame, page, await topOf(appFrame, "#tt-section", 16), 1_400);
-  await appFrame.evaluate(async (sel) => {
-    const el = document.querySelector(sel);
-    for (let step = 0; step < 100; step++) {
-      for (let k = 0; k < 4; k++) {
-        el.dispatchEvent(new KeyboardEvent("keydown", { key: "PageUp", bubbles: true }));
-      }
-      await new Promise((r) => setTimeout(r, 120));
+    // Guard: click wake again if the app fell back asleep between phases.
+    const wakeBtn = page.locator('[data-testid="wakeup-button-viewer"]');
+    if (await wakeBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await wakeBtn.click();
     }
-  }, PROBE);
-  await page.waitForTimeout(1_200);
 
-  // Beat 3: rest on the order book at the last tick.
-  await glideTo(appFrame, page, await topOf(appFrame, ORDER_BOOK), 1_400);
-  await page.waitForTimeout(2_500);
+    const appFrame = await waitForSectionReady(page);
+    console.log("[tradetell] section ready in recording context");
 
-  await ctx.close();
-  await browser.close();
+    // The "Hosted with Streamlit" kite badge lives in the OUTER shell page,
+    // outside the iframe, so it has to be hidden from here.
+    await page
+      .addStyleTag({
+        content: `a[href*="streamlit.io"], [class*="viewerBadge"], [data-testid="stStatusWidget"] { display: none !important; }`,
+      })
+      .catch(() => {});
 
-  // Encode — two-pass VP9 to hit the bitrate target on this longer clip.
-  const recorded = readdirSync(workdir)
-    .filter((f) => f.endsWith(".webm"))
-    .map((f) => path.join(workdir, f))
-    .filter((f) => statSync(f).size > 0)[0];
-  if (!recorded) throw new Error(`no .webm produced under ${workdir}`);
+    // Park the probe on the first tick so the sweep starts at the left edge.
+    await appFrame.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      el.focus({ preventScroll: true });
+      el.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    }, PROBE);
+    await scrollTop(appFrame, 0);
+    await appFrame
+      .getByRole("heading", { level: 1 })
+      .first()
+      .waitFor({ state: "visible", timeout: 15_000 })
+      .catch(() => {});
+    await page.waitForTimeout(600);
 
-  const finalPath = path.join(OUT_DIR, "tradetell.webm");
-  const passLogPrefix = path.join(workdir, "vp9pass");
-  const common = [
-    "-ss", leadSec.toFixed(2),
-    "-c:v", "libvpx-vp9", "-b:v", VIDEO_BITRATE,
-    "-deadline", "good", "-cpu-used", "2", "-row-mt", "1",
-    "-vf", `scale=${VIDEO_W}:${VIDEO_H}:flags=lanczos,fps=${VIDEO_FPS}`,
-    "-an", "-passlogfile", passLogPrefix,
-  ];
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", recorded, ...common, "-pass", "1", "-f", "null", "/dev/null"], { stdio: "inherit" });
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", recorded, ...common, "-pass", "2", finalPath], { stdio: "inherit" });
-  rmSync(workdir, { recursive: true, force: true });
-  console.log(
-    `[tradetell] wrote ${path.relative(REPO_ROOT, finalPath)} ` +
-    `(${(statSync(finalPath).size / 1024).toFixed(1)} KB)`,
-  );
+    const rec = await frameRecorder(page, { fps: VIDEO_FPS, dir: workdir });
+
+    // Beat 1: hold on the headline so the viewer reads what this is.
+    await rec.hold(3_000);
+
+    // Beat 2: bring the price section into frame and sweep the probe across
+    // all four days. PageUp moves it 100 ticks, so 400 presses cross 40,000;
+    // two presses per frame make a 200-frame sweep.
+    await glideTo(appFrame, rec, await topOf(appFrame, "#tt-section", 16), 1_400);
+    for (let i = 0; i < 200; i++) {
+      await appFrame.evaluate((sel) => {
+        const el = document.querySelector(sel);
+        for (let k = 0; k < 2; k++) {
+          el.dispatchEvent(new KeyboardEvent("keydown", { key: "PageUp", bubbles: true }));
+        }
+      }, PROBE);
+      await rec.frame();
+    }
+    await rec.hold(1_200);
+
+    // Beat 3: rest on the order book at the last tick.
+    await glideTo(appFrame, rec, await topOf(appFrame, ORDER_BOOK), 1_400);
+    await rec.hold(2_500);
+
+    const finalPath = path.join(OUT_DIR, "tradetell.webm");
+    encodeFrames(workdir, VIDEO_FPS, finalPath, VIDEO_BITRATE);
+    console.log(
+      `[tradetell] wrote ${path.relative(REPO_ROOT, finalPath)} ` +
+        `(${rec.count} frames, capture took ${rec.slowdown.toFixed(1)}× real time, ` +
+        `${(statSync(finalPath).size / 1024).toFixed(1)} KB)`,
+    );
+  } finally {
+    await browser.close();
+    rmSync(workdir, { recursive: true, force: true });
+  }
 }
 
 await wakeApp();
