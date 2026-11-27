@@ -5,6 +5,10 @@
 > Reverse-chronological; one paragraph max per entry.
 > Tags: #decision #pivot #incident #quote #feedback #milestone.
 
+## 2026-11-26: Panels become the rack's KVM drawer #decision
+
+The panels were still a dark box with a neon edge floating over the room, which read as a generic modal. Each one is now the console drawer a real rack carries: a 1U front with ears, handles and a label-maker tag for the title, and a screen that hinges up behind it. The hardware is rendered in Blender (`blend/kvm_parts.py`, output in `public/img/kvm`) in the racks' own powder coat, not drawn in CSS. The aisle strip became the KVM switch's port keys, one per rack with an LED in its colour, and they are real buttons now instead of decoration. The room dims behind an open drawer, the title takes focus on open so the eject key no longer lights up as if pressed, the headline and button glows are gone, and the demo box caps at 42vh so the links sit above the fold. On phones the drawer rises from the bottom edge and keeps only prev, next and eject. The OCaml LOB demo still opens on its own site's intro dialog and needs a re-record.
+
 ## 2026-10-28: Replace the phantom axe step with a Playwright check #ci #decision
 
 The workflow ran `npx axe-core-cli` with an echo fallback, and that package has never existed on npm, so the accessibility check passed without checking anything. Removing the fallback exposed it. The homepage is now scanned with axe through `@axe-core/playwright` for WCAG 2.2 A and AA rules at mobile and desktop widths inside the existing e2e job. The first real run found rack labels under the 24px target size. The scene scales those labels to about 0.6 with distance, so their base height is now 44px.

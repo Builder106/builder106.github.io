@@ -2,7 +2,7 @@ import { CLUSTER_DISPLAY, projects, TOUR_ORDER, type Project } from '@/data/proj
 import { repoStats } from '@/data/repoStats.generated';
 import type { ActivePanel } from '@/scene/activePanel';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AisleStrip } from './AisleStrip';
+import { KvmPorts } from './KvmPorts';
 import { PanelShell } from './PanelShell';
 import { StackChip } from './StackChip';
 
@@ -86,37 +86,41 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
     };
   }, [shown]);
 
-  const bezel = shown && (prevProject || nextProject) && (
-    <nav className="project-card__nav" aria-label="Project navigation">
-      {prevProject && (
-        <button
-          type="button"
-          className="project-card__nav-btn project-card__nav-btn--prev"
-          onClick={() => onNavigate({ kind: 'project', projectId: prevProject.id })}
-          aria-label={`Previous rack: ${prevProject.name}`}
-        >
-          <span aria-hidden>←</span>
-          <span className="project-card__nav-name" aria-hidden>
-            {prevProject.name}
-          </span>
-        </button>
-      )}
-      <AisleStrip activeId={shown.id} />
-      {nextProject && (
-        <button
-          type="button"
-          className="project-card__nav-btn project-card__nav-btn--next"
-          onClick={() => onNavigate({ kind: 'project', projectId: nextProject.id })}
-          aria-label={`Next rack: ${nextProject.name}`}
-        >
-          <span className="project-card__nav-name" aria-hidden>
-            {nextProject.name}
-          </span>
-          <span aria-hidden>→</span>
-        </button>
-      )}
+  const tray = shown && (
+    <nav className="kvm__nav" aria-label="Project navigation">
+      <KvmPorts activeId={shown.id} onNavigate={onNavigate} />
+      <span className="kvm__step">
+        {prevProject && (
+          <button
+            type="button"
+            className="kvm__step-btn"
+            onClick={() => onNavigate({ kind: 'project', projectId: prevProject.id })}
+            aria-label={`Previous rack: ${prevProject.name}`}
+            title={prevProject.name}
+          >
+            <span aria-hidden>←</span>
+          </button>
+        )}
+        {nextProject && (
+          <button
+            type="button"
+            className="kvm__step-btn"
+            onClick={() => onNavigate({ kind: 'project', projectId: nextProject.id })}
+            aria-label={`Next rack: ${nextProject.name}`}
+            title={nextProject.name}
+          >
+            <span aria-hidden>→</span>
+          </button>
+        )}
+      </span>
     </nav>
   );
+
+  const portIndex = shown ? TOUR_ORDER.indexOf(shown.id as (typeof TOUR_ORDER)[number]) : -1;
+  const osd =
+    shown && portIndex >= 0
+      ? `PORT ${String(portIndex + 1).padStart(2, '0')}  ${CLUSTER_DISPLAY[shown.cluster].toUpperCase()}`
+      : undefined;
 
   return (
     <PanelShell
@@ -124,7 +128,8 @@ export function ProjectCard({ project, onClose, onNavigate }: ProjectCardProps) 
       title={shown?.name ?? 'Project'}
       onClose={onClose}
       variantClass="panel--project"
-      bezel={bezel}
+      tray={tray}
+      osd={osd}
       accent={shown?.color}
     >
       {shown && (

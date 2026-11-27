@@ -14,7 +14,7 @@ import {
   type KeyboardEvent,
   type SubmitEvent,
 } from 'react';
-import { AisleStrip } from './AisleStrip';
+import { KvmPorts } from './KvmPorts';
 import { PanelShell } from './PanelShell';
 
 interface TradingTerminalProps {
@@ -1031,7 +1031,9 @@ export function TradingTerminal({
       title="Console"
       onClose={onClose}
       variantClass="panel--console"
-      bezel={<AisleStrip activeId={variant === 'portrait' ? activeRackId : null} />}
+      tray={
+        <KvmPorts activeId={variant === 'portrait' ? activeRackId : null} onNavigate={onNavigate} />
+      }
     >
       <div className="console">
         <section className="console__terminal" aria-label="Terminal">
@@ -1103,7 +1105,7 @@ export function TradingTerminal({
 
           {/* Portrait walks a virtual aisle, so the status line reports
               the scroll position and the rack nearest the camera (also
-              lit in the bezel strip). Landscape orbits instead and never
+              lit on the drawer's port keys). Landscape orbits instead and never
               scrolls, so it reports session uptime. */}
           <span
             className={`console-status__item ${

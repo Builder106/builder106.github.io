@@ -10,10 +10,12 @@ interface PanelShellProps {
   // that need a wider/taller variant — e.g. TradingTerminal asks for
   // `.panel--console` so the terminal + push list have room to breathe.
   variantClass?: string;
-  // Content placed in the bezel between the title and the close button:
-  // the aisle strip and prev/next on a project card, the aisle telemetry
-  // on the console.
-  bezel?: ReactNode;
+  // Controls on the drawer front between the label and the eject key:
+  // the KVM port keys and prev/next on a project card and the console.
+  tray?: ReactNode;
+  // Text for the KVM on-screen display in the screen's top corner,
+  // e.g. "PORT 02". Omitted on panels with no port.
+  osd?: string;
   // Accent colour of the thing that was clicked. Drives the chassis edge,
   // glow, slats and primary action through --accent. Defaults to the
   // room's cyan in Panel.css.
@@ -24,15 +26,18 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 // Shared chassis for every dialog panel (TradingTerminal, ProjectCard,
-// ContactPing): rack-body housing, a bezel across the top with the title
-// and close control, and an accent taken from what was clicked.
+// ContactPing): the rack's KVM console drawer. The 1U drawer front rolls
+// out with a label-maker tag (the title), the port keys and an eject key;
+// the screen hinges up behind it and shows the content. The accent is the
+// colour of what was clicked and lights the screen and the port LED.
 export function PanelShell({
   open,
   title,
   onClose,
   children,
   variantClass,
-  bezel,
+  tray,
+  osd,
   accent,
 }: PanelShellProps) {
   // Set the `inert` DOM property on the root when closed. inert removes
@@ -41,7 +46,7 @@ export function PanelShell({
   // (the close button + the contact-card COPY buttons were tab-reachable
   // even when the panel was visually hidden).
   const rootRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
 
@@ -51,10 +56,12 @@ export function PanelShell({
     if (open) {
       previousFocusRef.current = document.activeElement as HTMLElement | null;
       // Move focus into the dialog so keyboard users start in its scope.
-      // A child that already took focus (the console prompt) keeps it.
+      // The title takes it, not the eject key, so no control lights up as
+      // if it were pressed. A child that already took focus (the console
+      // prompt) keeps it.
       const focusTimer = window.setTimeout(() => {
         if (rootRef.current?.contains(document.activeElement)) return;
-        closeButtonRef.current?.focus();
+        titleRef.current?.focus({ preventScroll: true });
       }, 50);
 
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -94,39 +101,53 @@ export function PanelShell({
   const style = accent ? ({ '--accent': accent } as CSSProperties) : undefined;
 
   return (
-    <div
-      ref={rootRef}
-      className={`panel ${open ? 'panel--open' : ''} ${variantClass ?? ''}`.trim()}
-      role="dialog"
-      aria-modal={open}
-      aria-labelledby={titleId}
-      aria-hidden={!open}
-      style={style}
-    >
-      <div className="panel__inner">
-        <header className="panel__header">
-          <h2 className="panel__title" id={titleId}>
+    <>
+      <div
+        className={`panel-dim ${open ? 'panel-dim--on' : ''}`.trim()}
+        aria-hidden
+        onClick={onClose}
+      />
+      <div
+        ref={rootRef}
+        className={`panel kvm ${open ? 'panel--open' : ''} ${variantClass ?? ''}`.trim()}
+        role="dialog"
+        aria-modal={open}
+        aria-labelledby={titleId}
+        aria-hidden={!open}
+        style={style}
+      >
+        <div className="kvm__lid">
+          <div className="kvm__screen">
+            {osd && (
+              <p className="kvm__osd" aria-hidden>
+                {osd}
+              </p>
+            )}
+            <div className="panel__body">{children}</div>
+          </div>
+        </div>
+        <div className="kvm__hinge" aria-hidden />
+        <div className="kvm__tray">
+          <span className="kvm__handle" aria-hidden />
+          <h2 className="panel__title kvm__label" id={titleId} ref={titleRef} tabIndex={-1}>
             {title}
           </h2>
-          {bezel}
+          <div className="kvm__controls">{tray}</div>
           <button
-            ref={closeButtonRef}
             type="button"
-            className="panel__close"
+            className="kvm__eject panel__close"
             onClick={onClose}
             aria-label="Close (Esc)"
           >
-            <span className="panel__close-key" aria-hidden>
-              esc
-            </span>
-            <span className="panel__close-touch" aria-hidden>
-              close
+            <span className="kvm-port__key" aria-hidden />
+            <span className="kvm__eject-text" aria-hidden>
+              <span className="panel__close-key">esc</span>
+              <span className="panel__close-touch">close</span>
             </span>
           </button>
-        </header>
-
-        <div className="panel__body">{children}</div>
+          <span className="kvm__handle kvm__handle--right" aria-hidden />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

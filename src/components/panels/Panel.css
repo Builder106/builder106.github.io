@@ -1,18 +1,36 @@
 /* Panel chassis shared by ProjectCard, TradingTerminal and ContactPing.
  *
- * Each panel is the face of what was clicked: a rack-body housing with a
- * bezel across the top, lit in --accent (the project's own colour on a
- * rack card, room cyan on the console and contact). Only three lines are
- * drawn: the chassis edge, the bezel's lower edge, and the console's
- * status-line rule. Nothing else gets a border.
+ * Every panel is the rack's KVM console drawer, built from Blender renders
+ * of the hardware (public/img/kvm). The 1U drawer front rolls out of the
+ * rack, then the screen hinges up behind it. The accent is the colour of
+ * what was clicked: it backlights the screen and lights that rack's port
+ * LED. No neon frame, no glass: the light comes from the screen.
  */
+
+.panel-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: radial-gradient(ellipse at 50% 45%, rgba(3, 4, 8, 0.3), rgba(3, 4, 8, 0.82) 75%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease-in;
+}
+
+.panel-dim--on {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 420ms ease-out 200ms;
+}
 
 .panel {
   --accent: var(--neon-cyan);
-  --panel-bg: #0a0b14;
   --panel-screen: #04050a;
-  --panel-muted: #9aa1b9;
-  --panel-text: rgba(230, 233, 242, 0.88);
+  --panel-muted: #a3aac0;
+  --panel-text: rgba(230, 233, 242, 0.9);
+  --u: 64px; /* one rack unit on screen */
+  --ear: calc(var(--u) * 0.36);
+  --handle: calc(var(--u) * 0.405);
 
   position: fixed;
   top: 50%;
@@ -20,101 +38,281 @@
   z-index: 50;
   display: flex;
   flex-direction: column;
-  width: min(720px, calc(100vw - 48px));
-  max-height: min(90vh, 880px);
+  width: min(760px, calc(100vw - 48px - var(--ear) * 2));
+  max-height: min(92vh, 900px);
   color: var(--text-primary);
   font-family: var(--font-display);
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, calc(-50% + 12px));
-  /* Closing starts at once and is quick: the body retracts into the
-     bezel, then the bezel fades while the camera flies back. */
-  transition:
-    opacity 100ms ease-in 120ms,
-    transform 220ms ease-in;
+  transform: translate(-50%, -50%);
+  perspective: 1800px;
+  transition: opacity 120ms ease-in 220ms;
 }
 
 .panel--open {
   opacity: 1;
   pointer-events: auto;
-  transform: translate(-50%, -50%);
-  /* Opening waits ~280ms for the CameraRig push-in to land so the panel
-     doesn't reveal over a camera still in flight. The bezel appears
-     quickly; the body then extends below it. */
-  transition:
-    opacity 120ms ease-out 280ms,
-    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 280ms;
+  /* Waits for the CameraRig push-in to land before the drawer moves. */
+  transition: opacity 120ms ease-out 260ms;
 }
 
-.panel__inner {
+/* ---------- Screen (the lid) ---------- */
+
+.kvm__lid {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  margin-inline: calc(var(--u) * 0.12);
+  border: 18px solid transparent;
+  border-image: url('/img/kvm/bezel.webp') 78 / 18px stretch;
+  filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.55));
+  transform-origin: 50% 100%;
+  transform: rotateX(82deg);
+  transition: transform 200ms cubic-bezier(0.5, 0, 0.75, 0);
+}
+
+.panel--open .kvm__lid {
+  transform: rotateX(0deg);
+  transition: transform 560ms cubic-bezier(0.2, 0.9, 0.25, 1) 420ms;
+}
+
+.kvm__screen {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
+  min-width: 0;
   min-height: 0;
-  overflow: hidden;
-  background: var(--panel-bg);
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  border-radius: 2px;
-  /* The glow is the rack's floor light: the accent spilling around the
-     housing, not a glass blur. */
+  background:
+    linear-gradient(162deg, rgba(255, 255, 255, 0.035), transparent 38%), var(--panel-screen);
+  /* The backlight: the screen's own colour lifting the dark glass. */
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.6),
-    0 28px 80px rgba(0, 0, 0, 0.65),
-    0 0 64px color-mix(in srgb, var(--accent) 14%, transparent);
-  /* Background and content are clipped together, so the body extends
-     down out of the bezel instead of showing an empty box first. */
-  clip-path: inset(0 0 calc(100% - 48px) 0);
-  transition: clip-path 180ms cubic-bezier(0.5, 0, 0.75, 0);
+    inset 0 0 0 1px #000,
+    inset 0 0 140px color-mix(in srgb, var(--accent) 7%, transparent);
 }
 
-.panel--open .panel__inner {
-  clip-path: inset(0 0 0 0);
-  transition: clip-path 440ms cubic-bezier(0.65, 0, 0.35, 1) 340ms;
+/* KVM on-screen display: the port the screen is switched to. */
+.kvm__osd {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: pre;
+  color: #04050a;
+  background: var(--accent);
+  pointer-events: none;
 }
 
-/* ---------- Bezel ---------- */
+/* ---------- Hinge ---------- */
 
-.panel__header {
+.kvm__hinge {
+  flex-shrink: 0;
+  height: 7px;
+  margin-inline: calc(var(--u) * 0.5);
+  background: url('/img/kvm/hinge-tile.webp') 0 0 / auto 100% repeat-x;
+}
+
+/* ---------- Drawer front (1U) ---------- */
+
+.kvm__tray {
+  position: relative;
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 16px;
-  min-height: 48px;
-  padding: 0 10px 0 20px;
-  background: var(--bg-rack);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 55%, transparent);
+  gap: 14px;
+  height: var(--u);
+  padding-inline: 4px;
+  border: 0 solid transparent;
+  border-width: 3px 16px;
+  border-image: url('/img/kvm/faceplate.webp') 6 60 fill / 3px 16px stretch;
+  transform: translateY(28px);
+  transition: transform 180ms ease-in 120ms;
 }
 
-.panel__title {
+.panel--open .kvm__tray {
+  transform: translateY(0);
+  transition: transform 340ms cubic-bezier(0.2, 0.8, 0.2, 1) 260ms;
+}
+
+/* Rack ears: the mounting flanges reach past the drawer on both sides. */
+.kvm__tray::before,
+.kvm__tray::after {
+  position: absolute;
+  top: -3px;
+  width: var(--ear);
+  height: var(--u);
+  content: '';
+  background: url('/img/kvm/ear-tile.webp') 0 0 / 100% 100%;
+}
+
+.kvm__tray::before {
+  left: calc(-16px - var(--ear));
+}
+
+.kvm__tray::after {
+  right: calc(-16px - var(--ear));
+}
+
+.kvm__handle {
+  flex-shrink: 0;
+  width: var(--handle);
+  height: calc(var(--u) - 6px);
+  background: url('/img/kvm/handle.webp') center / contain no-repeat;
+}
+
+/* Label-maker tape stuck to the faceplate: the panel title. */
+.kvm__label {
   flex: 0 1 auto;
   min-width: 0;
+  max-width: 220px;
   overflow: hidden;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.005em;
+  padding: 4px 9px 3px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
   text-overflow: ellipsis;
+  color: #0b0c12;
+  background: #fff;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  rotate: -0.8deg;
 }
 
-.panel__close {
-  flex-shrink: 0;
-  min-width: 44px;
-  min-height: 32px;
-  margin-left: auto;
-  padding: 0 10px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--panel-muted);
+.kvm__controls {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Every press on the drawer is a rubber key that travels 1px. */
+.kvm-port__key {
+  display: block;
+  width: 24px;
+  height: 18px;
+  background: url('/img/kvm/port-key.webp') center / 100% 100% no-repeat;
+  transition: translate 80ms ease-out;
+}
+
+:is(.kvm-port, .kvm__step-btn, .kvm__eject):active .kvm-port__key,
+.kvm__step-btn:active {
+  translate: 0 1px;
+}
+
+:is(.kvm-port, .kvm__eject):active .kvm-port__key {
+  background-image: url('/img/kvm/port-key-down.webp');
+}
+
+.kvm-ports {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  list-style: none;
+}
+
+.kvm-ports__item--wing {
+  margin-left: 8px;
+}
+
+.kvm-port {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 26px;
+  min-height: 48px;
+  padding: 2px 0;
   border-radius: 2px;
+}
+
+/* A light pipe above each key, lit in its rack's colour. */
+.kvm-port__led {
+  width: 10px;
+  height: 3px;
+  background: color-mix(in srgb, var(--led) 16%, #0b0c12);
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.kvm-port:hover .kvm-port__led {
+  background: color-mix(in srgb, var(--led) 60%, #0b0c12);
+}
+
+.kvm-port[aria-current='true'] .kvm-port__led {
+  background: var(--led);
+  box-shadow: 0 0 6px var(--led);
+}
+
+.kvm-port__num {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  color: #b4bad0;
+}
+
+.kvm-port[aria-current='true'] .kvm-port__num {
+  color: #fff;
+}
+
+.kvm__nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.kvm__step {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.kvm__step-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 28px;
+  font-size: 14px;
+  color: #c9cfe2;
+  background: url('/img/kvm/port-key.webp') center / 100% 100% no-repeat;
   transition:
     color 140ms ease,
-    background 140ms ease;
+    translate 80ms ease-out;
 }
 
-.panel__close:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.06);
+.kvm__step-btn:hover {
+  color: #fff;
+}
+
+.kvm__eject {
+  display: inline-flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 44px;
+  min-height: 48px;
+  justify-content: center;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #b4bad0;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.kvm__eject:hover {
+  color: #fff;
 }
 
 .panel__close-touch {
@@ -130,51 +328,19 @@
   }
 }
 
-/* Drawn inside the control: the chassis clips anything outside it. */
 .panel :focus-visible {
   outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The title takes focus on open so keyboard users start in the dialog;
+   it is not a control, so it draws no ring. */
+.kvm__label:is(:focus, :focus-visible) {
+  outline: none;
+}
+
+.kvm__screen :focus-visible {
   outline-offset: -2px;
-}
-
-/* ---------- Aisle strip ----------
- * One slat per rack in aisle order, each in that project's colour. The
- * slats power on left to right once the panel has opened. */
-
-.aisle {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: flex-end;
-  gap: 3px;
-  height: 22px;
-}
-
-.aisle__slat {
-  width: 4px;
-  height: 12px;
-  background: var(--slat);
-  border-radius: 1px;
-  opacity: 0.38;
-  transform: scaleY(0);
-  transform-origin: bottom;
-  transition: transform 120ms ease-in;
-}
-
-.aisle__slat--wing {
-  margin-left: 6px;
-}
-
-.aisle__slat--active {
-  height: 22px;
-  opacity: 1;
-  box-shadow: 0 0 8px var(--slat);
-}
-
-.panel--open .aisle__slat {
-  transform: scaleY(1);
-  transition:
-    transform 200ms ease-out calc(440ms + var(--i) * 14ms),
-    height 200ms ease-out,
-    opacity 200ms ease-out;
 }
 
 /* ---------- Body ---------- */
@@ -190,50 +356,15 @@
 
 /* ---------- Project card ---------- */
 
-.project-card__nav {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.project-card__nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--panel-muted);
-  border-radius: 2px;
-  transition:
-    color 140ms ease,
-    background 140ms ease;
-}
-
-.project-card__nav-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.project-card__nav-name {
-  max-width: 120px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 /* The demo box is always 2:1. The recorders capture 1440 px wide for this
    720 CSS px box; contain keeps any other source whole. */
 .project-card__media {
   position: relative;
   flex-shrink: 0;
   aspect-ratio: 2 / 1;
-  background: var(--panel-screen);
+  /* Short screens keep the links above the fold; contain letterboxes. */
+  max-height: 42vh;
+  background: #000;
 }
 
 .panel__hero {
@@ -296,7 +427,6 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--accent);
-  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 30%, transparent);
   text-wrap: balance;
 }
 
@@ -368,17 +498,16 @@
   color: var(--bg-deep);
   background: var(--accent);
   border-radius: 2px;
-  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 30%, transparent);
   transition:
-    box-shadow 150ms ease,
+    translate 120ms ease-out,
     filter 150ms ease;
 }
 
 .project-card__cta--primary:hover,
 .contact-cta--primary:hover {
   text-decoration: none;
-  filter: brightness(1.1);
-  box-shadow: 0 0 32px color-mix(in srgb, var(--accent) 50%, transparent);
+  filter: brightness(1.12);
+  translate: 0 -1px;
 }
 
 .project-card__cta--secondary,
@@ -413,13 +542,12 @@
 
 /* ---------- Console ---------- */
 
-.panel--console {
-  width: min(1080px, calc(100vw - 48px));
+.panel--project {
+  width: min(1000px, calc(100vw - 48px - var(--ear) * 2));
 }
 
-.panel--console .panel__header .aisle {
-  flex: 1;
-  justify-content: center;
+.panel--console {
+  width: min(1080px, calc(100vw - 48px - var(--ear) * 2));
 }
 
 .console {
@@ -731,7 +859,7 @@
 /* ---------- Contact ---------- */
 
 .panel--contact {
-  width: min(560px, calc(100vw - 48px));
+  width: min(620px, calc(100vw - 48px - var(--ear) * 2));
 }
 
 .panel--contact .panel__body {
@@ -819,52 +947,55 @@
 
 @media (max-width: 720px) {
   .panel,
+  .panel--project,
   .panel--console,
   .panel--contact {
+    --u: 56px;
     top: auto;
     bottom: 0;
     left: 0;
     width: 100%;
-    max-height: 84dvh;
-    transform: translateY(100%);
-    transition:
-      opacity 200ms ease-in,
-      transform 200ms ease-in;
+    max-height: 86dvh;
+    transform: none;
   }
 
-  .panel--open,
-  .panel--open.panel--console,
-  .panel--open.panel--contact {
-    transform: translateY(0);
-    transition:
-      opacity 160ms ease-out 280ms,
-      transform 340ms cubic-bezier(0.2, 0.8, 0.2, 1) 280ms;
+  .kvm__lid {
+    margin-inline: 0;
+    border-width: 12px 10px;
+    border-image-width: 12px 10px;
   }
 
-  .panel__inner,
-  .panel--open .panel__inner {
+  .kvm__tray {
+    height: calc(var(--u) + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
-    border-width: 1px 0 0;
-    clip-path: none;
-  }
-
-  .panel__header {
+    border-width: 3px 6px;
+    border-image-width: 3px 6px;
     gap: 10px;
-    padding: 0 6px 0 16px;
   }
 
-  .project-card__nav {
-    gap: 4px;
-  }
-
-  .project-card__nav-btn {
-    justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  .project-card__nav-name {
+  .kvm__tray::before,
+  .kvm__tray::after,
+  .kvm__handle {
     display: none;
+  }
+
+  /* Fifteen keys don't fit a phone drawer; prev/next and the
+     rack itself carry navigation here. */
+  .kvm-ports {
+    display: none;
+  }
+
+  .kvm__controls {
+    justify-content: flex-end;
+  }
+
+  .kvm__step-btn {
+    width: 44px;
+    height: 36px;
+  }
+
+  .kvm__label {
+    max-width: 46vw;
   }
 
   .project-card__text {
@@ -923,33 +1054,15 @@
   }
 }
 
-/* At the narrowest phones the decorative strip gives way so the prev/next
-   buttons keep their full touch targets. */
-@media (max-width: 380px) {
-  .project-card__nav .aisle {
-    display: none;
-  }
-}
-
 /* ---------- Reduced motion ----------
  * Opacity only. The panel is placed at its final position and nothing
  * moves, clips or powers on. */
 
 @media (prefers-reduced-motion: reduce) {
-  .panel,
-  .panel--open {
-    transform: translate(-50%, -50%);
-    transition: opacity 120ms linear;
-  }
-
-  .panel__inner,
-  .panel--open .panel__inner {
-    clip-path: none;
-    transition: none;
-  }
-
-  .aisle__slat,
-  .panel--open .aisle__slat {
+  .kvm__lid,
+  .panel--open .kvm__lid,
+  .kvm__tray,
+  .panel--open .kvm__tray {
     transform: none;
     transition: none;
   }
@@ -960,14 +1073,5 @@
 
   .console-status__item--flash {
     animation: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) and (max-width: 720px) {
-  .panel,
-  .panel--open,
-  .panel--console,
-  .panel--contact {
-    transform: none;
   }
 }
